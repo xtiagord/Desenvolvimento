@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Bootstrap Datepicker CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="/public/landing.css">
     <style>
         .dropzone {
             border: 2px dashed #007bff;
@@ -17,7 +18,7 @@
             cursor: pointer;
         }
         .dropzone.dragover {
-            background-color: #e9ecef;
+            background-color: #f5f5f5;
         }
         #image-preview {
             max-width: 100%;
@@ -27,72 +28,109 @@
     </style>
 </head>
 <body>
+    <header>
+        <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark ">
+            <a class="navbar-brand" href="#">
+                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+                Valmarc
+              </a>
+            <a class="nav-item nav-link active" href="#">Pastas</a>
+            <a class="nav-item nav-link " href="#">Conversores</a>
+            <a class="nav-item nav-link" href="/public/Extrator.html">Extrator</a>
+            <a class="nav-item nav-link " href="/public/Cadastro.html">Cadastro Clientes</a>
+          </nav>
+    </header>
+    
     <div class="container mt-5">
-        <h1>Create Subfolder</h1>
+        <h1>Criar Pastas</h1>
         <form id="create-folder-form">
-            <div class="form-group">
-                <label for="date">Select Date:</label>
-                <input type="text" class="form-control" id="date" name="date" placeholder="DD/MM/YYYY" required>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="date">Selecione a data:</label>
+                    <input type="text" class="form-control" id="date" name="date" placeholder="DD/MM/YYYY" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="mainFolder">Selecione o país:</label>
+                    <select class="form-control" id="mainFolder" name="mainFolder">
+                        <option value="ENTREGAS">BRASIL</option>
+                        <option value="- PARAGUAI">PARAGUAI</option>
+                        <option value="- BOLIVIA">BOLIVIA</option>
+                    </select>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="mainFolder">Select Main Folder:</label>
-                <select class="form-control" id="mainFolder" name="mainFolder">
-                    <option value="ENTREGAS">ENTREGAS</option>
-                    <option value="- PARAGUAI">PARAGUAI</option>
-                    <option value="- ARGENTINA">ARGENTINA</option>
-                </select>
+    
+            <div class="form-row">
+                <!-- Segunda linha -->
+                <div class="form-group col-md-4">
+                    <label for="baseFolder">Selecione nome do fornecedor:</label>
+                    <select class="form-control" id="baseFolder" name="baseFolder" disabled>
+                        <option value="- ADRIANO">- ADRIANO</option>
+                        <option value="- ANDERSON">- ANDERSON</option>
+                        <option value="- ARIEL">- ARIEL</option>
+                        <option value="- CLAUDIO">- CLAUDIO</option>
+                        <option value="- DEPOSITO">- DEPOSITO</option>
+                        <option value="- DARIO">- DARIO</option>
+                        <option value="- FREDY">- FREDY</option>
+                        <option value="- IGOR">- IGOR</option>
+                        <option value="- JOSE">- JOSE</option>
+                        <option value="- LUCAS">- LUCAS</option>
+                        <option value="- NELSON">- NELSON</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="subFolderName">Nome do comprador:</label>
+                    <input type="text" class="form-control" id="subFolderName" name="subFolderName" required>
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="directory">Diretorio de Destino:</label>
+                    <input type="text" class="form-control" id="directory" name="directory" required>
+                </div>
             </div>
+    
             <div class="form-group">
-                <label for="baseFolder">Select Base Folder:</label>
-                <select class="form-control" id="baseFolder" name="baseFolder" disabled>
-                    <option value="- ADRIANO">- ADRIANO</option>
-                    <option value="- ANDERSON">- ANDERSON</option>
-                    <option value="- ARIEL">- ARIEL</option>
-                    <option value="- CLAUDIO">- CLAUDIO</option>
-                    <option value="- DEPOSITO">- DEPOSITO</option>
-                    <option value="- DARIO">- DARIO</option>
-                    <option value="- FREDY">- FREDY</option>
-                    <option value="- IGOR">- IGOR</option>
-                    <option value="- JOSE">- JOSE</option>
-                    <option value="- LUCAS">- LUCAS</option>
-                    <option value="- NELSON">- NELSON</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="subFolderName">Subfolder Name:</label>
-                <input type="text" class="form-control" id="subFolderName" name="subFolderName" required>
-            </div>
-            <div class="form-group">
-                <label for="directory">Directory:</label>
-                <input type="text" class="form-control" id="directory" name="directory" required>
-            </div>
-            <div class="form-group">
-                <label for="file">Upload File:</label>
+                <label for="file">Upload da Foto:</label>
                 <div id="dropzone" class="dropzone">
-                    Drag & Drop files here or click to upload
+                    Selecione e arraste a foto ou clique aqui
                 </div>
                 <input type="file" class="form-control" id="file" name="file" style="display:none;">
                 <img id="image-preview" src="" alt="Image Preview" style="display:none;">
             </div>
             <div class="form-group">
-                <label for="newFileName">New File Name:</label>
+                <label for="newFileName">Nome da FOTO:</label>
                 <input type="text" class="form-control" id="newFileName" name="newFileName" placeholder="New file name without extension" required>
             </div>
-            <button type="submit" class="btn btn-primary">Create Subfolder</button>
+            <div class="form-group">
+                <label for="pdfFile">Upload PDF (Opcional):</label>
+                <div id="pdf-dropzone" class="dropzone">
+                    Selecione e arraste o PDF ou clique aqui
+                </div>
+                <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" style="display:none;">
+                <span id="pdf-filename"></span>
+            </div>
+    
+            <button type="submit" class="btn btn-primary">Criar Pasta</button>
         </form>
         <p id="result"></p>
-        <hr>
-        <button id="toggle-folders" class="btn btn-secondary">Show Last 10 Created Folders</button>
-        <table class="table mt-3" id="folders-table" style="display: none;">
-            <thead>
-                <tr>
-                    <th>Path</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        
+        <!-- Botões um ao lado do outro -->
+        <div class="row mt-3">
+            <div class="col">
+                <button id="toggle-folders" class="btn btn-secondary">Mostrar 10 últimas pastas criadas</button>
+            </div>
+            <div class="col">
+                <table class="table mt-3" id="folders-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Caminho</th>
+                            <th>Data da criação</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </div>
+    
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -118,7 +156,7 @@
                 }
             });
 
-            // Drag and Drop
+            // Drag and Drop for image
             let dropzone = document.getElementById('dropzone');
             let fileInput = document.getElementById('file');
             let imagePreview = document.getElementById('image-preview');
@@ -139,7 +177,7 @@
                 const file = e.dataTransfer.files[0];
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
-                    reader.onload = function(event) {
+                    reader.onload = function(event) { 
                         imagePreview.src = event.target.result;
                         imagePreview.style.display = 'block';
                     }
@@ -172,53 +210,78 @@
                 dropzone.textContent = file.name;
             });
 
-            // Handle form submission
-$('#create-folder-form').on('submit', function(event) {
-    event.preventDefault();
+            // Drag and Drop for PDF
+            let pdfDropzone = document.getElementById('pdf-dropzone');
+            let pdfFileInput = document.getElementById('pdfFile');
+            let pdfFilename = document.getElementById('pdf-filename');
 
-    // Replace spaces with hyphens in subFolderName
-    const subFolderName = $('#subFolderName').val().replace(/\s+/g, ' ');
+            pdfDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                pdfDropzone.classList.add('dragover');
+            });
 
-    // Set the modified subFolderName in formData
-    const formData = new FormData(this);
-    formData.set('subFolderName', subFolderName);
+            pdfDropzone.addEventListener('dragleave', () => {
+                pdfDropzone.classList.remove('dragover');
+            });
 
-    fetch('/create-subfolder', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-        $('#result').text(data);
-        imagePreview.src = ''; // Clear image preview after submission
-        imagePreview.style.display = 'none';
-    })
-    .catch(error => {
-        $('#result').text('Error: ' + error);
-    });
-});
-
-            // Show/Hide last 10 created folders
-            $('#toggle-folders').on('click', function() {
-                const table = $('#folders-table');
-                if (table.is(':visible')) {
-                    table.hide();
-                    $(this).text('Show Last 10 Created Folders');
+            pdfDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                pdfDropzone.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file.type === 'application/pdf') {
+                    pdfFilename.textContent = file.name;
                 } else {
-                    fetch('/last-10-folders')
-                    .then(response => response.json())
-                    .then(data => {
-                        const tableBody = $('#folders-table tbody');
-                        tableBody.empty();
+                    alert('Please drop a PDF file.');
+                }
+                
+                pdfFileInput.files = e.dataTransfer.files;
+                pdfDropzone.textContent = file.name;
+            });
+
+            pdfDropzone.addEventListener('click', () => {
+                pdfFileInput.click();
+            });
+
+            pdfFileInput.addEventListener('change', () => {
+                const file = pdfFileInput.files[0];
+                if (file.type === 'application/pdf') {
+                    pdfFilename.textContent = file.name;
+                } else {
+                    alert('Please select a PDF file.');
+                }
+                
+                pdfDropzone.textContent = file.name;
+            });
+
+            $('#create-folder-form').on('submit', function(event) {
+                event.preventDefault();
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: '/create-subfolder',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        $('#result').text(response);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $('#result').text('Error: ' + textStatus + ' - ' + errorThrown);
+                    }
+                });
+            });
+
+            $('#toggle-folders').on('click', function() {
+                $('#folders-table').toggle();
+                if ($('#folders-table').is(':visible')) {
+                    $.get('/last-10-folders', function(data) {
+                        let rows = '';
                         data.forEach(folder => {
-                            const row = `<tr><td>${folder.path}</td><td>${folder.createdAt}</td></tr>`;
-                            tableBody.append(row);
+                            rows += `<tr><td>${folder.path}</td><td>${folder.createdAt}</td></tr>`;
                         });
-                        table.show();
-                        $(this).text('Hide Last 10 Created Folders');
-                    })
-                    .catch(error => {
-                        $('#result').text('Error fetching folders: ' + error);
+                        $('#folders-table tbody').html(rows);
                     });
                 }
             });

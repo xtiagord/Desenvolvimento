@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lançamentos de Análises</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <header>
+        <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">
+                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+                Valmarc
+            </a>
+            <a class="nav-item nav-link" href="/index.html">Pastas</a>
+            <a class="nav-item nav-link " href="#">Conversores</a>
+            <a class="nav-item nav-link active" href="/public/Extrator.html">Extrator</a>
+            <a class="nav-item nav-link " href="/public/Cadastro.html">Cadastro Clientes</a>
+        </nav>
+    </header>
+    <div class="container mt-5">
+        <h2>PDF to Excel Converter</h2>
+        <div class="form-group">
+            <button id="select-pdf" class="btn btn-primary">Select PDF</button>
+        </div>
+        <p id="selected-file">No file selected</p>
+        <div class="form-group">
+            <button id="convert" class="btn btn-success" disabled>Convert to Excel</button>
+        </div>
+    </div>
+    <script>
+        const selectPdfButton = document.getElementById('select-pdf');
+        const selectedFileText = document.getElementById('selected-file');
+        const convertButton = document.getElementById('convert');
+
+        let selectedPdfPath = '';
+
+        selectPdfButton.addEventListener('click', async () => {
+            try {
+                console.log("Select PDF button clicked");
+                const pdfPath = await window.electron.selectPdf();
+                if (pdfPath) {
+                    console.log("PDF selected:", pdfPath);
+                    selectedPdfPath = pdfPath;
+                    selectedFileText.textContent = `Selected file: ${pdfPath}`;
+                    convertButton.disabled = false;
+                }
+            } catch (error) {
+                console.error("Error selecting PDF:", error);
+            }
+        });
+
+        convertButton.addEventListener('click', async () => {
+            try {
+                console.log("Convert button clicked");
+                if (selectedPdfPath) {
+                    const excelPath = await window.electron.saveExcel(selectedPdfPath);
+                    if (excelPath) {
+                        alert(`Excel file saved: ${excelPath}`);
+                    }
+                }
+            } catch (error) {
+                console.error("Error converting to Excel:", error);
+            }
+        });
+    </script>
+</body>
+</html>

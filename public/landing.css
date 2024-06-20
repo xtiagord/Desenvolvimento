@@ -1,0 +1,15 @@
+.dropzone {
+    border: 2px dashed #007bff;
+    padding: 20px;
+    text-align: center;
+    color: #007bff;
+    cursor: pointer;
+}
+.dropzone.dragover {
+    background-color: #f5f5f5;
+}
+#image-preview {
+    max-width: 100%;
+    max-height: 300px;
+    margin-top: 20px;
+}

@@ -9,9 +9,9 @@ const PORT = 3001;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(express.static('public'));
 
+// Multer setup for file uploads
 const upload = multer({ dest: 'uploads/' });
 
 // File to store information about created folders
@@ -44,14 +44,38 @@ const updateFoldersInfo = (folderPath) => {
     fs.writeFileSync(foldersInfoFile, JSON.stringify(foldersInfo, null, 2));
 };
 
-app.post('/create-subfolder', upload.single('file'), (req, res) => {
+
+// Function to handle PDF file upload
+const handlePdfFile = (req, res, subFolderPath) => {
+    if (req.files['pdfFile']) {
+        const pdfFile = req.files['pdfFile'][0];
+        const tempPdfPath = pdfFile.path;
+
+        // Move PDF file to the subfolder with original name
+        const originalPdfPath = path.join(subFolderPath, pdfFile.originalname);
+        fs.copyFile(tempPdfPath, originalPdfPath, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Error copying PDF file.');
+            }
+            fs.unlink(tempPdfPath, (err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send('Error deleting temporary PDF file.');
+                }
+            });
+        });
+    }
+};
+
+app.post('/create-subfolder', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]), (req, res) => {
     const { date, mainFolder, baseFolder, subFolderName, directory, newFileName } = req.body;
 
     if (!date || !mainFolder || !subFolderName || !directory || !newFileName) {
         return res.status(400).send('Date, main folder, subfolder name, directory, and new file name are required.');
     }
 
-    // Formatar a data corretamente para o nome da pasta
+    // Format the date correctly for the folder name
     const dateParts = date.split('/');
     if (dateParts.length !== 3) {
         return res.status(400).send('Invalid date format. Please use DD/MM/YYYY.');
@@ -60,18 +84,18 @@ app.post('/create-subfolder', upload.single('file'), (req, res) => {
     const [day, month, year] = dateParts;
     const formattedDate = `${day}-${month}-${year}`;
 
-    // Caminho para a pasta principal de entregas
+    // Path for the main delivery folder
     const mainFolderPath = path.join(directory, `ENTREGAS ${formattedDate}`);
 
-    // Caminho para a subpasta específica (Argentina ou Paraguai)
+    // Path for the specific subfolder (Argentina or Paraguay)
     let specificFolderPath;
-    if (mainFolder === '- PARAGUAI' || mainFolder === '- ARGENTINA') {
+    if (mainFolder === '- PARAGUAI' || mainFolder === '- BOLIVIA') {
         specificFolderPath = path.join(mainFolderPath, mainFolder);
     } else {
         specificFolderPath = mainFolderPath;
     }
 
-    // Caminho para a subpasta dentro da específica
+    // Path for the subfolder within the specific subfolder
     const subFolderPath = mainFolder === 'ENTREGAS' ? path.join(specificFolderPath, subFolderName) : path.join(specificFolderPath, baseFolder, subFolderName);
 
     fs.mkdir(subFolderPath, { recursive: true }, (err) => {
@@ -80,19 +104,20 @@ app.post('/create-subfolder', upload.single('file'), (req, res) => {
         }
 
         // Move the uploaded file to the created subfolder
-        if (req.file) {
-            const tempPath = req.file.path;
-            const fileExt = path.extname(req.file.originalname);
+        if (req.files['file']) {
+            const file = req.files['file'][0];
+            const tempPath = file.path;
+            const fileExt = path.extname(file.originalname);
             const targetPath = path.join(subFolderPath, newFileName + fileExt);
 
-            // Copiar o arquivo para o destino
+            // Copy the file to the destination
             fs.copyFile(tempPath, targetPath, (err) => {
                 if (err) {
                     console.error(err);
                     return res.status(500).send('Error copying the uploaded file.');
                 }
 
-                // Remover o arquivo temporário após a cópia bem-sucedida
+                // Delete the temporary file after successful copy
                 fs.unlink(tempPath, (err) => {
                     if (err) {
                         console.error(err);
@@ -102,13 +127,21 @@ app.post('/create-subfolder', upload.single('file'), (req, res) => {
                     // Update folders info
                     updateFoldersInfo(subFolderPath);
 
+                    // Handle PDF file if uploaded
+                    handlePdfFile(req, res, subFolderPath);
+
+                    // Sending final response
                     res.send('Subfolder and file created successfully.');
                 });
             });
         } else {
             // Update folders info
             updateFoldersInfo(subFolderPath);
-            
+
+            // Handle PDF file if uploaded
+            handlePdfFile(req, res, subFolderPath);
+
+            // Sending final response
             res.send('Subfolder created successfully.');
         }
     });
@@ -124,6 +157,16 @@ app.get('/last-10-folders', (req, res) => {
         res.json([]);
     }
 });
+
+// Serve the Cadastro.html file
+app.get('/public/Cadastro.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Cadastro.html'));
+});
+
+app.get('/public/Extrator.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Extrator.html'));
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
