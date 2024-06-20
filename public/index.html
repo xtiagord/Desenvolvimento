@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Subfolder</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Bootstrap Datepicker CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <style>
+        .dropzone {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            text-align: center;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .dropzone.dragover {
+            background-color: #e9ecef;
+        }
+        #image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Create Subfolder</h1>
+        <form id="create-folder-form">
+            <div class="form-group">
+                <label for="date">Select Date:</label>
+                <input type="text" class="form-control" id="date" name="date" placeholder="DD/MM/YYYY" required>
+            </div>
+            <div class="form-group">
+                <label for="mainFolder">Select Main Folder:</label>
+                <select class="form-control" id="mainFolder" name="mainFolder">
+                    <option value="ENTREGAS">ENTREGAS</option>
+                    <option value="- PARAGUAI">PARAGUAI</option>
+                    <option value="- ARGENTINA">ARGENTINA</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="baseFolder">Select Base Folder:</label>
+                <select class="form-control" id="baseFolder" name="baseFolder" disabled>
+                    <option value="- ADRIANO">- ADRIANO</option>
+                    <option value="- ANDERSON">- ANDERSON</option>
+                    <option value="- ARIEL">- ARIEL</option>
+                    <option value="- CLAUDIO">- CLAUDIO</option>
+                    <option value="- DEPOSITO">- DEPOSITO</option>
+                    <option value="- DARIO">- DARIO</option>
+                    <option value="- FREDY">- FREDY</option>
+                    <option value="- IGOR">- IGOR</option>
+                    <option value="- JOSE">- JOSE</option>
+                    <option value="- LUCAS">- LUCAS</option>
+                    <option value="- NELSON">- NELSON</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="subFolderName">Subfolder Name:</label>
+                <input type="text" class="form-control" id="subFolderName" name="subFolderName" required>
+            </div>
+            <div class="form-group">
+                <label for="directory">Directory:</label>
+                <input type="text" class="form-control" id="directory" name="directory" required>
+            </div>
+            <div class="form-group">
+                <label for="file">Upload File:</label>
+                <div id="dropzone" class="dropzone">
+                    Drag & Drop files here or click to upload
+                </div>
+                <input type="file" class="form-control" id="file" name="file" style="display:none;">
+                <img id="image-preview" src="" alt="Image Preview" style="display:none;">
+            </div>
+            <div class="form-group">
+                <label for="newFileName">New File Name:</label>
+                <input type="text" class="form-control" id="newFileName" name="newFileName" placeholder="New file name without extension" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Subfolder</button>
+        </form>
+        <p id="result"></p>
+        <hr>
+        <button id="toggle-folders" class="btn btn-secondary">Show Last 10 Created Folders</button>
+        <table class="table mt-3" id="folders-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Path</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Bootstrap Datepicker JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize the datepicker
+            $('#date').datepicker({
+                format: 'dd/mm/yyyy',
+                autoclose: true
+            });
+
+            // Manage main folder selection
+            $('#mainFolder').change(function() {
+                if ($(this).val() === 'ENTREGAS') {
+                    $('#baseFolder').prop('disabled', true);
+                } else {
+                    $('#baseFolder').prop('disabled', false);
+                }
+            });
+
+            // Drag and Drop
+            let dropzone = document.getElementById('dropzone');
+            let fileInput = document.getElementById('file');
+            let imagePreview = document.getElementById('image-preview');
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('dragover');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                
+                const file = e.dataTransfer.files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please drop an image file.');
+                }
+                
+                fileInput.files = e.dataTransfer.files;
+                dropzone.textContent = file.name;
+            });
+
+            dropzone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', () => {
+                const file = fileInput.files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imagePreview.src = event.target.result;
+                        imagePreview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('Please select an image file.');
+                }
+                
+                dropzone.textContent = file.name;
+            });
+
+            // Handle form submission
+$('#create-folder-form').on('submit', function(event) {
+    event.preventDefault();
+
+    // Replace spaces with hyphens in subFolderName
+    const subFolderName = $('#subFolderName').val().replace(/\s+/g, ' ');
+
+    // Set the modified subFolderName in formData
+    const formData = new FormData(this);
+    formData.set('subFolderName', subFolderName);
+
+    fetch('/create-subfolder', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        $('#result').text(data);
+        imagePreview.src = ''; // Clear image preview after submission
+        imagePreview.style.display = 'none';
+    })
+    .catch(error => {
+        $('#result').text('Error: ' + error);
+    });
+});
+
+            // Show/Hide last 10 created folders
+            $('#toggle-folders').on('click', function() {
+                const table = $('#folders-table');
+                if (table.is(':visible')) {
+                    table.hide();
+                    $(this).text('Show Last 10 Created Folders');
+                } else {
+                    fetch('/last-10-folders')
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableBody = $('#folders-table tbody');
+                        tableBody.empty();
+                        data.forEach(folder => {
+                            const row = `<tr><td>${folder.path}</td><td>${folder.createdAt}</td></tr>`;
+                            tableBody.append(row);
+                        });
+                        table.show();
+                        $(this).text('Hide Last 10 Created Folders');
+                    })
+                    .catch(error => {
+                        $('#result').text('Error fetching folders: ' + error);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
