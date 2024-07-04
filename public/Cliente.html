@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar Cliente</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Bootstrap Datepicker CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+    <link rel="stylesheet" href="/public/landing.css">
+</head>
+<body>
+    <header>
+        <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark ">
+            <a class="navbar-brand" href="#">
+                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+                Valmarc
+            </a>
+            <a class="nav-item nav-link" href="/index.html">Pastas</a>
+            <a class="nav-item nav-link active" href="/public/Cliente.html">Cooperados</a>
+            <a class="nav-item nav-link" href="/Extrator.html">Lançamentos</a>
+            <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
+        </nav>
+    </header>
+
+    <div class="container mt-5">
+        <h2>Cadastrar Cliente</h2>
+        <form id="clientForm">
+            <div class="form-group">
+                <label for="nome">Nome</label>
+                <input type="text" class="form-control" id="nome" required>
+            </div>
+            <div class="form-group">
+                <label for="cpf">CPF</label>
+                <input type="text" class="form-control" id="cpf" required>
+            </div>
+            <div class="form-group">
+                <label for="representante">Representante</label>
+                <select class="form-control" id="representante" required>
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Cadastrar</button>
+           
+        </form>
+
+        <div>
+        <button class="btn btn-primary" onclick="carregarCooperados()">Atualizar Lista</button>
+            <h2>Lista de Cooperados</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Representante</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="cooperadosTableBody">
+                    <!-- Linhas da tabela serão populadas dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+
+    <!-- jQuery, Popper.js, Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- JavaScript para manipulação do formulário -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cooperadosTableBody = document.getElementById('cooperadosTableBody');
+            // Carregar representantes do banco de dados
+            fetch('/api/representantes')
+        .then(response => response.json())
+        .then(data => {
+            const representanteSelect = document.getElementById('representante');
+            data.forEach(representante => {
+                const option = document.createElement('option');
+                option.value = representante.id;
+                option.textContent = representante.nome;
+                representanteSelect.appendChild(option);
+
+                console.log('Representante:', representante.id, representante.nome);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar representantes:', error);
+        });
+
+            // Enviar dados do formulário para o backend
+            document.getElementById('clientForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const nome = document.getElementById('nome').value;
+                const cpf = document.getElementById('cpf').value;
+                const representanteId = document.getElementById('representante').value;
+
+                fetch('/api/cooperados', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ nome, cpf, representanteId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Cliente cadastrado com sucesso!');
+                    } else {
+                        alert('Erro ao cadastrar cliente!');
+                    }
+                })
+                .catch(error => console.error('Erro:', error));
+            });
+        });
+    function carregarCooperados() {
+    const cooperadosTableBody = document.getElementById('cooperadosTableBody');
+    cooperadosTableBody.innerHTML = ''; // Limpa a tabela antes de atualizar
+
+    fetch('/api/cooperados')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar cooperados: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(cooperados => {
+            cooperados.forEach(cooperado => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${cooperado.nome}</td>
+                    <td>${cooperado.cpf}</td>
+                    <td>${cooperado.representante_nome}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editarCooperado(${cooperado.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="excluirCooperado(${cooperado.id})">Excluir</button>
+                    </td>
+                `;
+                cooperadosTableBody.appendChild(row);
+            });
+        })
+        .catch(error => console.error(error)); // Exibe o erro no console
+}
+
+    function editarCooperado(cooperadoId) {
+
+        console.log('Editar cooperado:', cooperadoId);
+    }
+
+    function excluirCooperado(cooperadoId) {
+        if (confirm('Tem certeza que deseja excluir este cooperado?')) {
+            fetch(`/api/cooperados/${cooperadoId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Cooperado excluído:', data);
+                // Recarregar a tabela de cooperados após exclusão
+                cooperadosTableBody.innerHTML = '';
+                carregarCooperados();
+            })
+            .catch(error => console.error('Erro ao excluir cooperado:', error));
+        }
+    }
+    </script>
+</body>
+</html>

@@ -6,6 +6,7 @@
     <title>Lançamentos de Análises</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
     <header>
@@ -15,127 +16,120 @@
                 Valmarc
               </a>
             <a class="nav-item nav-link" href="/index.html">Pastas</a>
-            <a class="nav-item nav-link " href="#">Conversores</a>
-            <a class="nav-item nav-link" href="/public/Extrator.html">Extrator</a>
-            <a class="nav-item nav-link active" href="/public/Cadastro.html">Cadastro Clientes</a>
+            <a class="nav-item nav-link " href="/public/Cliente.html">Cooperados</a>
+            <a class="nav-item nav-link" href="/Extrator.html">Lançamentos</a>
+            <a class="nav-item nav-link active" href="/public/Cadastro.html">Representante</a>
           </nav>
-    </header>   
-    <div class="container mt-6">
-        <h1>Lançamentos de Análises</h1>
-        <form>
-            <div class="form-row">
-                <div class="form-group col">
-                    <label for="clientName">Comprador</label>
-                    <input type="text" class="form-control" id="clientName" placeholder="Comprador">
-                </div>
-                <div class="form-group col">
-                    <label for="clientSN">SN</label>
-                    <input type="text" class="form-control" id="clientSN" placeholder="SN">
-                </div>
-                <div class="form-group col">
-                    <label for="clientTipo">Tipo</label>
-                    <input type="number" class="form-control" id="clientTipo" placeholder="Tipo">
-                </div>
-                <div class="form-group col">
-                    <label for="clientValorTotal">Total</label>
-                    <input type="number" class="form-control" id="clientValorTotal" placeholder="Valor Total">
-                </div>
-                <div class="form-group col">
-                    <label for="clientHedge">Hedge</label>
-                    <input type="number" class="form-control" id="clientHedge" placeholder="Hedge">
-                </div>
-                <div class="form-group col">
-                    <label for="clientKg">kg</label>
-                    <input type="number" class="form-control" id="clientKg" placeholder="kg">
-                </div>
-                <div class="form-group col">
-                    <label for="clientPd">Pd</label>
-                    <input type="number" class="form-control" id="clientPd" placeholder="Pd">
-                </div>
-                <div class="form-group col">
-                    <label for="clientPt">Pt</label>
-                    <input type="number" class="form-control" id="clientPt" placeholder="Pt">
-                </div>
-                <div class="form-group col">
-                    <label for="clientRh">Rh</label>
-                    <input type="number" class="form-control" id="clientRh" placeholder="Rh">
-                </div>
-                <div class="form-group col">
-                    <label for="clientDataCompra">Data Compra</label>
-                    <input type="date" class="form-control" id="clientDataCompra" placeholder="Data Compra">
-                </div>
-                <div class="form-group col">
-                    <label for="clientHora">Hora</label>
-                    <input type="time" class="form-control" id="clientHora" placeholder="Hora">
-                </div>
+    </header>
+    <body>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-3 mt-3">
+              <button type="button" class="btn btn-primary btn-lg btn-uniform" data-toggle="modal" data-target="#clientModal">Cliente: ADRIANO</button>
+            </div>   
+            <!-- ... outros botões ... -->
+            <div class="col-md-3 mt-3">
+              <button type="button" class="btn btn-danger btn-lg btn-uniform">Cliente: EXCLUIR</button>
+            </div> 
+          </div>
+        </div>
+
+    <div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="clientModalLabel">Detalhes do Cliente</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
             </div>
-        </form>
-    </div>
-            <table class="table table-hover table-dark">
+            <div class="modal-body">
+              <table class="table table-hover table-dark modal-table">
                 <thead>
                   <tr>
-                    <th scope="col">Comprador</th>
-                    <th scope="col">SN</th>
-                    <th scope="col">Tipo</th>
-                    <th scope="col">Valor Total</th>
-                    <th scope="col">Hedge</th>
-                    <th scope="col">kg</th>
-                    <th scope="col">Pd</th>
-                    <th scope="col">Pt</th>
-                    <th scope="col">Rh</th>
-                    <th scope="col">Data Compra</th>
+                    <th scope="col">Nº PDF</th>
+                    <th scope="col">KG</th>
+                    <th scope="col">PD</th>
+                    <th scope="col">PT</th>
+                    <th scope="col">RH</th>
+                    <th scope="col">Valor/Kg</th>
+                    <th scope="col">Valor</th>
+                    <th scope="col">Data</th>
                     <th scope="col">Hora</th>
+                    <th scope="col">Representante</th>
+                    <th scope="col">Fornecedor</th>
                   </tr>
                 </thead>
-                <tbody>
-                  <tr>
-                    <th scope="row">VIVIAN PC</th>
-                    <td>1</td>
-                    <td>CAMBE 473</td>
-                    <td>R$ 586,54</td>
-                    <td>5</td>
-                    <td>3,290</td>
-                    <td>1,2110</td>
-                    <td>0,0000</td>
-                    <td>0,1410</td>
-                    <td>27/05/2024</td>
-                    <td>10:20:00</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">VIVIAN PC</th>
-                    <td>1</td>
-                    <td>CAMBE 473</td>
-                    <td>R$ 586,54</td>
-                    <td>5</td>
-                    <td>3,290</td>
-                    <td>1,2110</td>
-                    <td>0,0000</td>
-                    <td>0,1410</td>
-                    <td>27/05/2024</td>
-                    <td>10:20:00</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">VIVIAN PC</th>
-                    <td>1</td>
-                    <td>CAMBE 473</td>
-                    <td>R$ 586,54</td>
-                    <td>5</td>
-                    <td>3,290</td>
-                    <td>1,2110</td>
-                    <td>0,0000</td>
-                    <td>0,1410</td>
-                    <td>27/05/2024</td>
-                    <td>10:20:00</td>
-                  </tr>
+                <tbody id="data-table-body">
+                  <!-- Linhas da tabela serão inseridas aqui -->
                 </tbody>
               </table>
-            <button type="submit" class="btn btn-primary">Cadastrar</button>
-        </form>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+              <button type="button" class="btn btn-primary">Salvar mudanças</button>
+            </div>
+          </div>
+        </div>
     </div>
-    
+   
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <!-- Bootstrap JavaScript -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+        $('#clientModal').on('show.bs.modal', function () {
+            $.ajax({
+                url: '/api/dados',
+                method: 'GET',
+                success: function(data) {
+                    console.log(data); // Verifique a estrutura dos dados recebidos
+
+                    const tableBody = $('#data-table-body');
+                    tableBody.empty(); // Limpar o corpo da tabela
+
+                    data.forEach(item => {
+                        const row = `
+                            <tr>
+                                <td>${item.Npdf}</td>
+                                <td>${item.kg}</td>
+                                <td>${item.Pd}</td>
+                                <td>${item.Pt}</td>
+                                <td>${item.Rh}</td>
+                                <td>${item.ValorKg}</td>
+                                <td>${item.Valor}</td>
+                                <td>${item.Data}</td>
+                                <td>${item.Hora}</td>
+                                <td>${item.Representante}</td>
+                                <td>${item.Fornecedor}</td>
+                            </tr>
+                        `;
+                        tableBody.append(row);
+                    });
+                },
+                error: function(err) {
+                    console.error("Erro ao buscar dados:", err);
+                }
+            });
+        });
+    });
+    </script>
+    <style>
+      .modal-body {
+        max-height: 600px; /* Defina uma altura máxima para o corpo do modal */
+        overflow-y: auto; /* Habilita a rolagem vertical no modal */
+        position: relative; /* Garante que o cabeçalho fixo fique dentro do modal */
+      }
+    
+      .modal-table thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #343a40; /* Cor de fundo do cabeçalho */
+        color: white; /* Cor do texto do cabeçalho */
+      }
+    </style>
 </body>
 </html>

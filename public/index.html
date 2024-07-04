@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Subfolder</title>
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Bootstrap Datepicker CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     <link rel="stylesheet" href="/public/landing.css">
     <style>
@@ -34,10 +32,10 @@
                 <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
                 Valmarc
               </a>
-            <a class="nav-item nav-link active" href="#">Pastas</a>
-            <a class="nav-item nav-link " href="#">Conversores</a>
-            <a class="nav-item nav-link" href="/public/Extrator.html">Extrator</a>
-            <a class="nav-item nav-link " href="/public/Cadastro.html">Cadastro Clientes</a>
+              <a class="nav-item nav-link  active" href="/index.html">Pastas</a>
+              <a class="nav-item nav-link " href="/public/Cliente.html">Cooperados</a>
+              <a class="nav-item nav-link" href="/Extrator.html">Lançamentos</a>
+              <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
           </nav>
     </header>
     
@@ -60,7 +58,6 @@
             </div>
     
             <div class="form-row">
-                <!-- Segunda linha -->
                 <div class="form-group col-md-4">
                     <label for="baseFolder">Selecione nome do fornecedor:</label>
                     <select class="form-control" id="baseFolder" name="baseFolder" disabled>
@@ -111,8 +108,6 @@
             <button type="submit" class="btn btn-primary">Criar Pasta</button>
         </form>
         <p id="result"></p>
-        
-        <!-- Botões um ao lado do outro -->
         <div class="row mt-3">
             <div class="col">
                 <button id="toggle-folders" class="btn btn-secondary">Mostrar 10 últimas pastas criadas</button>
@@ -130,8 +125,6 @@
             </div>
         </div>
     </div>
-    
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <!-- Bootstrap JavaScript -->
@@ -141,7 +134,6 @@
 
     <script>
         $(document).ready(function() {
-            // Initialize the datepicker
             $('#date').datepicker({
                 format: 'dd/mm/yyyy',
                 autoclose: true
@@ -156,7 +148,6 @@
                 }
             });
 
-            // Drag and Drop for image
             let dropzone = document.getElementById('dropzone');
             let fileInput = document.getElementById('file');
             let imagePreview = document.getElementById('image-preview');
@@ -210,7 +201,6 @@
                 dropzone.textContent = file.name;
             });
 
-            // Drag and Drop for PDF
             let pdfDropzone = document.getElementById('pdf-dropzone');
             let pdfFileInput = document.getElementById('pdfFile');
             let pdfFilename = document.getElementById('pdf-filename');
@@ -273,6 +263,46 @@
                 });
             });
 
+                    document.addEventListener('DOMContentLoaded', function() {
+            var mainFolderSelect = document.getElementById('mainFolder');
+            var baseFolderSelect = document.getElementById('baseFolder');
+
+            mainFolderSelect.addEventListener('change', function() {
+                var selectedCountry = mainFolderSelect.value;
+
+                if (selectedCountry === '- PARAGUAI') {
+                    disableOption(baseFolderSelect, '- DARIO');
+                } else {
+                    enableOption(baseFolderSelect, '- DARIO');
+                }
+            });
+
+            function disableOption(selectElement, optionValue) {
+                var options = selectElement.options;
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].value === optionValue) {
+                        options[i].disabled = true;
+                        break;
+                    }
+                }
+            }
+
+            function enableOption(selectElement, optionValue) {
+                var options = selectElement.options;
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].value === optionValue) {
+                        options[i].disabled = false;
+                        break;
+                    }
+                }
+            }
+
+            var initialCountry = mainFolderSelect.value;
+            if (initialCountry === '- PARAGUAI') {
+                disableOption(baseFolderSelect, '- DARIO');
+            }
+        });
+
             $('#toggle-folders').on('click', function() {
                 $('#folders-table').toggle();
                 if ($('#folders-table').is(':visible')) {
@@ -285,6 +315,89 @@
                     });
                 }
             });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var mainFolderSelect = document.getElementById('mainFolder');
+            var baseFolderSelect = document.getElementById('baseFolder');
+
+            mainFolderSelect.addEventListener('change', function() {
+                var selectedCountry = mainFolderSelect.value;
+
+                if (selectedCountry === '- PARAGUAI') {
+                    disableOption(baseFolderSelect, '- DARIO');
+                } else {
+                    enableOption(baseFolderSelect, '- DARIO');
+                }
+                
+            });
+
+            function disableOption(selectElement, optionValue) {
+                var options = selectElement.options;
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].value === optionValue) {
+                        options[i].disabled = true;
+                        break;
+                    }
+                }
+            }
+
+            function enableOption(selectElement, optionValue) {
+                var options = selectElement.options;
+                for (var i = 0; i < options.length; i++) {
+                    if (options[i].value === optionValue) {
+                        options[i].disabled = false;
+                        break;
+                    }
+                }
+            }
+            var initialCountry = mainFolderSelect.value;
+            if (initialCountry === '- PARAGUAI') {
+                disableOption(baseFolderSelect, '- DARIO');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var mainFolderSelect = document.getElementById('mainFolder');
+            var baseFolderSelect = document.getElementById('baseFolder');
+
+            mainFolderSelect.addEventListener('change', function() {
+                var selectedCountry = mainFolderSelect.value;
+
+                if (selectedCountry === '- PARAGUAI') {
+                    disableOption(baseFolderSelect, ['- DARIO']);
+                } else if (selectedCountry === '- BOLIVIA') {
+                    enableOption(baseFolderSelect, ['- DARIO']);
+                } else {
+                    disableOption(baseFolderSelect, ['- ADRIANO', '- ANDERSON', '- ARIEL', '- CLAUDIO', 
+                                                    '- DEPOSITO', '- FREDY', '- IGOR', '- JOSE', '- LUCAS', '- NELSON']);
+                }
+                
+            });
+
+            function disableOption(selectElement, optionValues) {
+                var options = selectElement.options;
+                for (var i = 0; i < options.length; i++) {
+                    if (optionValues.includes(options[i].value)) {
+                        options[i].disabled = true;
+                    }
+                }
+            }
+
+            function enableOption(selectElement, optionValues) {
+                var options = selectElement.options;
+                for (var i = 0; i < options.length; i++) {
+                    if (optionValues.includes(options[i].value)) {
+                        options[i].disabled = false;
+                    }
+                }
+            }
+            var initialCountry = mainFolderSelect.value;
+            if (initialCountry === '- PARAGUAI') {
+                disableOption(baseFolderSelect, ['- DARIO']);
+            } else if (initialCountry === '- BOLIVIA') {
+                enableOption(baseFolderSelect, ['- DARIO']);
+            }
         });
     </script>
 </body>

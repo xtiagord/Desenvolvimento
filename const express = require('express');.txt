@@ -1,0 +1,217 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const fileUpload = require('express-fileupload');
+const pdfParse = require('pdf-parse');
+
+const app = express();
+const PORT = 3001;
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static('public'));
+app.use(fileUpload());
+
+// Multer setup for file uploads
+const upload = multer({ dest: 'uploads/' });
+
+// File to store information about created folders
+const foldersInfoFile = path.join(__dirname, 'foldersInfo.json');
+
+// Function to read and update folders info
+const updateFoldersInfo = (folderPath) => {
+    let foldersInfo = [];
+
+    // Read existing data
+    if (fs.existsSync(foldersInfoFile)) {
+        const data = fs.readFileSync(foldersInfoFile);
+        foldersInfo = JSON.parse(data);
+    }
+
+    // Add new folder info
+    const newFolderInfo = {
+        path: folderPath,
+        createdAt: new Date().toISOString(),
+    };
+
+    foldersInfo.push(newFolderInfo);
+
+    // Keep only the last 10 entries
+    if (foldersInfo.length > 10) {
+        foldersInfo = foldersInfo.slice(-10);
+    }
+
+    // Write updated data back to file
+    fs.writeFileSync(foldersInfoFile, JSON.stringify(foldersInfo, null, 2));
+};
+
+// Function to handle PDF file upload
+const handlePdfFile = (req, res, subFolderPath) => {
+    if (req.files['pdfFile']) {
+        const pdfFile = req.files['pdfFile'][0];
+        const tempPdfPath = pdfFile.path;
+
+        // Move PDF file to the subfolder with original name
+        const originalPdfPath = path.join(subFolderPath, pdfFile.originalname);
+        fs.copyFile(tempPdfPath, originalPdfPath, (err) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send('Error copying PDF file.');
+            }
+            fs.unlink(tempPdfPath, (err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send('Error deleting temporary PDF file.');
+                }
+            });
+        });
+    }
+};
+
+function extractTableData(text) {
+    console.log("Texto do PDF extraído:", text); // Log do texto extraído
+    
+    const tableRegex = /(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)/g;
+
+    const tableData = [];
+    let match;
+
+    while ((match = tableRegex.exec(text)) !== null) {
+        tableData.push({
+            kh: match[1],
+            pd: match[2],
+            pt: match[3],
+            rh: match[4],
+            valorKg: match[5],
+            valor: match[6]
+        });
+    }
+
+    console.log("Dados extraídos:", tableData); // Log dos dados extraídos
+    return tableData;
+}
+
+// Rota para criar subpastas e mover arquivos
+app.post('/create-subfolder', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]), (req, res) => {
+    const { date, mainFolder, baseFolder, subFolderName, directory, newFileName } = req.body;
+
+    if (!date || !mainFolder || !subFolderName || !directory || !newFileName) {
+        return res.status(400).send('Date, main folder, subfolder name, directory, and new file name are required.');
+    }
+
+    // Format the date correctly for the folder name
+    const dateParts = date.split('/');
+    if (dateParts.length !== 3) {
+        return res.status(400).send('Invalid date format. Please use DD/MM/YYYY.');
+    }
+    
+    const [day, month, year] = dateParts;
+    const formattedDate = `${day}-${month}-${year}`;
+
+    // Path for the main delivery folder
+    const mainFolderPath = path.join(directory, `ENTREGAS ${formattedDate}`);
+
+    // Path for the specific subfolder (Argentina or Paraguay)
+    let specificFolderPath;
+    if (mainFolder === '- PARAGUAI' || mainFolder === '- BOLIVIA') {
+        specificFolderPath = path.join(mainFolderPath, mainFolder);
+    } else {
+        specificFolderPath = mainFolderPath;
+    }
+
+    // Path for the subfolder within the specific subfolder
+    const subFolderPath = mainFolder === 'ENTREGAS' ? path.join(specificFolderPath, subFolderName) : path.join(specificFolderPath, baseFolder, subFolderName);
+
+    fs.mkdir(subFolderPath, { recursive: true }, (err) => {
+        if (err) {
+            return res.status(500).send('Error creating subfolder.');
+        }
+
+        // Move the uploaded file to the created subfolder
+        if (req.files['file']) {
+            const file = req.files['file'][0];
+            const tempPath = file.path;
+            const fileExt = path.extname(file.originalname);
+            const targetPath = path.join(subFolderPath, newFileName + fileExt);
+
+            // Copy the file to the destination
+            fs.copyFile(tempPath, targetPath, (err) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send('Error copying the uploaded file.');
+                }
+
+                // Delete the temporary file after successful copy
+                fs.unlink(tempPath, (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send('Error deleting the temporary file.');
+                    }
+
+                    // Update folders info
+                    updateFoldersInfo(subFolderPath);
+
+                    // Handle PDF file if uploaded
+                    handlePdfFile(req, res, subFolderPath);
+
+                    // Sending final response
+                    res.send('Subfolder and file created successfully.');
+                });
+            });
+        } else {
+            // Update folders info
+            updateFoldersInfo(subFolderPath);
+
+            // Handle PDF file if uploaded
+            handlePdfFile(req, res, subFolderPath);
+
+            // Sending final response
+            res.send('Subfolder created successfully.');
+        }
+    });
+});
+
+app.post('/extract', async (req, res) => {
+    if (!req.files || !req.files.pdf) {
+        return res.status(400).send('No file uploaded.');
+    }
+
+    const pdfBuffer = req.files.pdf.data;
+
+    try {
+        const data = await pdfParse(pdfBuffer);
+        const extractedData = extractTableData(data.text);
+        res.json(extractedData);
+    } catch (error) {
+        console.error("Erro ao processar o PDF:", error); // Log do erro
+        res.status(500).send('Error processing PDF');
+    }
+});
+
+
+// Endpoint para obter as últimas 10 pastas criadas
+app.get('/last-10-folders', (req, res) => {
+    if (fs.existsSync(foldersInfoFile)) {
+        const data = fs.readFileSync(foldersInfoFile);
+        const foldersInfo = JSON.parse(data);
+        res.json(foldersInfo);
+    } else {
+        res.json([]);
+    }
+});
+
+// Servir o arquivo Cadastro.html
+app.get('/public/Cadastro.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Cadastro.html'));
+});
+
+// Servir o arquivo Extrator.html
+app.get('/Extrator.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Extrator.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+});

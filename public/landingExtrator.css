@@ -1,0 +1,50 @@
+.highlight {
+    background-color: rgba(0, 0, 255, 0.705);
+    color: white; 
+}
+
+.date-input-container {
+    display: flex;
+    align-items: center;
+  }
+  .date-input-container input {
+    margin-right: 5px;
+}
+
+.date-input-container svg {
+    fill: rgb(0, 255, 0);
+}
+
+.date-input-container {
+    display: flex;
+    align-items: center;
+  }
+  .date-input-container input[type="date"] {
+    margin-right: 5px;
+    border-radius: 20px; 
+    padding: 5px 10px;
+    border: 1px solid #ced4da;
+    background-color: #fff;
+    color: #495057;
+    font-size: 1rem;
+  }
+  .date-input-container button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+  }
+  .date-input-container svg {
+    fill: #00c700; 
+  }
+
+  .dropzone {
+    border: 2px dashed #007bff;
+    padding: 20px;
+    text-align: center;
+    color: #007bff;
+    cursor: pointer;
+}
+.dropzone.dragover {
+    background-color: #1900ff;
+}
