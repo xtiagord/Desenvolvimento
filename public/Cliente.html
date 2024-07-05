@@ -6,8 +6,6 @@
     <title>Cadastrar Cliente</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Bootstrap Datepicker CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
     <link rel="stylesheet" href="/public/landing.css">
 </head>
 <body>
@@ -19,11 +17,10 @@
             </a>
             <a class="nav-item nav-link" href="/index.html">Pastas</a>
             <a class="nav-item nav-link active" href="/public/Cliente.html">Cooperados</a>
-            <a class="nav-item nav-link" href="/Extrator.html">Lançamentos</a>
+            <a class="nav-item nav-link" href="/public/Extrator.html">Lançamentos</a>
             <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
         </nav>
     </header>
-
     <div class="container mt-5">
         <h2>Cadastrar Cliente</h2>
         <form id="clientForm">
@@ -41,12 +38,13 @@
                     <!-- Options will be populated by JavaScript -->
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Cadastrar</button>
-           
+            <div class="form-group d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Cadastrar</button>
+                <button type="button" class="btn btn-secondary" onclick="carregarCooperados()">Mostrar Todos os Cooperados</button>
+            </div>
         </form>
 
-        <div>
-        <button class="btn btn-primary" onclick="carregarCooperados()">Atualizar Lista</button>
+        <div id="cooperadosContainer" style="display: none;">
             <h2>Lista de Cooperados</h2>
             <table class="table">
                 <thead>
@@ -62,8 +60,40 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- Modal para editar cooperado -->
+<div class="modal fade" id="editCooperadoModal" tabindex="-1" aria-labelledby="editCooperadoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCooperadoModalLabel">Editar Cooperado</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCooperadoForm">
+                    <input type="hidden" id="editCooperadoId">
+                    <div class="form-group">
+                        <label for="editNome">Nome</label>
+                        <input type="text" class="form-control" id="editNome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCpf">CPF</label>
+                        <input type="text" class="form-control" id="editCpf" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editRepresentante">Representante</label>
+                        <select class="form-control" id="editRepresentante" required>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </form>
+            </div>
+        </div>
     </div>
-    
+</div>
 
     <!-- jQuery, Popper.js, Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -73,9 +103,10 @@
     <!-- JavaScript para manipulação do formulário -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const cooperadosTableBody = document.getElementById('cooperadosTableBody');
+            const editRepresentanteSelect = document.getElementById('editRepresentante');
+    
             // Carregar representantes do banco de dados
-            fetch('/api/representantes')
+    fetch('/api/representantes')
         .then(response => response.json())
         .then(data => {
             const representanteSelect = document.getElementById('representante');
@@ -85,41 +116,62 @@
                 option.textContent = representante.nome;
                 representanteSelect.appendChild(option);
 
-                console.log('Representante:', representante.id, representante.nome);
+                const editOption = document.createElement('option');
+                editOption.value = representante.id;
+                editOption.textContent = representante.nome;
+                editRepresentanteSelect.appendChild(editOption);
             });
         })
-        .catch(error => {
-            console.error('Erro ao carregar representantes:', error);
-        });
+        .catch(error => console.error('Erro ao carregar representantes:', error));
 
-            // Enviar dados do formulário para o backend
-            document.getElementById('clientForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const nome = document.getElementById('nome').value;
-                const cpf = document.getElementById('cpf').value;
-                const representanteId = document.getElementById('representante').value;
+    // Enviar dados do formulário para o backend
+    document.getElementById('clientForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const nome = document.getElementById('nome').value;
+        const cpf = document.getElementById('cpf').value;
+        const representanteId = document.getElementById('representante').value;
 
-                fetch('/api/cooperados', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ nome, cpf, representanteId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Cliente cadastrado com sucesso!');
-                    } else {
-                        alert('Erro ao cadastrar cliente!');
-                    }
-                })
-                .catch(error => console.error('Erro:', error));
+        fetch(`/api/cooperados/check-cpf/${cpf}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao verificar CPF');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.exists) {
+                    alert('CPF já cadastrado. Por favor, verifique os dados.');
+                } else {
+                    fetch('/api/cooperados', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nome, cpf, representanteId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Cliente cadastrado com sucesso!');
+                            document.getElementById('clientForm').reset();
+                            carregarCooperados();
+                        } else {
+                            alert('Erro ao cadastrar cliente!');
+                        }
+                    })
+                    .catch(error => console.error('Erro ao cadastrar cliente:', error));
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao verificar CPF:', error);
+                alert('Erro ao verificar CPF. Tente novamente mais tarde.');
             });
-        });
-    function carregarCooperados() {
+    });
+});
+
+function carregarCooperados() {
     const cooperadosTableBody = document.getElementById('cooperadosTableBody');
-    cooperadosTableBody.innerHTML = ''; // Limpa a tabela antes de atualizar
+    cooperadosTableBody.innerHTML = '';
 
     fetch('/api/cooperados')
         .then(response => {
@@ -129,12 +181,15 @@
             return response.json();
         })
         .then(cooperados => {
+            if (!Array.isArray(cooperados)) {
+                throw new Error('Os dados recebidos não são um array');
+            }
             cooperados.forEach(cooperado => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${cooperado.nome}</td>
                     <td>${cooperado.cpf}</td>
-                    <td>${cooperado.representante_nome}</td>
+                    <td>${cooperado.representante_id}</td>
                     <td>
                         <button class="btn btn-primary btn-sm" onclick="editarCooperado(${cooperado.id})">Editar</button>
                         <button class="btn btn-danger btn-sm" onclick="excluirCooperado(${cooperado.id})">Excluir</button>
@@ -143,29 +198,72 @@
                 cooperadosTableBody.appendChild(row);
             });
         })
-        .catch(error => console.error(error)); // Exibe o erro no console
+        .catch(error => console.error('Erro:', error));
+        document.getElementById('cooperadosContainer').style.display = 'block';
 }
 
-    function editarCooperado(cooperadoId) {
+   // Função para editar cooperado
+   window.editarCooperado = function(cooperadoId) {
+    fetch(`/api/cooperados/${cooperadoId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar cooperado: ' + response.statusText);
+            }
+            return response.text();  // Use text() temporariamente para ver a resposta bruta
+        })
+        .then(data => {
+            console.log('Resposta da API:', data);  // Verifique o que está sendo retornado
+            const cooperado = JSON.parse(data);  // Converta manualmente para JSON
+            document.getElementById('editCooperadoId').value = cooperado.id;
+            document.getElementById('editNome').value = cooperado.nome;
+            document.getElementById('editCpf').value = cooperado.cpf;
+            document.getElementById('editRepresentante').value = cooperado.representante_id;
 
-        console.log('Editar cooperado:', cooperadoId);
-    }
+            $('#editCooperadoModal').modal('show');
+        })
+        .catch(error => console.error('Erro ao carregar cooperado:', error));
+};
+    // Função para salvar alterações no cooperado
+    document.getElementById('editCooperadoForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const id = document.getElementById('editCooperadoId').value;
+        const nome = document.getElementById('editNome').value;
+        const cpf = document.getElementById('editCpf').value;
+        const representanteId = document.getElementById('editRepresentante').value;
 
-    function excluirCooperado(cooperadoId) {
-        if (confirm('Tem certeza que deseja excluir este cooperado?')) {
-            fetch(`/api/cooperados/${cooperadoId}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Cooperado excluído:', data);
-                // Recarregar a tabela de cooperados após exclusão
-                cooperadosTableBody.innerHTML = '';
+        fetch(`/api/cooperados/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ nome, cpf, representanteId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Cliente atualizado com sucesso!');
+                $('#editCooperadoModal').modal('hide');
                 carregarCooperados();
-            })
-            .catch(error => console.error('Erro ao excluir cooperado:', error));
-        }
+            } else {
+                alert('Erro ao atualizar cliente!');
+            }
+        })
+        .catch(error => console.error('Erro:', error));
+    });
+
+function excluirCooperado(cooperadoId) {
+    if (confirm('Tem certeza que deseja excluir este cooperado?')) {
+        fetch(`/api/cooperados/${cooperadoId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            carregarCooperados();
+        })
+        .catch(error => console.error('Erro ao excluir cooperado:', error));
     }
+}
+
     </script>
 </body>
 </html>

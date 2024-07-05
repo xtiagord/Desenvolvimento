@@ -17,62 +17,61 @@
               </a>
             <a class="nav-item nav-link" href="/index.html">Pastas</a>
             <a class="nav-item nav-link " href="/public/Cliente.html">Cooperados</a>
-            <a class="nav-item nav-link" href="/Extrator.html">Lançamentos</a>
+            <a class="nav-item nav-link" href="/public/Extrator.html">Lançamentos</a>
             <a class="nav-item nav-link active" href="/public/Cadastro.html">Representante</a>
           </nav>
     </header>
-    <body>
-        <div class="container">
-          <div class="row">
+    <div class="container">
+        <div class="row">
             <div class="col-md-3 mt-3">
-              <button type="button" class="btn btn-primary btn-lg btn-uniform" data-toggle="modal" data-target="#clientModal">Cliente: ADRIANO</button>
+                <button type="button" class="btn btn-primary btn-lg btn-uniform" data-toggle="modal" data-target="#clientModal">Cliente: ADRIANO</button>
             </div>   
             <!-- ... outros botões ... -->
             <div class="col-md-3 mt-3">
-              <button type="button" class="btn btn-danger btn-lg btn-uniform">Cliente: EXCLUIR</button>
+                <button type="button" class="btn btn-danger btn-lg btn-uniform">Cliente: EXCLUIR</button>
             </div> 
-          </div>
         </div>
+    </div>
 
     <div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="clientModalLabel">Detalhes do Cliente</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="clientModalLabel">Detalhes do Cliente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover table-dark modal-table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nº PDF</th>
+                                <th scope="col">KG</th>
+                                <th scope="col">PD</th>
+                                <th scope="col">PT</th>
+                                <th scope="col">RH</th>
+                                <th scope="col">Valor/Kg</th>
+                                <th scope="col">Valor</th>
+                                <th scope="col">Data</th>
+                                <th scope="col">Hora</th>
+                                <th scope="col">Representante</th>
+                                <th scope="col">Fornecedor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body">
+                            <!-- Linhas da tabela serão inseridas aqui -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary">Salvar mudanças</button>
+                </div>
             </div>
-            <div class="modal-body">
-              <table class="table table-hover table-dark modal-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Nº PDF</th>
-                    <th scope="col">KG</th>
-                    <th scope="col">PD</th>
-                    <th scope="col">PT</th>
-                    <th scope="col">RH</th>
-                    <th scope="col">Valor/Kg</th>
-                    <th scope="col">Valor</th>
-                    <th scope="col">Data</th>
-                    <th scope="col">Hora</th>
-                    <th scope="col">Representante</th>
-                    <th scope="col">Fornecedor</th>
-                  </tr>
-                </thead>
-                <tbody id="data-table-body">
-                  <!-- Linhas da tabela serão inseridas aqui -->
-                </tbody>
-              </table>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-              <button type="button" class="btn btn-primary">Salvar mudanças</button>
-            </div>
-          </div>
         </div>
     </div>
-   
+
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <!-- Bootstrap JavaScript -->
@@ -80,56 +79,57 @@
 
     <script>
         $(document).ready(function() {
-        $('#clientModal').on('show.bs.modal', function () {
-            $.ajax({
-                url: '/api/dados',
-                method: 'GET',
-                success: function(data) {
-                    console.log(data); // Verifique a estrutura dos dados recebidos
+            $('#clientModal').on('show.bs.modal', function () {
+                $.ajax({
+                    url: '/api/dados',
+                    method: 'GET',
+                    success: function(data) {
+                        console.log(data); // Verifique a estrutura dos dados recebidos
 
-                    const tableBody = $('#data-table-body');
-                    tableBody.empty(); // Limpar o corpo da tabela
+                        const tableBody = $('#data-table-body');
+                        tableBody.empty(); // Limpar o corpo da tabela
 
-                    data.forEach(item => {
-                        const row = `
-                            <tr>
-                                <td>${item.Npdf}</td>
-                                <td>${item.kg}</td>
-                                <td>${item.Pd}</td>
-                                <td>${item.Pt}</td>
-                                <td>${item.Rh}</td>
-                                <td>${item.ValorKg}</td>
-                                <td>${item.Valor}</td>
-                                <td>${item.Data}</td>
-                                <td>${item.Hora}</td>
-                                <td>${item.Representante}</td>
-                                <td>${item.Fornecedor}</td>
-                            </tr>
-                        `;
-                        tableBody.append(row);
-                    });
-                },
-                error: function(err) {
-                    console.error("Erro ao buscar dados:", err);
-                }
+                        data.forEach(item => {
+                            const row = `
+                                <tr>
+                                    <td>${item.Npdf}</td>
+                                    <td>${item.kg}</td>
+                                    <td>${item.pd}</td>
+                                    <td>${item.pt}</td>
+                                    <td>${item.rh}</td>
+                                    <td>${item.valorkg}</td>
+                                    <td>${item.valor}</td>
+                                    <td>${item.data}</td>
+                                    <td>${item.hora}</td>
+                                    <td>${item.representante}</td> <!-- Exibir o nome do representante -->
+                                    <td>${item.fornecedor}</td>
+                                </tr>
+                            `;
+                            tableBody.append(row);
+                        });
+                    },
+                    error: function(err) {
+                        console.error("Erro ao buscar dados:", err);
+                    }
+                });
             });
         });
-    });
     </script>
+
     <style>
-      .modal-body {
-        max-height: 600px; /* Defina uma altura máxima para o corpo do modal */
-        overflow-y: auto; /* Habilita a rolagem vertical no modal */
-        position: relative; /* Garante que o cabeçalho fixo fique dentro do modal */
-      }
-    
-      .modal-table thead {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        background-color: #343a40; /* Cor de fundo do cabeçalho */
-        color: white; /* Cor do texto do cabeçalho */
-      }
+        .modal-body {
+            max-height: 600px; /* Defina uma altura máxima para o corpo do modal */
+            overflow-y: auto; /* Habilita a rolagem vertical no modal */
+            position: relative; /* Garante que o cabeçalho fixo fique dentro do modal */
+        }
+
+        .modal-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color: #343a40; /* Cor de fundo do cabeçalho */
+            color: white; /* Cor do texto do cabeçalho */
+        }
     </style>
 </body>
 </html>

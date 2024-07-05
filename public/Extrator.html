@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Reader</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/landing.css">
+</head>
+
+<body>
+  <header>
+    <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">
+        <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+        Valmarc
+      </a>
+      <a class="nav-item nav-link" href="/index.html">Pastas</a>
+      <a class="nav-item nav-link " href="/public/Cliente.html">Cooperados</a>
+      <a class="nav-item nav-link active" href="/Extrator.html">Lançamentos</a>
+      <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
+    </nav>
+  </header>
+  <div class="container mt-4">
+    <h1>PDF Extractor</h1>
+    <input type="file" id="pdfInput" accept="application/pdf" class="form-control">
+    <button id="extractButton" class="btn btn-primary mt-2">Extract</button>
+    <div id="result" class="mt-4"></div>
+    <button id="sendButton" class="btn btn-success mt-2" style="display: none;">Enviar</button>
+
+    <!-- Hidden selects to hold options -->
+    <select id="representanteSelect" style="display: none;"></select>
+    <select id="fornecedorSelect" style="display: none;"></select>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const [representantes, fornecedores] = await Promise.all([fetchRepresentantes(), fetchFornecedores()]);
+        populateDropdown('representanteSelect', representantes);
+        populateDropdown('fornecedorSelect', fornecedores);
+      } catch (error) {
+        console.error('Erro ao carregar representantes ou fornecedores:', error);
+      }
+    });
+
+    async function fetchRepresentantes() {
+      const response = await fetch('http://localhost:3001/representantes');
+      return response.json();
+    }
+
+    async function fetchFornecedores() {
+      const response = await fetch('http://localhost:3001/fornecedores');
+      return response.json();
+    }
+
+    function populateDropdown(selectId, items) {
+      const select = document.getElementById(selectId);
+      if (!select) {
+        console.error(`Elemento select com id "${selectId}" não encontrado.`);
+        return;
+      }
+
+      items.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.nome;
+        select.appendChild(option);
+      });
+    }
+
+    function displayData(data) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '';
+
+      const table = document.createElement('table');
+      table.className = 'table table-striped';
+
+      const thead = document.createElement('thead');
+      thead.innerHTML = `
+        <tr>
+          <th scope="col">Nº PDF</th>
+          <th scope="col">Kg</th>
+          <th scope="col">PD</th>
+          <th scope="col">PT</th>
+          <th scope="col">RH</th>
+          <th scope="col">Valor KG</th>
+          <th scope="col">Valor</th>
+          <th scope="col">Data</th>
+          <th scope="col">Hora</th>
+          <th scope="col">Representante</th>
+          <th scope="col">Fornecedor</th>
+        </tr>
+      `;
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="text" class="form-control" value="${row.Npdf}"></td>
+          <td><input type="text" class="form-control" value="${row.kg}"></td>
+          <td><input type="text" class="form-control" value="${row.pd}"></td>
+          <td><input type="text" class="form-control" value="${row.pt}"></td>
+          <td><input type="text" class="form-control" value="${row.rh}"></td>
+          <td><input type="text" class="form-control" value="${row.valorKg}"></td>
+          <td><input type="text" class="form-control" value="${row.valor}"></td>
+          <td><input type="text" class="form-control" value="${row.data}"></td>
+          <td><input type="text" class="form-control" value="${row.hora}"></td>
+          <td>
+            <select class="form-control representante-select" data-selected="${row.representante}">
+              <!-- Options will be populated dynamically -->
+            </select>
+          </td>
+          <td>
+            <select class="form-control fornecedor-select" data-selected="${row.fornecedor}">
+              <!-- Options will be populated dynamically -->
+            </select>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+
+      resultDiv.appendChild(table);
+
+      populateDropdownsInTable('representante-select', 'representanteSelect');
+      populateDropdownsInTable('fornecedor-select', 'fornecedorSelect');
+    }
+
+    function populateDropdownsInTable(className, selectId) {
+      const options = document.getElementById(selectId).options;
+      const selects = document.querySelectorAll(`.${className}`);
+
+      selects.forEach(select => {
+        Array.from(options).forEach(option => {
+          const newOption = option.cloneNode(true);
+          select.appendChild(newOption);
+        });
+        const selectedValue = select.getAttribute('data-selected');
+        if (selectedValue) {
+          select.value = selectedValue;
+        }
+      });
+    }
+
+    document.getElementById('extractButton').addEventListener('click', async () => {
+      const pdfInput = document.getElementById('pdfInput');
+      if (pdfInput.files.length === 0) {
+        alert('Please select a PDF file first');
+        return;
+      }
+
+      const file = pdfInput.files[0];
+      const formData = new FormData();
+      formData.append('pdf', file);
+
+      try {
+        const response = await fetch('http://localhost:3001/extract', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          displayData(result);
+          document.getElementById('sendButton').style.display = 'block'; // Mostra o botão enviar
+        } else {
+          document.getElementById('result').textContent = 'Failed to extract data';
+        }
+      } catch (error) {
+        document.getElementById('result').textContent = 'Error: ' + error.message;
+      }
+    });
+
+    document.getElementById('sendButton').addEventListener('click', async () => {
+      const table = document.querySelector('#result table');
+      if (!table) {
+        alert('No data to send');
+        return;
+      }
+
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+      const data = rows.map(row => {
+        const cells = row.querySelectorAll('input, select');
+        return {
+          Npdf: cells[0].value,
+          kg: cells[1].value,
+          pd: cells[2].value,
+          pt: cells[3].value,
+          rh: cells[4].value,
+          valorKg: cells[5].value,
+          valor: cells[6].value,
+          data: cells[7].value,
+          hora: cells[8].value,
+          representante: cells[9].options[cells[9].selectedIndex].text, // Pegando o nome do representante
+          fornecedor: cells[10].options[cells[10].selectedIndex].text // Pegando o nome do fornecedor
+        };
+      });
+
+      try {
+        const response = await fetch('http://localhost:3001/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          alert('Dados enviados com sucesso');
+        } else {
+          alert('Falha ao enviar dados');
+        }
+      } catch (error) {
+        alert('Erro: ' + error.message);
+      }
+    });
+  </script>
+</body>
+
+</html>

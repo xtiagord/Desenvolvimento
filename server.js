@@ -14,8 +14,8 @@ const PORT = 3001;
 const db = mysql.createPool({
     host: "localhost",
     user: "root",
-    password: "",
-    database: "test",
+    password: "1234",
+    database: "sys",
 });
 
 // Configurar o middleware
@@ -153,6 +153,29 @@ app.post('/save', (req, res) => {
     });
 });
 
+//rota representante e cooperados -extrator.html
+app.get('/representantes', (req, res) => {
+    db.query('SELECT id, nome FROM representantes', (err, results) => {
+      if (err) {
+        console.error('Erro ao buscar representantes:', err);
+        return res.status(500).json({ message: 'Erro ao buscar representantes', error: err });
+      }
+      res.json(results);
+    });
+  });
+  
+  // Rota para obter fornecedores
+  app.get('/fornecedores', (req, res) => {
+    db.query('SELECT id, nome FROM cooperados', (err, results) => {
+      if (err) {
+        console.error('Erro ao buscar fornecedores:', err);
+        return res.status(500).json({ message: 'Erro ao buscar fornecedores', error: err });
+      }
+      res.json(results);
+    });
+  });
+  
+
 // Rota para criar subpastas e mover arquivos
 app.post('/create-subfolder', (req, res) => {
     upload(req, res, (err) => {
@@ -236,8 +259,8 @@ app.get('/public/Cadastro.html', (req, res) => {
 });
 
 // Servir o arquivo Extrator.html
-app.get('/Extrator.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Extrator.html'));
+app.get('/public/Extrator.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Extrator.html'));
 });
 
 // Arquivo Cooperados 
@@ -281,78 +304,120 @@ app.post('/api/cooperados', (req, res) => {
         return res.status(400).json({ error: 'Nome, CPF e Representante são obrigatórios.' });
     }
 
-    console.log('Dados recebidos:', { nome, cpf, representanteId });
-
-    const checkRepSql = 'SELECT id FROM representantes WHERE id = ?';
-    db.query(checkRepSql, [representanteId], (err, results) => {
+    const checkCpfSql = "SELECT COUNT(*) AS count FROM cooperados WHERE cpf = ?";
+    db.query(checkCpfSql, [cpf], (err, results) => {
         if (err) {
-            console.error('Erro ao verificar representante:', err);
-            return res.status(500).json({ error: err.message });
-        }
-        if (results.length === 0) {
-            console.error('Representante não encontrado:', representanteId);
-            return res.status(400).json({ error: 'Representante não encontrado.' });
+            console.error("Erro ao verificar CPF:", err);
+            return res.status(500).json({ error: "Erro ao verificar CPF." });
         }
 
-        console.log('Representante encontrado:', results);
+        if (results[0].count > 0) {
+            return res.status(400).json({ error: 'CPF já cadastrado. Por favor, verifique os dados.' });
+        } else {
+            const checkRepSql = 'SELECT id FROM representantes WHERE id = ?';
+            db.query(checkRepSql, [representanteId], (err, results) => {
+                if (err) {
+                    console.error('Erro ao verificar representante:', err);
+                    return res.status(500).json({ error: err.message });
+                }
+                if (results.length === 0) {
+                    console.error('Representante não encontrado:', representanteId);
+                    return res.status(400).json({ error: 'Representante não encontrado.'});
+                }
 
-        const sql = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES (?, ?, ?)';
-        db.query(sql, [nome, cpf, representanteId], (err, results) => {
-            if (err) {
-                console.error('Erro ao inserir cooperado:', err);
-                return res.status(500).json({ error: err.message });
-            }
-            res.json({ success: true });
-        });
+                const insertSql = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES (?, ?, ?)';
+                db.query(insertSql, [nome, cpf, representanteId], (err, results) => {
+                    if (err) {
+                        console.error('Erro ao inserir cooperado:', err);
+                        return res.status(500).json({ error: err.message });
+                    }
+                    res.json({ success: true, message: "Cooperado cadastrado com sucesso!" });
+                });
+            });
+        }
     });
 });
-// Rota para edição dos cooperados 
+
+app.get('/api/cooperados', (req, res) => {
+    const sql = `
+        SELECT c.id, c.nome, c.cpf, c.representante_id, r.nome AS representante_id
+        FROM cooperados c
+        JOIN representantes r ON c.representante_id = r.id
+    `;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Erro ao buscar dados:", err);
+            return res.status(500).send("Erro ao buscar dados do banco de dados.");
+        }
+        res.json(results);
+    });
+});
+
+app.get('/api/cooperados/check-cpf/:cpf', (req, res) => {
+    const cpf = req.params.cpf;
+    const sql = "SELECT COUNT(*) AS count FROM cooperados WHERE cpf = ?";
+    db.query(sql, [cpf], (err, results) => {
+        if (err) {
+            console.error("Erro ao verificar CPF:", err);
+            return res.status(500).json({ error: "Erro ao verificar CPF." });
+        }
+        const count = results[0].count;
+        res.json({ exists: count > 0 });
+    });
+});
+
 app.get('/api/cooperados/:id', (req, res) => {
     const cooperadoId = req.params.id;
-    const sql = 'SELECT c.*, r.nome AS representante_nome FROM cooperados c JOIN representantes r ON c.representante_id = r.id WHERE c.id = ?';
+    const sql = 'SELECT * FROM cooperados WHERE id = ?';
 
-    db.query(sql, cooperadoId, (err, result) => {
+    db.query(sql, [cooperadoId], (err, results) => {
         if (err) {
-            res.status(500).json({ error: 'Erro ao buscar cooperado do banco de dados' });
-            throw err;
+            console.error('Erro ao buscar cooperado:', err);
+            return res.status(500).json({ error: 'Erro ao buscar cooperado' });
         }
-        if (result.length > 0) {
-            res.json(result[0]);
-        } else {
-            res.status(404).json({ message: 'Cooperado não encontrado' });
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Cooperado não encontrado' });
         }
+
+        res.json(results[0]);
     });
 });
 
-// Rota para editar um cooperado pelo ID
+app.delete('/api/cooperados/:id', async (req, res) => {
+    const cooperadoId = req.params.id;
+
+    try {
+        const sql = `
+            DELETE FROM cooperados
+            WHERE id = ?
+        `;
+        db.query(sql, [cooperadoId]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao excluir cooperado:', err);
+        res.status(500).json({ error: 'Erro ao excluir cooperado' });
+    }
+});
+
 app.put('/api/cooperados/:id', (req, res) => {
     const cooperadoId = req.params.id;
     const { nome, cpf, representanteId } = req.body;
+
+    if (!nome || !cpf || !representanteId) {
+        console.error('Dados incompletos:', { nome, cpf, representanteId });
+        return res.status(400).json({ error: 'Nome, CPF e Representante são obrigatórios.' });
+    }
+
     const sql = 'UPDATE cooperados SET nome = ?, cpf = ?, representante_id = ? WHERE id = ?';
-
-    db.query(sql, [nome, cpf, representanteId, cooperadoId], (err, result) => {
+    db.query(sql, [nome, cpf, representanteId, cooperadoId], (err, results) => {
         if (err) {
-            res.status(500).json({ error: 'Erro ao atualizar cooperado no banco de dados' });
-            throw err;
+            console.error('Erro ao atualizar cooperado:', err);
+            return res.status(500).json({ error: err.message });
         }
-        res.json({ message: 'Cooperado atualizado com sucesso' });
+        res.json({ success: true });
     });
 });
-
-// Rota para excluir um cooperado pelo ID
-app.delete('/api/cooperados/:id', (req, res) => {
-    const cooperadoId = req.params.id;
-    const sql = 'DELETE FROM cooperados WHERE id = ?';
-
-    db.query(sql, cooperadoId, (err, result) => {
-        if (err) {
-            res.status(500).json({ error: 'Erro ao excluir cooperado do banco de dados' });
-            throw err;
-        }
-        res.json({ message: 'Cooperado excluído com sucesso' });
-    });
-});
-
 
 // Iniciar o servidor
 app.listen(PORT, () => {
