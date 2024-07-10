@@ -329,11 +329,11 @@ app.get('/api/representantes', (req, res) => {
 });
 
 app.get('/dados/:nomeRepresentante', (req, res) => {
-    const nomeRepresentante = req.params.nomeRepresentante;
+    const nomeRepresentante = req.params.nomeRepresentante.trim();
     console.log('Nome do Representante:', nomeRepresentante); // Adicione este log
 
-    const query = 'SELECT * FROM dados WHERE LOWER(representante) = ?';
-    db.query(query, [nomeRepresentante], (err, results) => {
+    const query = 'SELECT * FROM dados WHERE LOWER(representante) LIKE ?';
+    db.query(query, [`%${nomeRepresentante.toLowerCase()}%`], (err, results) => {
         if (err) {
             console.error('Erro ao executar a consulta:', err);
             res.status(500).send('Erro no servidor');

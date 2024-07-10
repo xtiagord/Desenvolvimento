@@ -6,6 +6,11 @@
     <title>Lançamentos de Análises</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="caminho/para/xlsx.full.min.js"></script>
+    </head>
     <link rel="stylesheet" href="/landing.css">
 </head>
 <body>
@@ -22,18 +27,23 @@
           </nav>
     </header>
     <div class="container mt-3">
+        <!-- Botões dos representantes -->
         <div id="fornecedoresButtons" class="row">
-            <!-- Botões estáticos existentes -->
-            <div class="col-md-3 mt-3">
-                <button type="button" class="btn btn-danger btn-lg btn-uniform">Cliente: EXCLUIR</button>
-            </div> 
-            <div class="col-md-3 mt-3">
-                <button type="button" class="btn btn-success btn-lg btn-uniform" data-toggle="modal" data-target="#cadastroModal">Cadastro</button>
-            </div>            
+            <!-- Aqui os botões dos representantes serão adicionados dinamicamente -->
+        </div>
+
+        <!-- Botões "Cliente: EXCLUIR" e "Cadastro" -->
+        <div class="row mt-3">
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-lg btn-uniform w-100">Cliente: EXCLUIR</button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-success btn-lg btn-uniform w-100" data-toggle="modal" data-target="#cadastroModal">Cadastro</button>
+            </div>
         </div>
     </div>
-   <div class="modal fade" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
+   <div class="modal fade modal-lg" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="detalhesModalLabel">Detalhes do Representante</h5>
@@ -64,6 +74,7 @@
         </table>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="exportToXLS">Exportar Excel</button>
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
       </div>
     </div>
@@ -297,9 +308,9 @@ $(document).ready(function() {
         fornecedoresButtons.append(row);
     }
     const button = `
-        <div class="col-md-2 mt-3">
-            <button type="button" class="btn btn-primary btn-lg btn-uniform w-100 btn-custom" data-representante-id="${item.id}">${item.nome}</button>
-        </div>
+         <div class="col-md-2 mt-3">
+                        <button type="button" class="btn btn-primary btn-lg btn-uniform w-100 btn-custom" data-representante-id="${item.id}">${item.nome}</button>
+                    </div>
     `;
     row.append(button);
 
@@ -361,6 +372,35 @@ $(document).ready(function() {
         });
     }
 });
+document.getElementById('exportToXLS').addEventListener('click', function() {
+        // Seleciona a tabela dentro do modal pelo ID
+        const table = document.getElementById('tableData');
+        
+        // Array para armazenar os dados da tabela
+        const data = [];
+        
+        // Itera pelas linhas da tabela
+        for (let i = 0; i < table.rows.length; i++) {
+            const row = [];
+            const cells = table.rows[i].cells;
+            
+            // Itera pelas células de cada linha
+            for (let j = 0; j < cells.length; j++) {
+                row.push(cells[j].innerText.trim()); // Adiciona o conteúdo da célula ao array da linha
+            }
+            
+            data.push(row); // Adiciona a linha ao array de dados
+        }
+        
+        // Cria a folha de trabalho XLS
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Planilha1');
+        
+        // Baixa o arquivo XLS com os dados
+        XLSX.writeFile(wb, 'dados.xlsx');
+    });
+
 
 
 
