@@ -29,18 +29,19 @@
     <div id="result" class="mt-4"></div>
     <button id="sendButton" class="btn btn-success mt-2" style="display: none;">Enviar</button>
 
-    <!-- Hidden selects to hold options -->
     <select id="representanteSelect" style="display: none;"></select>
     <select id="fornecedorSelect" style="display: none;"></select>
+    <select id="snSelect" style="display: none;"></select>
   </div>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       try {
-        const [representantes, fornecedores] = await Promise.all([fetchRepresentantes(), fetchFornecedores()]);
+        const [representantes, fornecedores, equipamentos] = await Promise.all([fetchRepresentantes(), fetchFornecedores(), fetchEquipamentos()]);
         populateDropdown('representanteSelect', representantes);
         populateDropdown('fornecedorSelect', fornecedores);
+        populateSnDropdown('snSelect', equipamentos);
       } catch (error) {
-        console.error('Erro ao carregar representantes ou fornecedores:', error);
+        console.error('Erro ao carregar representantes, fornecedores ou equipamentos:', error);
       }
     });
 
@@ -54,12 +55,19 @@
       return response.json();
     }
 
+    async function fetchEquipamentos() {
+      const response = await fetch('http://localhost:3001/api/equipamentos');
+      return response.json();
+    }
+
     function populateDropdown(selectId, items) {
       const select = document.getElementById(selectId);
       if (!select) {
         console.error(`Elemento select com id "${selectId}" não encontrado.`);
         return;
       }
+      // Limpa o dropdown antes de populá-lo
+      select.innerHTML = '';
 
       items.forEach(item => {
         const option = document.createElement('option');
@@ -90,6 +98,7 @@
           <th scope="col">Hora</th>
           <th scope="col">Representante</th>
           <th scope="col">Fornecedor</th>
+          <th scope="col">SN</th>
         </tr>
       `;
       table.appendChild(thead);
@@ -108,12 +117,17 @@
           <td><input type="text" class="form-control" value="${row.data}"></td>
           <td><input type="text" class="form-control" value="${row.hora}"></td>
           <td>
-            <select class="form-control representante-select" data-selected="${row.representante}">
+            <select class="form-control representante-select">
               <!-- Options will be populated dynamically -->
             </select>
           </td>
           <td>
-            <select class="form-control fornecedor-select" data-selected="${row.fornecedor}">
+            <select class="form-control fornecedor-select">
+              <!-- Options will be populated dynamically -->
+            </select>
+          </td>
+          <td>
+            <select class="form-control sn-select">
               <!-- Options will be populated dynamically -->
             </select>
           </td>
@@ -124,8 +138,27 @@
 
       resultDiv.appendChild(table);
 
+      // Preencher os selects de representante e fornecedor com os valores atuais
+      const representanteSelects = resultDiv.querySelectorAll('.representante-select');
+      const fornecedorSelects = resultDiv.querySelectorAll('.fornecedor-select');
+      const snSelects = resultDiv.querySelectorAll('.sn-select');
+
+      representanteSelects.forEach((select, index) => {
+        select.value = data[index].representante;
+      });
+
+      fornecedorSelects.forEach((select, index) => {
+        select.value = data[index].fornecedor;
+      });
+
+      snSelects.forEach((select, index) => {
+        select.value = data[index].sn;
+      });
+
+      // Atualizar os dropdowns principais com os dados atuais
       populateDropdownsInTable('representante-select', 'representanteSelect');
       populateDropdownsInTable('fornecedor-select', 'fornecedorSelect');
+      populateDropdownsInTable('sn-select', 'snSelect');
     }
 
     function populateDropdownsInTable(className, selectId) {
@@ -144,6 +177,43 @@
       });
     }
 
+    async function fetchCooperadosByRepresentante(representanteId) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/cooperados/${representanteId}`);
+        if (!response.ok) {
+          throw new Error('Erro ao buscar cooperados');
+        }
+        const cooperados = await response.json();
+        return cooperados;
+      } catch (error) {
+        console.error('Erro ao buscar cooperados:', error);
+        return [];
+      }
+    }
+
+    // Event listener para mudança no dropdown de representantes
+    const representanteSelect = document.getElementById('representanteSelect');
+    representanteSelect.addEventListener('change', async function () {
+      const representanteId = this.value;
+      const cooperados = await fetchCooperadosByRepresentante(representanteId);
+      populateDropdown('fornecedorSelect', cooperados);
+    });
+
+    function populateSnDropdown(selectId, equipamentos) {
+      const select = document.getElementById(selectId);
+      if (!select) {
+        console.error(`Elemento select com id "${selectId}" não encontrado.`);
+        return;
+      }
+      select.innerHTML = '';
+
+      equipamentos.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.idequipamentos;
+        option.textContent = `${item.nomeequipamento} - PD: ${item.porcentagemPd}, PT: ${item.porcentagemPT}, RH: ${item.porcentagemRh}`;
+        select.appendChild(option);
+      });
+    }
     document.getElementById('extractButton').addEventListener('click', async () => {
       const pdfInput = document.getElementById('pdfInput');
       if (pdfInput.files.length === 0) {
@@ -194,7 +264,8 @@
           data: cells[7].value,
           hora: cells[8].value,
           representante: cells[9].options[cells[9].selectedIndex].text, // Pegando o nome do representante
-          fornecedor: cells[10].options[cells[10].selectedIndex].text // Pegando o nome do fornecedor
+          fornecedor: cells[10].options[cells[10].selectedIndex].text, // Pegando o nome do fornecedor
+          sn: cells[11].options[cells[11].selectedIndex].text
         };
       });
 
@@ -216,6 +287,21 @@
         alert('Erro: ' + error.message);
       }
     });
+
+    async function fetchCooperadosByRepresentante(representanteId) {
+      try {
+        const response = await fetch(`http://localhost:3001/api/cooperados/${representanteId}`);
+        if (!response.ok) {
+          throw new Error('Erro ao buscar cooperados');
+        }
+        const cooperados = await response.json();
+        return cooperados;
+      } catch (error) {
+        console.error('Erro ao buscar cooperados:', error);
+        return [];
+      }
+    }
+
   </script>
 </body>
 

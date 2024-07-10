@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lançamentos de Análises</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/landing.css">
+</head>
+<body>
+    <header>
+        <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark ">
+            <a class="navbar-brand" href="#">
+                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+                Valmarc
+              </a>
+              <a class="nav-item nav-link active" href="/index.html">Arquivos</a>
+            <a class="nav-item nav-link" href="/index.html">Pastas</a>
+            <a class="nav-item nav-link " href="/public/Cliente.html">Cooperados</a>
+            <a class="nav-item nav-link" href="/public/Extrator.html">Lançamentos</a>
+            <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
+          </nav>
+    </header>
+    <h1>Upload de Arquivos</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="file" required>
+      <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

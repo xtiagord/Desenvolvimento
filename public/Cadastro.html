@@ -21,56 +21,123 @@
             <a class="nav-item nav-link active" href="/public/Cadastro.html">Representante</a>
           </nav>
     </header>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3 mt-3">
-                <button type="button" class="btn btn-primary btn-lg btn-uniform" data-toggle="modal" data-target="#clientModal">Cliente: ADRIANO</button>
-            </div>   
-            <!-- ... outros botões ... -->
+    <div class="container mt-3">
+        <div id="fornecedoresButtons" class="row">
+            <!-- Botões estáticos existentes -->
             <div class="col-md-3 mt-3">
                 <button type="button" class="btn btn-danger btn-lg btn-uniform">Cliente: EXCLUIR</button>
             </div> 
+            <div class="col-md-3 mt-3">
+                <button type="button" class="btn btn-success btn-lg btn-uniform" data-toggle="modal" data-target="#cadastroModal">Cadastro</button>
+            </div>            
         </div>
     </div>
-
-    <div class="modal fade" id="clientModal" tabindex="-1" aria-labelledby="clientModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+   <div class="modal fade" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detalhesModalLabel">Detalhes do Representante</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-hover table-dark modal-table">
+          <thead>
+            <tr>
+              <th>Npdf</th>
+              <th>Kg</th>
+              <th>Pd</th>
+              <th>Pt</th>
+              <th>Rh</th>
+              <th>Valor Kg</th>
+              <th>Valor</th>
+              <th>Data</th>
+              <th>Hora</th>
+              <th>Fornecedor</th>
+              <th>SN</th>
+            </tr>
+          </thead>
+          <tbody id="modalDataBody">
+            <!-- Dados serão inseridos aqui -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="modal fade" id="cadastroModal" tabindex="-1" aria-labelledby="cadastroModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="clientModalLabel">Detalhes do Cliente</h5>
+                    <h5 class="modal-title" id="cadastroModalLabel">Novo Cadastro</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-hover table-dark modal-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Nº PDF</th>
-                                <th scope="col">KG</th>
-                                <th scope="col">PD</th>
-                                <th scope="col">PT</th>
-                                <th scope="col">RH</th>
-                                <th scope="col">Valor/Kg</th>
-                                <th scope="col">Valor</th>
-                                <th scope="col">Data</th>
-                                <th scope="col">Hora</th>
-                                <th scope="col">Representante</th>
-                                <th scope="col">Fornecedor</th>
-                            </tr>
-                        </thead>
-                        <tbody id="data-table-body">
-                            <!-- Linhas da tabela serão inseridas aqui -->
-                        </tbody>
-                    </table>
+                    <form id="cadastroForm">
+                        <div class="form-group">
+                            <label for="nome">Nome:</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="maquina">Máquina:</label>
+                            <select class="form-control" id="maquina" name="maquina" required>
+                            </select>
+                            <small id="maquinaHelp" class="form-text text-muted">Se a máquina não estiver na lista, cadastre uma nova.</small>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#maquinaModal">Cadastrar Máquina</button>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary">Salvar mudanças</button>
+                    <button type="button" class="btn btn-primary" id="salvarCadastro">Salvar</button>
                 </div>
             </div>
         </div>
+        <div class="modal fade" id="maquinaModal" tabindex="-1" aria-labelledby="maquinaModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="maquinaModalLabel">Cadastrar Máquina</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="equipamentoNome">Nome</label>
+                            <input type="text" class="form-control" id="equipamentoNome" placeholder="Nome">
+                        </div>
+                        <div class="form-group">
+                            <label for="equipamentoPt">PT</label>
+                            <input type="text" class="form-control" id="equipamentoPt" placeholder="PT">
+                        </div>
+                        <div class="form-group">
+                            <label for="equipamentoRh">RH</label>
+                            <input type="text" class="form-control" id="equipamentoRh" placeholder="RH">
+                        </div>
+                        <div class="form-group">
+                            <label for="equipamentoPd">PD</label>
+                            <input type="text" class="form-control" id="equipamentoPd" placeholder="PD">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="saveMaquinaButton">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
     </div>
+    
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -103,6 +170,7 @@
                                     <td>${item.hora}</td>
                                     <td>${item.representante}</td> <!-- Exibir o nome do representante -->
                                     <td>${item.fornecedor}</td>
+                                    <td>${item.sn}</td>
                                 </tr>
                             `;
                             tableBody.append(row);
@@ -114,6 +182,192 @@
                 });
             });
         });
+        $(document).ready(function() {
+        $('#salvarCadastro').click(function() {
+            // Aqui você pode processar os dados do formulário
+            const nome = $('#nome').val();
+            const maquina = $('#maquina').val();
+
+            // Exemplo de como você pode usar os dados (enviar para o servidor, etc.)
+            console.log("Nome:", nome);
+            console.log("Máquina:", maquina);
+
+            // Limpar os campos do formulário após salvar
+            $('#nome').val('');
+            $('#maquina').val('');
+
+            // Fechar o modal após salvar
+            $('#cadastroModal').modal('hide');
+        });
+    });
+    $(document).ready(function() {
+        // Função para enviar dados de cadastro de equipamento via AJAX
+        $('#saveMaquinaButton').click(function() {
+            const nomeequipamento = $('#equipamentoNome').val();
+            const porcentagemPt = $('#equipamentoPt').val();
+            const porcentagemRh = $('#equipamentoRh').val();
+            const porcentagemPd = $('#equipamentoPd').val();
+
+            $.ajax({
+                url: '/api/equipamentos',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ nomeequipamento, porcentagemPt, porcentagemRh, porcentagemPd }),
+                success: function(response) {
+                    alert(response); // Exibir mensagem de sucesso
+                    $('#maquinaModal').modal('hide'); // Fechar modal após sucesso
+                },
+                error: function(err) {
+                    console.error("Erro ao cadastrar equipamento:", err);
+                    alert("Erro ao cadastrar equipamento");
+                }
+            });
+        });
+
+        // Função para carregar opções de equipamentos no select
+        $.ajax({
+            url: '/api/equipamentos',
+            method: 'GET',
+            success: function(data) {
+                const selectMaquina = $('#maquina');
+                selectMaquina.empty(); // Limpar opções existentes
+
+                data.forEach(item => {
+                    selectMaquina.append(`<option value="${item.idequipamentos}">${item.nomeequipamento}</option>`);
+                });
+            },
+            error: function(err) {
+                console.error("Erro ao carregar equipamentos:", err);
+            }
+        });
+
+        // Submeter o formulário de cadastro de representante
+        $('#cadastroForm').submit(function(event) {
+            event.preventDefault();
+            
+            const formData = $(this).serialize();
+
+            $.ajax({
+                url: '/api/representantes',
+                method: 'POST',
+                data: formData,
+                success: function(response) {
+                    console.log('Representante cadastrado com sucesso:', response);
+                    // Limpar formulário ou fazer outras operações após o cadastro
+                },
+                error: function(err) {
+                    console.error('Erro ao cadastrar representante:', err);
+                    // Tratar erros ou informar ao usuário
+                }
+            });
+        });
+    });
+    $('#salvarCadastro').click(function() {
+    const nome = $('#nome').val();
+    const maquina = $('#maquina').val();
+
+    $.ajax({
+        url: '/api/representantes',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ nome, maquina }),
+        success: function(response) {
+            alert(response);
+            $('#cadastroModal').modal('hide');
+        },
+        error: function(err) {
+            console.error("Erro ao cadastrar representante:", err);
+            alert("Erro ao cadastrar representante");
+        }
+    });
+});
+$(document).ready(function() {
+            // Função para carregar opções de fornecedores e exibir botões
+            $.ajax({
+                url: 'http://localhost:3001/representantes', // Endpoint para buscar representantes
+                method: 'GET',
+                success: function(data) {
+                    const fornecedoresButtons = $('#fornecedoresButtons');
+                    fornecedoresButtons.empty(); // Limpar botões existentes
+
+                    let row;
+                    data.forEach((item, index) => {
+    if (index % 6 === 0) {
+        row = $('<div class="row mb-3"></div>'); 
+        fornecedoresButtons.append(row);
+    }
+    const button = `
+        <div class="col-md-2 mt-3">
+            <button type="button" class="btn btn-primary btn-lg btn-uniform w-100 btn-custom" data-representante-id="${item.id}">${item.nome}</button>
+        </div>
+    `;
+    row.append(button);
+
+
+                        // Adicionar um evento de clique para cada botão de fornecedor
+                        $(`button[data-representante-id="${item.id}"]`).click(function() {
+                            const idRepresentante = $(this).data('representante-id');
+                            loadRepresentanteInfo(item.nome);
+                        });
+                    });
+                },
+                error: function(err) {
+                    console.error("Erro ao carregar fornecedores:", err);
+                }
+            });
+
+    // Função para carregar as informações do representante
+    function loadRepresentanteInfo(nomeRepresentante) {
+        $.ajax({
+            url: `http://localhost:3001/dados/${encodeURIComponent(nomeRepresentante)}`, // Endpoint para buscar dados do representante
+            method: 'GET',
+            success: function(dados) {
+                console.log('Dados recebidos:', dados); // Log para verificar os dados recebidos
+
+                // Limpar conteúdo anterior do modal
+                $('#modalDataBody').empty();
+
+                if (dados.length === 0) {
+                    $('#modalDataBody').append('<tr><td colspan="11">Nenhum dado encontrado para este representante.</td></tr>');
+                } else {
+                    // Preencher o modal com os dados obtidos
+                    dados.forEach(dado => {
+                        const row = `
+                            <tr>
+                                <td>${dado.Npdf}</td>
+                                <td>${dado.kg}</td>
+                                <td>${dado.pd}</td>
+                                <td>${dado.pt}</td>
+                                <td>${dado.rh}</td>
+                                <td>${dado.valorkg}</td>
+                                <td>${dado.valor}</td>
+                                <td>${dado.data}</td>
+                                <td>${dado.hora}</td>
+                                <td>${dado.fornecedor}</td>
+                                <td>${dado.sn}</td>
+                            </tr>
+                        `;
+                        console.log('Adicionando linha:', row); // Log para verificar cada linha adicionada
+                        $('#modalDataBody').append(row);
+                    });
+                }
+
+                // Abrir o modal após preencher os dados
+                $('#detalhesModal').modal('show');
+            },
+            error: function(err) {
+                console.error("Erro ao carregar dados do representante:", err);
+            }
+        });
+    }
+});
+
+
+
+
+
+
+
     </script>
 
     <style>
@@ -130,6 +384,9 @@
             background-color: #343a40; /* Cor de fundo do cabeçalho */
             color: white; /* Cor do texto do cabeçalho */
         }
+        .btn-custom {
+        height: 100px; /* Ajuste a altura conforme necessário */
+    }
     </style>
 </body>
 </html>

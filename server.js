@@ -140,8 +140,8 @@ app.post('/save', (req, res) => {
         return res.status(400).json({ message: 'Dados inválidos ou ausentes' });
     }
 
-    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor) VALUES ?';
-    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor]);
+    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn) VALUES ?';
+    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn]);
 
     db.query(insertQuery, [values], (err, result) => {
         if (err) {
@@ -163,7 +163,34 @@ app.get('/representantes', (req, res) => {
       res.json(results);
     });
   });
-  
+  app.post('/api/representantes', (req, res) => {
+    const { nome, maquina } = req.body;
+
+    if (!nome || !maquina) {
+        return res.status(400).send('Nome e Máquina são obrigatórios');
+    }
+
+    // Primeiro, insira o representante na tabela representantes
+    const insertRepresentanteQuery = 'INSERT INTO representantes (nome) VALUES (?)';
+    db.query(insertRepresentanteQuery, [nome], (err, result) => {
+        if (err) {
+            console.error('Erro ao inserir representante:', err);
+            return res.status(500).send('Erro ao cadastrar representante');
+        }
+
+        // Em seguida, associe o representante com a máquina na tabela representante_equipamentos
+        const representanteId = result.insertId;
+        const insertRelacionamentoQuery = 'INSERT INTO representante_equipamentos (id_representante, id_equipamento) VALUES (?, ?)';
+        db.query(insertRelacionamentoQuery, [representanteId, maquina], (err, result) => {
+            if (err) {
+                console.error('Erro ao associar representante com máquina:', err);
+                return res.status(500).send('Erro ao associar representante com máquina');
+            }
+            res.status(200).send('Representante cadastrado e associado com máquina com sucesso');
+        });
+    });
+});
+
   // Rota para obter fornecedores
   app.get('/fornecedores', (req, res) => {
     db.query('SELECT id, nome FROM cooperados', (err, results) => {
@@ -273,6 +300,11 @@ app.get('/public/index.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Servir o arquivo arquivo.html
+app.get('/public/arquivo.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'arquivo.html'));
+});
+
 app.get('/api/dados', (req, res) => {
     const sql = "SELECT * FROM dados";
     db.query(sql, (err, results) => {
@@ -296,6 +328,21 @@ app.get('/api/representantes', (req, res) => {
     });
 });
 
+app.get('/dados/:nomeRepresentante', (req, res) => {
+    const nomeRepresentante = req.params.nomeRepresentante;
+    console.log('Nome do Representante:', nomeRepresentante); // Adicione este log
+
+    const query = 'SELECT * FROM dados WHERE LOWER(representante) = ?';
+    db.query(query, [nomeRepresentante], (err, results) => {
+        if (err) {
+            console.error('Erro ao executar a consulta:', err);
+            res.status(500).send('Erro no servidor');
+            return;
+        }
+        console.log('Resultados da consulta', results)
+        res.json(results);
+    });
+});
 app.post('/api/cooperados', (req, res) => {
     const { nome, cpf, representanteId } = req.body;
 
@@ -337,19 +384,48 @@ app.post('/api/cooperados', (req, res) => {
         }
     });
 });
-
 app.get('/api/cooperados', (req, res) => {
-    const sql = `
-        SELECT c.id, c.nome, c.cpf, c.representante_id, r.nome AS representante_id
-        FROM cooperados c
-        JOIN representantes r ON c.representante_id = r.id
-    `;
+    const sql = 'SELECT * FROM cooperados';
+
     db.query(sql, (err, results) => {
         if (err) {
-            console.error("Erro ao buscar dados:", err);
-            return res.status(500).send("Erro ao buscar dados do banco de dados.");
+            console.error('Erro ao buscar cooperados:', err);
+            return res.status(500).json({ error: 'Erro ao buscar cooperados' });
         }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nenhum cooperado encontrado' });
+        }
+
         res.json(results);
+    });
+});
+
+app.get('/api/cooperados/:representanteId', (req, res) => {
+    const representanteId = req.params.representanteId;
+
+    if (!representanteId) {
+        return res.status(400).json({ error: 'representanteId é obrigatório' });
+    }
+  
+    const sql = `
+      SELECT *
+      FROM cooperados
+      WHERE representante_id = ?;
+    `;
+  
+    db.query(sql, [representanteId], (error, results) => {
+      if (error) {
+        console.error('Erro ao buscar cooperados associados:', error);
+        res.status(500).json({ error: 'Erro interno no servidor' });
+        return;
+      }
+  
+      if (results.length === 0) {
+          return res.status(404).json({ error: 'Nenhum cooperado encontrado para o representante fornecido' });
+      }
+  
+      res.json(results);
     });
 });
 
@@ -418,6 +494,50 @@ app.put('/api/cooperados/:id', (req, res) => {
         res.json({ success: true });
     });
 });
+app.get('/api/equipamentos', (req, res) => {
+    const sql = 'SELECT * FROM equipamentos';
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error('Erro ao buscar equipamentos:', err);
+            return res.status(500).send('Erro ao buscar equipamentos');
+        }
+        res.json(result); // Envie os dados como JSON
+    });
+});
+app.post('/api/equipamentos', (req, res) => {
+    const { nomeequipamento, porcentagemPd, porcentagemPt, porcentagemRh } = req.body;
+    const query = 'INSERT INTO equipamentos (nomeequipamento, porcentagemPd, porcentagemPt, porcentagemRh) VALUES (?, ?, ?, ?)';
+  
+    db.query(query, [nomeequipamento, porcentagemPd, porcentagemPt, porcentagemRh], (err, result) => {
+      if (err) {
+        console.error('Erro ao cadastrar equipamento:', err);
+        return res.status(500).send(err);
+      }
+      res.status(200).json({ message: 'Equipamento cadastrado com sucesso!' });
+    });
+});
+
+app.get('/api/equipamentos/:representanteId', async (req, res) => {
+    const representanteId = req.params.representanteId;
+  
+    try {
+      // Consulta no banco de dados para obter equipamentos associados ao representante
+      const query = `
+        SELECT e.id, e.nome
+        FROM equipamentos e
+        INNER JOIN representante_equipamento re ON e.id = re.id_equipamento
+        WHERE re.id_representante = ?
+      `;
+      const equipamentos = await pool.query(query, [representanteId]);
+  
+      res.json(equipamentos);
+    } catch (error) {
+      console.error('Erro ao consultar equipamentos:', error);
+      res.status(500).json({ error: 'Erro ao consultar equipamentos' });
+    }
+  });
+
+  
 
 // Iniciar o servidor
 app.listen(PORT, () => {
