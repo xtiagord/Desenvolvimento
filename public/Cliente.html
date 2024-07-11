@@ -173,6 +173,7 @@ function carregarCooperados() {
     const cooperadosTableBody = document.getElementById('cooperadosTableBody');
     cooperadosTableBody.innerHTML = '';
 
+    // Primeira requisição para obter os cooperados
     fetch('/api/cooperados')
         .then(response => {
             if (!response.ok) {
@@ -184,36 +185,61 @@ function carregarCooperados() {
             if (!Array.isArray(cooperados)) {
                 throw new Error('Os dados recebidos não são um array');
             }
-            cooperados.forEach(cooperado => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${cooperado.nome}</td>
-                    <td>${cooperado.cpf}</td>
-                    <td>${cooperado.representante_id}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="editarCooperado(${cooperado.id})">Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="excluirCooperado(${cooperado.id})">Excluir</button>
-                    </td>
-                `;
-                cooperadosTableBody.appendChild(row);
-            });
+
+            // Array para armazenar os IDs dos representantes para uma busca eficiente
+            const representantesIds = cooperados.map(cooperado => cooperado.representante_id);
+
+            // Segunda requisição para obter os dados dos representantes
+            return fetch('/api/representantes')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar representantes: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(representantes => {
+                    // Mapeia os representantes por ID para facilitar o acesso
+                    const representantesMap = {};
+                    representantes.forEach(rep => {
+                        representantesMap[rep.id] = rep.nome;
+                    });
+
+                    // Constrói as linhas da tabela com os dados dos cooperados
+                    cooperados.forEach(cooperado => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${cooperado.nome}</td>
+                            <td>${cooperado.cpf}</td>
+                            <td>${representantesMap[cooperado.representante_id]}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" onclick="editarCooperado(${cooperado.id})">Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="excluirCooperado(${cooperado.id})">Excluir</button>
+                            </td>
+                        `;
+                        cooperadosTableBody.appendChild(row);
+                    });
+                });
         })
         .catch(error => console.error('Erro:', error));
-        document.getElementById('cooperadosContainer').style.display = 'block';
+    document.getElementById('cooperadosContainer').style.display = 'block';
 }
 
    // Função para editar cooperado
-   window.editarCooperado = function(cooperadoId) {
-    fetch(`/api/cooperados/${cooperadoId}`)
+   window.editarCooperado = function(representanteId) {
+    fetch(`/api/cooperados/representante/${representanteId}`)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Erro ao carregar cooperado: ' + response.statusText);
+                throw new Error(`Erro ao carregar cooperado: ${response.status} - ${response.statusText}`);
             }
-            return response.text();  // Use text() temporariamente para ver a resposta bruta
+            return response.json();  // Parse JSON response
         })
-        .then(data => {
-            console.log('Resposta da API:', data);  // Verifique o que está sendo retornado
-            const cooperado = JSON.parse(data);  // Converta manualmente para JSON
+        .then(cooperados => {
+            if (cooperados.length === 0) {
+                console.error('Nenhum cooperado encontrado para o representante fornecido');
+                return;
+            }
+            const cooperado = cooperados[0];  // Vamos assumir que pegamos o primeiro cooperado encontrado
+            console.log('Resposta da API:', cooperado);
             document.getElementById('editCooperadoId').value = cooperado.id;
             document.getElementById('editNome').value = cooperado.nome;
             document.getElementById('editCpf').value = cooperado.cpf;
@@ -223,6 +249,7 @@ function carregarCooperados() {
         })
         .catch(error => console.error('Erro ao carregar cooperado:', error));
 };
+
     // Função para salvar alterações no cooperado
     document.getElementById('editCooperadoForm').addEventListener('submit', function(event) {
         event.preventDefault();

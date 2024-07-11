@@ -9,7 +9,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="caminho/para/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     </head>
     <link rel="stylesheet" href="/landing.css">
 </head>
@@ -35,121 +35,178 @@
         <!-- Botões "Cliente: EXCLUIR" e "Cadastro" -->
         <div class="row mt-3">
             <div class="col-md-2">
-                <button type="button" class="btn btn-danger btn-lg btn-uniform w-100">Cliente: EXCLUIR</button>
+                <button type="button" class="btn btn-danger btn-lg btn-uniform w-100" data-toggle="modal" data-target="#modalRepresentantes">Cliente: EDITAR/EXCLUIR</button>
+            </div>
+            
+            <div class="col-md-2">
+                <button type="button" class="btn btn-success btn-lg btn-uniform w-100" data-toggle="modal" data-target="#cadastroModal">Cliente: CADASTRAR</button>
             </div>
             <div class="col-md-2">
-                <button type="button" class="btn btn-success btn-lg btn-uniform w-100" data-toggle="modal" data-target="#cadastroModal">Cadastro</button>
+                <button type="button" class="btn btn-warning btn-lg btn-uniform w-100" id="exportAllToExcel">EXPORTAR EXCEL</button>
+            </div>        
+        </div>
+    </div>
+  <!-- Modal de Detalhes -->
+  <div class="modal fade modal-lg" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detalhesModalLabel">Detalhes do Representante</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table id="tableData" class="table table-hover table-dark modal-table">
+                    <thead>
+                        <tr>
+                            <th>Npdf</th>
+                            <th>Kg</th>
+                            <th>Pd</th>
+                            <th>Pt</th>
+                            <th>Rh</th>
+                            <th>Valor Kg</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>Fornecedor</th>
+                            <th>SN</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalDataBody">
+                        <!-- Dados serão inseridos aqui -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="exportToXLS">Exportar Excel</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>
-   <div class="modal fade modal-lg" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="detalhesModalLabel">Detalhes do Representante</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <table class="table table-hover table-dark modal-table">
-          <thead>
-            <tr>
-              <th>Npdf</th>
-              <th>Kg</th>
-              <th>Pd</th>
-              <th>Pt</th>
-              <th>Rh</th>
-              <th>Valor Kg</th>
-              <th>Valor</th>
-              <th>Data</th>
-              <th>Hora</th>
-              <th>Fornecedor</th>
-              <th>SN</th>
-            </tr>
-          </thead>
-          <tbody id="modalDataBody">
-            <!-- Dados serão inseridos aqui -->
-          </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="exportToXLS">Exportar Excel</button>
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-      </div>
-    </div>
-  </div>
 </div>
-    <div class="modal fade" id="cadastroModal" tabindex="-1" aria-labelledby="cadastroModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="cadastroModalLabel">Novo Cadastro</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="cadastroForm">
-                        <div class="form-group">
-                            <label for="nome">Nome:</label>
-                            <input type="text" class="form-control" id="nome" name="nome" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="maquina">Máquina:</label>
-                            <select class="form-control" id="maquina" name="maquina" required>
-                            </select>
-                            <small id="maquinaHelp" class="form-text text-muted">Se a máquina não estiver na lista, cadastre uma nova.</small>
-                        </div>
-                        <div class="form-group">
-                            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#maquinaModal">Cadastrar Máquina</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary" id="salvarCadastro">Salvar</button>
-                </div>
-            </div>
-        </div>
-        <div class="modal fade" id="maquinaModal" tabindex="-1" aria-labelledby="maquinaModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="maquinaModalLabel">Cadastrar Máquina</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="equipamentoNome">Nome</label>
-                            <input type="text" class="form-control" id="equipamentoNome" placeholder="Nome">
-                        </div>
-                        <div class="form-group">
-                            <label for="equipamentoPt">PT</label>
-                            <input type="text" class="form-control" id="equipamentoPt" placeholder="PT">
-                        </div>
-                        <div class="form-group">
-                            <label for="equipamentoRh">RH</label>
-                            <input type="text" class="form-control" id="equipamentoRh" placeholder="RH">
-                        </div>
-                        <div class="form-group">
-                            <label for="equipamentoPd">PD</label>
-                            <input type="text" class="form-control" id="equipamentoPd" placeholder="PD">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
-                    <button type="button" class="btn btn-primary" id="saveMaquinaButton">Salvar</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-    </div>
-    
 
+<!-- Modal de Cadastro -->
+<div class="modal fade" id="cadastroModal" tabindex="-1" aria-labelledby="cadastroModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cadastroModalLabel">Novo Cadastro</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="cadastroForm">
+                    <div class="form-group">
+                        <label for="nome">Nome:</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="maquina">Máquina:</label>
+                        <select class="form-control" id="maquina" name="maquina" required>
+                            <!-- Opções serão inseridas dinamicamente -->
+                        </select>
+                        <small id="maquinaHelp" class="form-text text-muted">Se a máquina não estiver na lista, cadastre uma nova.</small>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#maquinaModal">Cadastrar Máquina</button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="salvarCadastro">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Cadastro de Máquina -->
+<div class="modal fade" id="maquinaModal" tabindex="-1" aria-labelledby="maquinaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="maquinaModalLabel">Cadastrar Máquina</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formCadastroMaquina">
+                    <div class="form-group">
+                        <label for="equipamentoNome">Nome</label>
+                        <input type="text" class="form-control" id="equipamentoNome" placeholder="Nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipamentoPt">PT</label>
+                        <input type="text" class="form-control" id="equipamentoPt" placeholder="PT" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipamentoRh">RH</label>
+                        <input type="text" class="form-control" id="equipamentoRh" placeholder="RH" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="equipamentoPd">PD</label>
+                        <input type="text" class="form-control" id="equipamentoPd" placeholder="PD" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="saveMaquinaButton">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Representantes -->
+<div class="modal fade" id="modalRepresentantes" tabindex="-1" role="dialog" aria-labelledby="modalRepresentantesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalRepresentantesLabel">Editar ou Excluir Representantes</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group" id="listaRepresentantes">
+                    <!-- Aqui serão listados os representantes -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Edição de Representante -->
+<div class="modal fade" id="modalEdicaoRepresentante" tabindex="-1" role="dialog" aria-labelledby="modalEdicaoRepresentanteLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEdicaoRepresentanteLabel">Editar Representante</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formEdicaoRepresentante">
+                    <div class="form-group">
+                        <label for="inputNome">Nome</label>
+                        <input type="text" class="form-control" id="inputNome" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="saveChanges">Salvar alterações</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <!-- Bootstrap JavaScript -->
@@ -227,6 +284,13 @@
                 success: function(response) {
                     alert(response); // Exibir mensagem de sucesso
                     $('#maquinaModal').modal('hide'); // Fechar modal após sucesso
+                    
+                    
+                    $('#equipamentoNome').val('');
+                $('#equipamentoPt').val('');
+                $('#equipamentoRh').val('');
+                $('#equipamentoPd').val('');
+                    carregarOpcoesEquipamentos();
                 },
                 error: function(err) {
                     console.error("Erro ao cadastrar equipamento:", err);
@@ -236,6 +300,7 @@
         });
 
         // Função para carregar opções de equipamentos no select
+        function carregarOpcoesEquipamentos() {
         $.ajax({
             url: '/api/equipamentos',
             method: 'GET',
@@ -251,7 +316,9 @@
                 console.error("Erro ao carregar equipamentos:", err);
             }
         });
+    }
 
+    carregarOpcoesEquipamentos();
         // Submeter o formulário de cadastro de representante
         $('#cadastroForm').submit(function(event) {
             event.preventDefault();
@@ -276,6 +343,12 @@
     $('#salvarCadastro').click(function() {
     const nome = $('#nome').val();
     const maquina = $('#maquina').val();
+    // Limpar os campos do formulário após salvar
+    $('#nome').val('');
+        $('#maquina').val('');
+
+        // Fechar o modal após salvar
+        $('#cadastroModal').modal('hide');
 
     $.ajax({
         url: '/api/representantes',
@@ -400,13 +473,118 @@ document.getElementById('exportToXLS').addEventListener('click', function() {
         // Baixa o arquivo XLS com os dados
         XLSX.writeFile(wb, 'dados.xlsx');
     });
+    document.getElementById('exportAllToExcel').addEventListener('click', function() {
+    fetch('/api/exportarRepresentantes')
+        .then(response => response.json())
+        .then(data => {
+            // Dados obtidos, agora vamos exportar para Excel
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
+            XLSX.writeFile(wb, 'todos_representantes.xlsx');
+        })
+        .catch(error => {
+            console.error('Erro ao exportar dados:', error);
+            alert('Erro ao exportar dados. Por favor, tente novamente.');
+        });
+});
 
+ // Event listener para o botão "Cliente: EDITAR/EXCLUIR"
+document.querySelector('.btn-danger').addEventListener('click', function() {
+    // Limpa a lista de representantes para evitar duplicações
+    const listaRepresentantes = document.getElementById('listaRepresentantes');
+    listaRepresentantes.innerHTML = '';
 
+    // Busca os representantes do backend e adiciona à lista
+    fetch('/api/representantes')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(representante => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
+                    <span>${representante.nome}</span>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm mr-2" onclick="editarRepresentante(${representante.id})">Editar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="excluirRepresentante(${representante.id})">Excluir</button>
+                    </div>
+                `;
+                listaRepresentantes.appendChild(listItem);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar representantes:', error);
+            alert('Erro ao carregar representantes. Por favor, tente novamente.');
+        });
+});
 
+// Função para editar representante
+function editarRepresentante(idRepresentante) {
+    fetch(`/api/representantes/${idRepresentante}`)
+        .then(response => response.json())
+        .then(data => {
+            const modalEdicao = document.getElementById('modalEdicaoRepresentante');
+            modalEdicao.querySelector('#inputNome').value = data.nome;
+            modalEdicao.setAttribute('data-idrepresentante', idRepresentante);
+            $('#modalEdicaoRepresentante').modal('show');
+        })
+        .catch(error => {
+            console.error('Erro ao carregar dados do representante:', error);
+            alert('Erro ao carregar dados do representante. Por favor, tente novamente.');
+        });
+}
 
+// Função para excluir representante
+function excluirRepresentante(representanteId) {
+    if (confirm('Tem certeza que deseja excluir este Representante?')) {
+        fetch(`/api/representantes/${representanteId}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao excluir representante');
+            }
+            return response.json();
+        })
+        .then(data => {
+            alert('Representante excluído com sucesso');
+            // Atualiza a lista de representantes
+            atualizarListaRepresentantes();
+        })
+        .catch(error => {
+            console.error('Erro ao excluir representante:', error);
+            alert('Erro ao excluir representante. Por favor, tente novamente.');
+        });
+    }
+}
 
+// Função para atualizar a lista de representantes na página
+function atualizarListaRepresentantes() {
+    const listaRepresentantes = document.getElementById('listaRepresentantes');
+    listaRepresentantes.innerHTML = ''; // Limpa a lista atual
 
-
+    // Recarrega a lista de representantes do backend
+    fetch('/api/representantes')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(representante => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
+                    <span>${representante.nome}</span>
+                    <div>
+                        <button type="button" class="btn btn-primary btn-sm mr-2" onclick="editarRepresentante(${representante.id})">Editar</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="excluirRepresentante(${representante.id})">Excluir</button>
+                    </div>
+                `;
+                listaRepresentantes.appendChild(listItem);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar representantes:', error);
+            alert('Erro ao carregar representantes. Por favor, tente novamente.');
+        });
+}
 
     </script>
 

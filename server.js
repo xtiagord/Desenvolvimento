@@ -190,6 +190,26 @@ app.get('/representantes', (req, res) => {
         });
     });
 });
+app.get('/api/representantes/:id', (req, res) => {
+    const idRepresentante = req.params.id;
+    console.log('Recebendo solicitação para representante com ID:', idRepresentante); // Log para verificar a solicitação
+
+    const query = 'SELECT * FROM representantes WHERE id = ?';
+    db.query(query, [idRepresentante], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar representante:', err);
+            res.status(500).send('Erro no servidor');
+            return;
+        }
+        if (results.length === 0) {
+            res.status(404).send('Representante não encontrado');
+            return;
+        }
+        console.log('Resultados da consulta:', results); // Log para verificar os resultados da consulta
+        res.json(results[0]);
+    });
+});
+
 
   // Rota para obter fornecedores
   app.get('/fornecedores', (req, res) => {
@@ -475,6 +495,22 @@ app.delete('/api/cooperados/:id', async (req, res) => {
         res.status(500).json({ error: 'Erro ao excluir cooperado' });
     }
 });
+app.delete('/api/representantes/:id', async (req, res) => {
+    const representanteId = req.params.id; // Corrigido para representanteId
+
+    try {
+        const sql = `
+            DELETE FROM representantes
+            WHERE id = ?
+        `;
+        await db.query(sql, [representanteId]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao excluir representante:', err);
+        res.status(500).json({ error: 'Erro ao excluir representante' });
+    }
+});
+
 
 app.put('/api/cooperados/:id', (req, res) => {
     const cooperadoId = req.params.id;
@@ -492,6 +528,19 @@ app.put('/api/cooperados/:id', (req, res) => {
             return res.status(500).json({ error: err.message });
         }
         res.json({ success: true });
+    });
+});
+app.put('/api/representantes/:id', (req, res) => {
+    const idRepresentante = req.params.id;
+    const { nome } = req.body;
+    const query = 'UPDATE representantes SET nome = ? WHERE id = ?';
+    db.query(query, [nome, idRepresentante], (err, results) => {
+        if (err) {
+            console.error('Erro ao atualizar representante:', err);
+            res.status(500).send('Erro no servidor');
+            return;
+        }
+        res.send('Representante atualizado com sucesso');
     });
 });
 app.get('/api/equipamentos', (req, res) => {
@@ -536,6 +585,17 @@ app.get('/api/equipamentos/:representanteId', async (req, res) => {
       res.status(500).json({ error: 'Erro ao consultar equipamentos' });
     }
   });
+  app.get('/api/exportarRepresentantes', (req, res) => {
+    const query = 'SELECT * FROM dados';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar representantes:', err);
+            res.status(500).json({ error: 'Erro ao buscar representantes' });
+            return;
+        }
+        res.json(results);
+    });
+});
 
   
 
