@@ -4,7 +4,8 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
-const mysql = require('mysql');
+const mysql = require('mysql2');
+
 
 // Inicializar o Express
 const app = express();
@@ -12,8 +13,8 @@ const PORT = 3001;
 
 // Configuração do MySQL
 const db = mysql.createPool({
-    host: "localhost",
-    user: "root",
+    host: "192.168.15.45",
+    user: "tiago",
     password: "1234",
     database: "sys",
 });
