@@ -20,8 +20,9 @@ const db = mysql.createPool({
 
 // Configurar o middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'js')));
 
 // Configuração do Multer para upload de arquivos
 const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
@@ -58,11 +59,12 @@ const updateFoldersInfo = (folderPath) => {
 
 // Função para extrair dados do PDF
 function extractPDFData(text) {
-    const tableRegex = /(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d+,\d+)/g;
-    const dataRegex = /Data\/Hora:\s+(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2})/;
-    const horaRegex = /Hora:\s*(\d{2}:\d{2})/i;
-    const representanteRegex = /Representante\s+([A-Za-z\s]+)$/m;
-    const fornecedorRegex = /Eu,\s+([A-Za-z\s]+),\s+portador/;
+    const tableRegex = /(\d,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d,\d{4})\s*(\d+,\d+)\s*(\d+,\d+)/gm;
+    const dataRegex = /Data\/Hora:\s+(\d{2}\/\d{2}\/\d{4})/;
+    const horaRegex = /\b\d{2}:\d{2}\b/i;
+    const representanteRegex = /Apelido\s+([A-Za-z]+)\s+[A-Za-z]+/;
+    const fornecedorRegex = /(?:\n|^)([A-Za-z]+\s+[A-Za-z]+(?:\s+[A-Za-z]+)*)\s*Comprador/;
+    const snRegex = /SN-\d+/;
 
     const tableData = [];
     let match;
@@ -77,6 +79,7 @@ function extractPDFData(text) {
             valor: match[6]
         };
 
+        
         const dataMatch = dataRegex.exec(text);
         if (dataMatch) {
             console.log("Data encontrada:", dataMatch[1]);
@@ -88,7 +91,7 @@ function extractPDFData(text) {
         const horaMatch = horaRegex.exec(text);
         if (horaMatch) {
             console.log("Hora encontrada:", horaMatch[1]);
-            data.hora = horaMatch[1];
+            data.hora = horaMatch[0];
         } else {
             console.log("Hora não encontrada");
         }
@@ -108,6 +111,14 @@ function extractPDFData(text) {
         } else {
             console.log("Fornecedor não encontrado");
         }
+
+        const snRegexMatch = snRegex.exec(text);
+        if(snRegexMatch){
+            console.log("SN encontrado:", snRegex[0]);
+            data.sn = snRegexMatch[0];
+        } else {
+            console.log("SN não encontrado");
+        }
         tableData.push(data);
     }
 
@@ -124,6 +135,9 @@ app.post('/extract', extractUpload, async (req, res) => {
 
     try {
         const data = await pdfParse(req.file.buffer);
+
+        console.log("Texto extraído do PDF:", data.text);
+        
         const extractedData = extractPDFData(data.text);
         res.json(extractedData);
     } catch (error) {
@@ -140,8 +154,8 @@ app.post('/save', (req, res) => {
         return res.status(400).json({ message: 'Dados inválidos ou ausentes' });
     }
 
-    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn) VALUES ?';
-    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn]);
+    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote) VALUES ?';
+    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote]);
 
     db.query(insertQuery, [values], (err, result) => {
         if (err) {
@@ -289,6 +303,7 @@ app.post('/create-subfolder', (req, res) => {
     });
 });
 
+
 // Endpoint para obter as últimas 10 pastas criadas
 app.get('/last-10-folders', (req, res) => {
     if (fs.existsSync(foldersInfoFile)) {
@@ -321,8 +336,13 @@ app.get('/public/index.html', (req, res) => {
 });
 
 // Servir o arquivo arquivo.html
-app.get('/public/arquivo.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'arquivo.html'));
+app.get('/public/toFill.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'toFill.html'));
+});
+
+// Arquivo Dashboard 
+app.get('/public/dashboard.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 app.get('/api/dados', (req, res) => {
@@ -332,9 +352,27 @@ app.get('/api/dados', (req, res) => {
             console.error("Erro ao buscar dados:", err);
             return res.status(500).send("Erro ao buscar dados do banco de dados.");
         }
-        res.json(results);
+
+        // Processar e formatar os resultados
+        const processedResults = results.map(item => {
+            // Converter valores para decimal
+            let valor = item.Valor;
+
+            if (valor) {
+                // Remover pontos e substituir vírgula por ponto
+                valor = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
+            }
+
+            return {
+                ...item,
+                Valor: valor
+            };
+        });
+
+        res.json(processedResults);
     });
 });
+
 
 
 app.get('/api/representantes', (req, res) => {
@@ -405,18 +443,29 @@ app.post('/api/cooperados', (req, res) => {
     });
 });
 app.get('/api/cooperados', (req, res) => {
-    const sql = 'SELECT * FROM cooperados';
+    const { nome, cpf, representante_id } = req.query;
+    let query = 'SELECT c.nome, c.cpf, r.nome AS representante FROM cooperados c JOIN representantes r ON c.representante_id = r.id WHERE 1=1';
+    let params = [];
 
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Erro ao buscar cooperados:', err);
+    if (nome) {
+        query += ' AND LOWER(c.nome) LIKE ?';
+        params.push(`%${nome.toLowerCase()}%`);
+    }
+
+    if (cpf) {
+        query += ' AND LOWER(c.cpf) LIKE ?';
+        params.push(`%${cpf.toLowerCase()}%`);
+    }
+
+    if (representante_id) {
+        query += ' AND c.representante_id = ?';
+        params.push(representante_id);
+    }
+
+    db.query(query, params, (error, results) => {
+        if (error) {
             return res.status(500).json({ error: 'Erro ao buscar cooperados' });
         }
-
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'Nenhum cooperado encontrado' });
-        }
-
         res.json(results);
     });
 });
@@ -480,21 +529,27 @@ app.get('/api/cooperados/:id', (req, res) => {
     });
 });
 
-app.delete('/api/cooperados/:id', async (req, res) => {
-    const cooperadoId = req.params.id;
-
-    try {
-        const sql = `
-            DELETE FROM cooperados
-            WHERE id = ?
-        `;
-        db.query(sql, [cooperadoId]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error('Erro ao excluir cooperado:', err);
-        res.status(500).json({ error: 'Erro ao excluir cooperado' });
+// Rota para excluir um cooperado por ID
+app.delete('/api/cooperados/:id', (req, res) => {
+    const cooperadoId = parseInt(req.params.id); // Converter para inteiro
+    // Verifique se o cooperadoId é um número válido
+    if (isNaN(cooperadoId)) {
+        return res.status(400).json({ success: false, error: 'ID do cooperado inválido' });
     }
+    // Consulta SQL para deletar o cooperado pelo ID
+    const sql = 'DELETE FROM cooperados WHERE id = ?';
+    db.query(sql, [cooperadoId], (err, result) => {
+        if (err) {
+            console.error('Erro ao excluir cooperado:', err);
+            return res.status(500).json({ success: false, error: 'Erro ao excluir cooperado' });
+        }
+        // Se a deleção foi bem-sucedida, retorne sucesso
+        res.json({ success: true, message: 'Cooperado excluído com sucesso!' });
+    });
 });
+
+
+
 app.delete('/api/representantes/:id', async (req, res) => {
     const representanteId = req.params.id; // Corrigido para representanteId
 
@@ -512,24 +567,43 @@ app.delete('/api/representantes/:id', async (req, res) => {
 });
 
 
+// Rota para editar um cooperado por ID
 app.put('/api/cooperados/:id', (req, res) => {
-    const cooperadoId = req.params.id;
+    const cooperadoId = parseInt(req.params.id);
     const { nome, cpf, representanteId } = req.body;
 
-    if (!nome || !cpf || !representanteId) {
-        console.error('Dados incompletos:', { nome, cpf, representanteId });
-        return res.status(400).json({ error: 'Nome, CPF e Representante são obrigatórios.' });
+    if (isNaN(cooperadoId)) {
+        return res.status(400).json({ success: false, error: 'ID do cooperado inválido' });
     }
 
     const sql = 'UPDATE cooperados SET nome = ?, cpf = ?, representante_id = ? WHERE id = ?';
-    db.query(sql, [nome, cpf, representanteId, cooperadoId], (err, results) => {
+    db.query(sql, [nome, cpf, representanteId, cooperadoId], (err, result) => {
         if (err) {
             console.error('Erro ao atualizar cooperado:', err);
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ success: false, error: 'Erro ao atualizar cooperado' });
         }
-        res.json({ success: true });
+
+        res.json({ success: true, message: 'Cooperado atualizado com sucesso!' });
     });
 });
+app.get('/api/representantes/:nome', (req, res) => {
+    const nome = req.params.nome;
+    const sql = 'SELECT * FROM representantes WHERE nome = ?';
+    connection.query(sql, [nome], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar representante por nome:', err);
+            return res.status(500).json({ error: 'Erro interno ao buscar representante' });
+        }
+        if (results.length > 0) {
+            res.json(results[0]); // Retorna o primeiro representante encontrado
+        } else {
+            res.status(404).json({ message: 'Representante não encontrado' });
+        }
+    });
+});
+
+
+
 app.put('/api/representantes/:id', (req, res) => {
     const idRepresentante = req.params.id;
     const { nome } = req.body;
@@ -597,7 +671,88 @@ app.get('/api/equipamentos/:representanteId', async (req, res) => {
     });
 });
 
-  
+// Rota para cadastrar usuários
+app.post('/register', async (req, res) => {
+    const { username, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const sql = 'INSERT INTO users (username, password) VALUES (?, ?)';
+    
+    db.query(sql, [username, hashedPassword], (err, result) => {
+        if (err) return res.status(500).send(err.message);
+        res.status(201).send('User registered successfully');
+    });
+});
+
+// Rota para fazer login
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    const sql = 'SELECT * FROM users WHERE username = ?';
+    
+    db.query(sql, [username], async (err, results) => {
+        if (err) return res.status(500).send(err.message);
+        if (results.length === 0) return res.status(401).send('User not found');
+
+        const user = results[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) return res.status(401).send('Invalid credentials');
+
+        const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
+        res.status(200).json({ token });
+    });
+});
+
+//dashboard 
+
+app.get('/api/representantes-com-kg-e-valor', (req, res) => {
+    const query = `
+        SELECT r.id, r.nome, 
+               COALESCE(SUM(d.kg), 0) AS kg, 
+               COALESCE(SUM(d.valor), 0) AS valorTotal
+        FROM representantes r
+        LEFT JOIN dados d ON TRIM(r.nome) = TRIM(d.representante)
+        GROUP BY r.id, r.nome;
+    `;
+
+    console.log('Executando consulta SQL:', query);
+
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar representantes com kg e valor:', error);
+            res.status(500).json({ error: 'Erro ao buscar representantes com kg e valor' });
+        } else {
+            console.log('Resultados da consulta SQL:', results);
+            res.json(results);
+        }
+    });
+});
+
+// Endpoint para média de PD
+app.get('/api/media-pd', (req, res) => {
+    const query = `
+        SELECT 
+            representante, 
+            SUM(kg) AS totalKg, 
+            SUM(pd) AS totalPd, 
+            CASE WHEN SUM(pd) = 0 THEN 0 ELSE SUM(kg) / SUM(pd) END AS mediaPd
+        FROM dados
+        GROUP BY representante;
+    `;
+
+    console.log('Executando consulta SQL para média de PD:', query);
+
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar média de PD:', error);
+            res.status(500).json({ error: 'Erro ao buscar média de PD' });
+        } else {
+            console.log('Resultados da consulta SQL para média de PD:', results);
+            res.json(results);
+        }
+    });
+});
+
+
 
 // Iniciar o servidor
 app.listen(PORT, () => {
