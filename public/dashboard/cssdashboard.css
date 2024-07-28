@@ -1,0 +1,79 @@
+.modal-body {
+    max-height: 600px; /* Defina uma altura máxima para o corpo do modal */
+    overflow-y: auto; /* Habilita a rolagem vertical no modal */
+    position: relative; /* Garante que o cabeçalho fixo fique dentro do modal */
+}
+
+.modal-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #343a40; /* Cor de fundo do cabeçalho */
+    color: white; /* Cor do texto do cabeçalho */
+    border-radius: .25rem; /* Bordas arredondadas para todos os itens */
+    transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
+}
+.navbar-nav .nav-link.active, .navbar-nav .nav-link:hover {
+color: #fff !important;
+background-color: #006fdf !important; /* Cor de fundo para quando ativo ou hover */
+}
+
+.navbar-nav .nav-link {
+ font-size: 1rem; /* Aumenta o tamanho da fonte dos itens da navbar */
+margin-right: 1rem; /* Adiciona espaço à direita dos itens */
+color: #ffffff; /* Cor padrão do texto */
+border-radius: .25rem; /* Bordas arredondadas para todos os itens */
+transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
+}
+.dropdown-menu {
+ background-color: #575757; /* Cor de fundo do dropdown */
+ border: none; /* Remove borda do dropdown */
+ }
+ .dropdown-item:hover {
+ background-color: #006fdf; /* Cor de fundo ao passar o mouse sobre o item do dropdown */
+ }
+ .nav-item.dropdown {
+  margin-left: 1rem; /* Adiciona espaço à esquerda do dropdown */
+ }
+ .dropdown-item {
+ color: #fff; /* Cor do texto do dropdown */
+ font-size: 1.1rem; /* Aumenta o tamanho da fonte dos itens do dropdown */
+ padding: 0.5rem 1rem; /* Ajusta o preenchimento dos itens do dropdown */
+ }
+.btn-custom {
+height: 100px; /* Ajuste a altura conforme necessário */
+}
+.chart-container {
+    width: 80%;
+    margin: auto;
+  }
+
+  .chart-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Espaço entre os gráficos */
+  }
+
+  .chart-box {
+    position: relative;
+    width: calc(50% - 20px); /* 2 gráficos por linha */
+    min-width: 300px; /* Largura mínima para cada gráfico */
+    margin-bottom: 20px;
+    transition: width 0.3s ease; /* Transição suave para redimensionamento */
+  }
+
+  .chart-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+  }
+
+  .chart-controls button {
+    margin-left: 5px;
+  }
+
+  canvas {
+    width: 100% !important; /* Faz com que o canvas ocupe toda a largura do seu contêiner */
+    height: auto !important; /* Mantém a proporção do canvas */
+  }

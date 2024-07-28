@@ -3,402 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Subfolder</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
-    <link rel="stylesheet" href="/public/landing.css">
-    <style>
-        .dropzone {
-            border: 2px dashed #007bff;
-            padding: 20px;
-            text-align: center;
-            color: #007bff;
-            cursor: pointer;
-        }
-        .dropzone.dragover {
-            background-color: #f5f5f5;
-        }
-        #image-preview {
-            max-width: 100%;
-            max-height: 300px;
-            margin-top: 20px;
-        }
-    </style>
+    <title>Tela de Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" id="bootstrap-css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css">
+    <link rel="stylesheet" href="/login/stylelogin.css">
 </head>
 <body>
-    <header>
-        <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark ">
-            <a class="navbar-brand" href="#">
-                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
-                Valmarc
-              </a>
-              <a class="nav-item nav-link  active" href="/index.html">Pastas</a>
-              <a class="nav-item nav-link " href="/public/Cliente.html">Cooperados</a>
-              <a class="nav-item nav-link" href="/public/Extrator.html">Lançamentos</a>
-              <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
-          </nav>
-    </header>
-    
-    <div class="container mt-5">
-        <h1>Criar Pastas</h1>
-        <form id="create-folder-form">
-            <div class="form-row">
-                <div class="form-group col-md-6">
-                    <label for="date">Selecione a data:</label>
-                    <input type="text" class="form-control" id="date" name="date" placeholder="DD/MM/YYYY" required>
-                </div>
-                <div class="form-group col-md-6">
-                    <label for="mainFolder">Selecione o país:</label>
-                    <select class="form-control" id="mainFolder" name="mainFolder">
-                        <option value="ENTREGAS">BRASIL</option>
-                        <option value="- PARAGUAI">PARAGUAI</option>
-                        <option value="- BOLIVIA">BOLIVIA</option>
-                    </select>
-                </div>
+    <div class="parent">
+        <div class="div1 header-container">
+            <img src="/login/photo/untitled (1).png" alt="Logo" class="logo">
+            <h1 style="margin-left: 10px;">VALMARC</h1>
+        </div>
+        <div class="div2 container">
+            <div class="video-container">
+                <video autoplay muted loop>
+                    <source src="/login/photo/val2.mp4" type="video/mp4">
+                    <source src="/login/photo/val.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
-    
-            <div class="form-row">
-                <div class="form-group col-md-4">
-                    <label for="baseFolder">Selecione nome do fornecedor:</label>
-                    <select class="form-control" id="baseFolder" name="baseFolder" disabled>
-                        <option value="- ADRIANO">- ADRIANO</option>
-                        <option value="- ANDERSON">- ANDERSON</option>
-                        <option value="- ARIEL">- ARIEL</option>
-                        <option value="- CLAUDIO">- CLAUDIO</option>
-                        <option value="- DEPOSITO">- DEPOSITO</option>
-                        <option value="- DARIO">- DARIO</option>
-                        <option value="- FREDY">- FREDY</option>
-                        <option value="- IGOR">- IGOR</option>
-                        <option value="- JOSE">- JOSE</option>
-                        <option value="- LUCAS">- LUCAS</option>
-                        <option value="- NELSON">- NELSON</option>
-                    </select>
+            <div class="card">
+                <div class="card-header">
+                    <h4>Bem Vindo!</h4>
+                    <div class="d-flex justify-content-end social_icon">
+                        <span><i class="fab fa-facebook-square"></i></span>
+                        <span><i class="fab fa-google-plus-square"></i></span>
+                        <span><i class="fab fa-twitter-square"></i></span>
+                    </div>
                 </div>
-                <div class="form-group col-md-4">
-                    <label for="subFolderName">Nome do comprador:</label>
-                    <input type="text" class="form-control" id="subFolderName" name="subFolderName" required>
+                <div class="card-body">
+                    <form id="loginForm">
+                        <div class="input-group form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            </div>
+                            <input type="text" id="username" class="form-control" placeholder="Nome">
+                        </div>
+                        <div class="input-group form-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                            </div>
+                            <input type="password" id="password" class="form-control" placeholder="Senha">
+                        </div>
+                        <div class="row align-items-center remember">
+                            <input type="checkbox">Lembre-me
+                        </div>
+                        <div class="form-group">
+                            <input type="submit" value="Entrar" class="btn float-right login_btn">
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group col-md-4">
-                    <label for="directory">Diretorio de Destino:</label>
-                    <input type="text" class="form-control" id="directory" name="directory" required>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-center">
+                        <a href="#">Esqueceu a senha?</a>
+                    </div>
+                    <div class="d-flex justify-content-center links">
+                        Tiago Dalmolin - Todos os Direitos Reservados
+                    </div>
                 </div>
-            </div>
-    
-            <div class="form-group">
-                <label for="file">Upload da Foto:</label>
-                <div id="dropzone" class="dropzone">
-                    Selecione e arraste a foto ou clique aqui
-                </div>
-                <input type="file" class="form-control" id="file" name="file" style="display:none;">
-                <img id="image-preview" src="" alt="Image Preview" style="display:none;">
-            </div>
-            <div class="form-group">
-                <label for="newFileName">Nome da FOTO:</label>
-                <input type="text" class="form-control" id="newFileName" name="newFileName" placeholder="New file name without extension" required>
-            </div>
-            <div class="form-group">
-                <label for="pdfFile">Upload PDF (Opcional):</label>
-                <div id="pdf-dropzone" class="dropzone">
-                    Selecione e arraste o PDF ou clique aqui
-                </div>
-                <input type="file" class="form-control" id="pdfFile" name="pdfFile" accept=".pdf" style="display:none;">
-                <span id="pdf-filename"></span>
-            </div>
-    
-            <button type="submit" class="btn btn-primary">Criar Pasta</button>
-        </form>
-        <p id="result"></p>
-        <div class="row mt-3">
-            <div class="col">
-                <button id="toggle-folders" class="btn btn-secondary">Mostrar 10 últimas pastas criadas</button>
-            </div>
-            <div class="col">
-                <table class="table mt-3" id="folders-table" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Caminho</th>
-                            <th>Data da criação</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
             </div>
         </div>
     </div>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <!-- Bootstrap JavaScript -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Bootstrap Datepicker JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            $('#date').datepicker({
-                format: 'dd/mm/yyyy',
-                autoclose: true
-            });
-
-            // Manage main folder selection
-            $('#mainFolder').change(function() {
-                if ($(this).val() === 'ENTREGAS') {
-                    $('#baseFolder').prop('disabled', true);
-                } else {
-                    $('#baseFolder').prop('disabled', false);
-                }
-            });
-
-            let dropzone = document.getElementById('dropzone');
-            let fileInput = document.getElementById('file');
-            let imagePreview = document.getElementById('image-preview');
-
-            dropzone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropzone.classList.add('dragover');
-            });
-
-            dropzone.addEventListener('dragleave', () => {
-                dropzone.classList.remove('dragover');
-            });
-
-            dropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropzone.classList.remove('dragover');
-                
-                const file = e.dataTransfer.files[0];
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) { 
-                        imagePreview.src = event.target.result;
-                        imagePreview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('Please drop an image file.');
-                }
-                
-                fileInput.files = e.dataTransfer.files;
-                dropzone.textContent = file.name;
-            });
-
-            dropzone.addEventListener('click', () => {
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', () => {
-                const file = fileInput.files[0];
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        imagePreview.src = event.target.result;
-                        imagePreview.style.display = 'block';
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    alert('Please select an image file.');
-                }
-                
-                dropzone.textContent = file.name;
-            });
-
-            let pdfDropzone = document.getElementById('pdf-dropzone');
-            let pdfFileInput = document.getElementById('pdfFile');
-            let pdfFilename = document.getElementById('pdf-filename');
-
-            pdfDropzone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                pdfDropzone.classList.add('dragover');
-            });
-
-            pdfDropzone.addEventListener('dragleave', () => {
-                pdfDropzone.classList.remove('dragover');
-            });
-
-            pdfDropzone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                pdfDropzone.classList.remove('dragover');
-                
-                const file = e.dataTransfer.files[0];
-                if (file.type === 'application/pdf') {
-                    pdfFilename.textContent = file.name;
-                } else {
-                    alert('Please drop a PDF file.');
-                }
-                
-                pdfFileInput.files = e.dataTransfer.files;
-                pdfDropzone.textContent = file.name;
-            });
-
-            pdfDropzone.addEventListener('click', () => {
-                pdfFileInput.click();
-            });
-
-            pdfFileInput.addEventListener('change', () => {
-                const file = pdfFileInput.files[0];
-                if (file.type === 'application/pdf') {
-                    pdfFilename.textContent = file.name;
-                } else {
-                    alert('Please select a PDF file.');
-                }
-                
-                pdfDropzone.textContent = file.name;
-            });
-
-            $('#create-folder-form').on('submit', function(event) {
-                event.preventDefault();
-                var formData = new FormData(this);
-
-                $.ajax({
-                    url: '/create-subfolder',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        $('#result').text(response);
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        $('#result').text('Error: ' + textStatus + ' - ' + errorThrown);
-                    }
-                });
-            });
-
-                    document.addEventListener('DOMContentLoaded', function() {
-            var mainFolderSelect = document.getElementById('mainFolder');
-            var baseFolderSelect = document.getElementById('baseFolder');
-
-            mainFolderSelect.addEventListener('change', function() {
-                var selectedCountry = mainFolderSelect.value;
-
-                if (selectedCountry === '- PARAGUAI') {
-                    disableOption(baseFolderSelect, '- DARIO');
-                } else {
-                    enableOption(baseFolderSelect, '- DARIO');
-                }
-            });
-
-            function disableOption(selectElement, optionValue) {
-                var options = selectElement.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (options[i].value === optionValue) {
-                        options[i].disabled = true;
-                        break;
-                    }
-                }
-            }
-
-            function enableOption(selectElement, optionValue) {
-                var options = selectElement.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (options[i].value === optionValue) {
-                        options[i].disabled = false;
-                        break;
-                    }
-                }
-            }
-
-            var initialCountry = mainFolderSelect.value;
-            if (initialCountry === '- PARAGUAI') {
-                disableOption(baseFolderSelect, '- DARIO');
-            }
-        });
-
-            $('#toggle-folders').on('click', function() {
-                $('#folders-table').toggle();
-                if ($('#folders-table').is(':visible')) {
-                    $.get('/last-10-folders', function(data) {
-                        let rows = '';
-                        data.forEach(folder => {
-                            rows += `<tr><td>${folder.path}</td><td>${folder.createdAt}</td></tr>`;
-                        });
-                        $('#folders-table tbody').html(rows);
-                    });
-                }
-            });
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            var mainFolderSelect = document.getElementById('mainFolder');
-            var baseFolderSelect = document.getElementById('baseFolder');
-
-            mainFolderSelect.addEventListener('change', function() {
-                var selectedCountry = mainFolderSelect.value;
-
-                if (selectedCountry === '- PARAGUAI') {
-                    disableOption(baseFolderSelect, '- DARIO');
-                } else {
-                    enableOption(baseFolderSelect, '- DARIO');
-                }
-                
-            });
-
-            function disableOption(selectElement, optionValue) {
-                var options = selectElement.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (options[i].value === optionValue) {
-                        options[i].disabled = true;
-                        break;
-                    }
-                }
-            }
-
-            function enableOption(selectElement, optionValue) {
-                var options = selectElement.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (options[i].value === optionValue) {
-                        options[i].disabled = false;
-                        break;
-                    }
-                }
-            }
-            var initialCountry = mainFolderSelect.value;
-            if (initialCountry === '- PARAGUAI') {
-                disableOption(baseFolderSelect, '- DARIO');
-            }
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            var mainFolderSelect = document.getElementById('mainFolder');
-            var baseFolderSelect = document.getElementById('baseFolder');
-
-            mainFolderSelect.addEventListener('change', function() {
-                var selectedCountry = mainFolderSelect.value;
-
-                if (selectedCountry === '- PARAGUAI') {
-                    disableOption(baseFolderSelect, ['- DARIO']);
-                } else if (selectedCountry === '- BOLIVIA') {
-                    enableOption(baseFolderSelect, ['- DARIO']);
-                } else {
-                    disableOption(baseFolderSelect, ['- ADRIANO', '- ANDERSON', '- ARIEL', '- CLAUDIO', 
-                                                    '- DEPOSITO', '- FREDY', '- IGOR', '- JOSE', '- LUCAS', '- NELSON']);
-                }
-                
-            });
-
-            function disableOption(selectElement, optionValues) {
-                var options = selectElement.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (optionValues.includes(options[i].value)) {
-                        options[i].disabled = true;
-                    }
-                }
-            }
-
-            function enableOption(selectElement, optionValues) {
-                var options = selectElement.options;
-                for (var i = 0; i < options.length; i++) {
-                    if (optionValues.includes(options[i].value)) {
-                        options[i].disabled = false;
-                    }
-                }
-            }
-            var initialCountry = mainFolderSelect.value;
-            if (initialCountry === '- PARAGUAI') {
-                disableOption(baseFolderSelect, ['- DARIO']);
-            } else if (initialCountry === '- BOLIVIA') {
-                enableOption(baseFolderSelect, ['- DARIO']);
-            }
-        });
-    </script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="/login/scriptlogin.js"></script>
 </body>
 </html>

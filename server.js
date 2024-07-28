@@ -5,11 +5,13 @@ const bodyParser = require('body-parser');
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const mysql = require('mysql2');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
 
 
 // Inicializar o Express
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Configuração do MySQL
 const db = mysql.createPool({
@@ -18,6 +20,7 @@ const db = mysql.createPool({
     password: "1234",
     database: "sys",
 });
+
 
 // Configurar o middleware
 app.use(bodyParser.json());
@@ -304,7 +307,6 @@ app.post('/create-subfolder', (req, res) => {
     });
 });
 
-
 // Endpoint para obter as últimas 10 pastas criadas
 app.get('/last-10-folders', (req, res) => {
     if (fs.existsSync(foldersInfoFile)) {
@@ -314,6 +316,23 @@ app.get('/last-10-folders', (req, res) => {
     } else {
         res.json([]);
     }
+});
+
+app.use(session({
+    secret: 'seu_segredo_aqui',
+    resave: false,
+    saveUninitialized: true
+}));
+
+app.get('/', (req, res) => {
+    console.log("Acessando a rota raiz");
+    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+        if (err) {
+            console.error("Erro ao enviar index.html:", err);
+        } else {
+            console.log("index.html enviado com sucesso");
+        }
+    });
 });
 
 // Servir o arquivo Cadastro.html
@@ -331,14 +350,9 @@ app.get('/public/Cliente.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Cliente.html'));
 });
 
-//arquivo index
-app.get('/public/index.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Servir o arquivo arquivo.html
-app.get('/public/toFill.html', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'toFill.html'));
+//arquivo pasta 
+app.get('/public/pasta.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pasta.html'));
 });
 
 // Arquivo Dashboard 
@@ -684,26 +698,47 @@ app.post('/register', async (req, res) => {
     });
 });
 
-// Rota para fazer login
-app.post('/login', (req, res) => {
+app.post('/index', (req, res) => {
     const { username, password } = req.body;
-    const sql = 'SELECT * FROM users WHERE username = ?';
-    
-    db.query(sql, [username], async (err, results) => {
-        if (err) return res.status(500).send(err.message);
-        if (results.length === 0) return res.status(401).send('User not found');
+    const query = 'SELECT * FROM users WHERE username = ?';
+
+    db.query(query, [username], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar usuário:', err);
+            return res.status(500).json({ success: false });
+        }
+
+        if (results.length === 0) {
+            return res.status(401).json({ success: false });
+        }
 
         const user = results[0];
-        const isMatch = await bcrypt.compare(password, user.password);
 
-        if (!isMatch) return res.status(401).send('Invalid credentials');
+        bcrypt.compare(password, user.password, (err, match) => {
+            if (err) {
+                console.error('Erro ao comparar senha:', err);
+                return res.status(500).json({ success: false });
+            }
 
-        const token = jwt.sign({ id: user.id }, 'your_jwt_secret', { expiresIn: '1h' });
-        res.status(200).json({ token });
+            if (match) {
+                req.session.userId = user.id;
+                return res.json({ success: true });
+            } else {
+                return res.status(401).json({ success: false });
+            }
+        });
     });
 });
 
 //dashboard 
+app.get('/dashboard', (req, res) => {
+    if (!req.session.userId) {
+        return res.redirect('/');
+    }
+
+    // Lógica para renderizar o dashboard ou página principal do sistema
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
 
 app.get('/api/representantes-com-kg-e-valor', (req, res) => {
     const query = `

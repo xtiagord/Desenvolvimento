@@ -6,21 +6,45 @@
     <title>Cadastrar Cliente</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/public/landing.css">
+    <link rel="stylesheet" href="/cliente/csscliente.css">
 </head>
 <body>
     <header>
-        <nav class="nav nav-pills nav-justified navbar navbar-dark bg-dark ">
-            <a class="navbar-brand" href="#">
-                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
-                Valmarc
-            </a>
-            <a class="nav-item nav-link" href="/index.html">Pastas</a>
-            <a class="nav-item nav-link active" href="/public/Cliente.html">Cooperados</a>
-            <a class="nav-item nav-link" href="/public/Extrator.html">Lançamentos</a>
-            <a class="nav-item nav-link" href="/public/Cadastro.html">Representante</a>
+        <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+          <a class="navbar-brand" href="#">
+            <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+            Valmarc
+          </a>
+          <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item">
+                <a class="nav-link" href="/public/dashboard.html">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/index.html">Pastas</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link  active" href="/public/Cliente.html">Cooperados</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/Extrator.html">Lançamentos</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/public/Cadastro.html">Representante</a>
+              </li>
+            </ul>
+            <div class="nav-item dropdown ml-auto">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Menu
+              </a>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href="#">Cadastro</a>
+                <a class="dropdown-item" href="#">Configurações</a>
+              </div>
+            </div>
+          </div>
         </nav>
-    </header>
+      </header>
     <div class="container mt-5">
         <!-- Card para cadastrar cliente -->
         <div class="card text-white bg-dark mb-4">
@@ -378,44 +402,5 @@ function filterCooperados() {
 }
 
     </script>
-    <style>
-        #cooperadosContainer {
-    max-height: 400px; /* Defina a altura fixa para o contêiner */
-
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-thead {
-    display: table; /* Garante que o cabeçalho seja tratado como uma tabela */
-    width: calc(100% - 17px); /* Ajuste para evitar barra de rolagem horizontal */
-}
-
-tbody {
-    display: block; /* Garante que o corpo da tabela role independentemente do cabeçalho */
-    max-height: 200px; /* Defina a altura fixa para o corpo da tabela */
-    overflow-y: auto; /* Permite rolar verticalmente o corpo da tabela */
-    width: 100%;
-}
-
-th, td {
-    padding: 8px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-    width: 25%; /* Ajuste a largura das colunas conforme necessário */
-}
-
-thead th {
-    position: -webkit-sticky; /* Para compatibilidade com Safari */
-    position: sticky;
-    top: 0;
-    background: #f8f8f8; /* Cor de fundo do cabeçalho */
-    z-index: 1; /* Garante que o cabeçalho fique acima do corpo da tabela */
-}
-
-    </style>
 </body>
 </html>

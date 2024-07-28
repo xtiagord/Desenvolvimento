@@ -13,14 +13,14 @@
     margin-top: 20px;
   }
   .navbar-nav .nav-link {
-    font-size: 1.25rem; /* Aumenta o tamanho da fonte dos itens da navbar */
+    font-size: 1rem; /* Aumenta o tamanho da fonte dos itens da navbar */
     margin-right: 1rem; /* Adiciona espaço à direita dos itens */
     color: #ffffff; /* Cor padrão do texto */
     border-radius: .25rem; /* Bordas arredondadas para todos os itens */
     transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
   }
   .navbar-brand {
-    font-size: 2.0rem; /* Aumenta o tamanho da fonte do nome da marca */
+    font-size: 1.25rem; /* Aumenta o tamanho da fonte do nome da marca */
   }
   .dropdown-menu {
     background-color: #575757; /* Cor de fundo do dropdown */

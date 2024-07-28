@@ -1,0 +1,64 @@
+#cooperadosContainer {
+    max-height: 400px; /* Defina a altura fixa para o contêiner */
+
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    display: table; /* Garante que o cabeçalho seja tratado como uma tabela */
+    width: calc(100% - 17px); /* Ajuste para evitar barra de rolagem horizontal */
+}
+
+tbody {
+    display: block; /* Garante que o corpo da tabela role independentemente do cabeçalho */
+    max-height: 200px; /* Defina a altura fixa para o corpo da tabela */
+    overflow-y: auto; /* Permite rolar verticalmente o corpo da tabela */
+    width: 100%;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    width: 25%; /* Ajuste a largura das colunas conforme necessário */
+}
+
+thead th {
+    position: -webkit-sticky; /* Para compatibilidade com Safari */
+    position: sticky;
+    top: 0;
+    background: #f8f8f8; /* Cor de fundo do cabeçalho */
+    z-index: 1; /* Garante que o cabeçalho fique acima do corpo da tabela */
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link:hover {
+    color: #fff !important;
+    background-color: #006fdf !important; /* Cor de fundo para quando ativo ou hover */
+    }
+    
+.navbar-nav .nav-link {
+     font-size: 1rem; /* Aumenta o tamanho da fonte dos itens da navbar */
+    margin-right: 1rem; /* Adiciona espaço à direita dos itens */
+    color: #ffffff; /* Cor padrão do texto */
+    border-radius: .25rem; /* Bordas arredondadas para todos os itens */
+    transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
+    }
+.dropdown-menu {
+     background-color: #575757; /* Cor de fundo do dropdown */
+     border: none; /* Remove borda do dropdown */
+     }
+.dropdown-item:hover {
+     background-color: #006fdf; /* Cor de fundo ao passar o mouse sobre o item do dropdown */
+     }
+.nav-item.dropdown {
+      margin-left: 1rem; /* Adiciona espaço à esquerda do dropdown */
+     }
+.dropdown-item {
+     color: #fff; /* Cor do texto do dropdown */
+     font-size: 1.1rem; /* Aumenta o tamanho da fonte dos itens do dropdown */
+     padding: 0.5rem 1rem; /* Ajusta o preenchimento dos itens do dropdown */
+     }
