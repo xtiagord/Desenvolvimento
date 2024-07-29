@@ -15,8 +15,8 @@ const PORT = process.env.PORT || 3001;
 
 // Configuração do MySQL
 const db = mysql.createPool({
-    host: "192.168.15.45",
-    user: "tiago",
+    host: "localhost",
+    user: "root",
     password: "1234",
     database: "sys",
 });
@@ -158,8 +158,44 @@ app.post('/save', (req, res) => {
         return res.status(400).json({ message: 'Dados inválidos ou ausentes' });
     }
 
+    // Função para formatar valores decimais corretamente
+    function formatDecimal(value) {
+        if (typeof value === 'string') {
+            // Remove todos os pontos e vírgulas
+            value = value.replace(/[,.]/g, '');
+
+            // Adiciona o separador decimal antes dos dois últimos dígitos
+            const len = value.length;
+            value = value.slice(0, len - 2) + '.' + value.slice(len - 2);
+        }
+        return value;
+    }
+
+    // Função para preparar os dados com a formatação correta
+    function prepareDataForSave(data) {
+        return data.map(row => ({
+            Npdf: row.Npdf,
+            kg: formatDecimal(row.kg),
+            pd: formatDecimal(row.pd),
+            pt: formatDecimal(row.pt),
+            rh: formatDecimal(row.rh),
+            valorKg: formatDecimal(row.valorKg),
+            valor: formatDecimal(row.valor),
+            data: row.data,
+            hora: row.hora,
+            representante: row.representante,
+            fornecedor: row.fornecedor,
+            sn: row.sn,
+            lote: row.lote
+        }));
+    }
+
+    // Preparar dados com formatação
+    const preparedData = prepareDataForSave(data);
+
+    // Consultar SQL para inserir dados
     const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote) VALUES ?';
-    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote]);
+    const values = preparedData.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote]);
 
     db.query(insertQuery, [values], (err, result) => {
         if (err) {
@@ -170,6 +206,8 @@ app.post('/save', (req, res) => {
         res.status(200).json({ message: 'Dados inseridos com sucesso' });
     });
 });
+
+
 
 //rota representante e cooperados -extrator.html
 app.get('/representantes', (req, res) => {

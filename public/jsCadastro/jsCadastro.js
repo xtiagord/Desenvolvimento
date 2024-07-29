@@ -18,7 +18,7 @@ $(document).ready(function() {
                             <td>${item.pt}</td>
                             <td>${item.rh}</td>
                             <td>${item.valorkg}</td>
-                            <td>${item.valor}</td>
+                            <td>${item.Valor}</td>
                             <td>${item.data}</td>
                             <td>${item.hora}</td>
                             <td>${item.representante}</td> <!-- Exibir o nome do representante -->
@@ -209,7 +209,7 @@ $.ajax({
                         <td>${dado.pt}</td>
                         <td>${dado.rh}</td>
                         <td>${dado.valorkg}</td>
-                        <td>${dado.valor}</td>
+                        <td>${dado.Valor}</td>
                         <td>${dado.data}</td>
                         <td>${dado.hora}</td>
                         <td>${dado.fornecedor}</td>
@@ -420,7 +420,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.insertCell(3).textContent = item.pd; // PD
                     row.insertCell(4).textContent = item.pt; // PT
                     row.insertCell(5).textContent = item.rh; // RH
-                    row.insertCell(6).textContent = item.valor; // Valor
+                    row.insertCell(6).textContent = item.Valor; // Valor
                     row.insertCell(7).textContent = item.representante; // Representante
                     row.insertCell(8).textContent = item.fornecedor; // Fornecedor
                     row.insertCell(9).textContent = item.sn; // SN

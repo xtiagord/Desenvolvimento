@@ -162,6 +162,25 @@ function populateDropdownsInTable(className, selectId) {
     });
   });
 }
+function formatDecimal(value) {
+  if (typeof value === 'string') {
+    return value.replace(',', '.');
+  }
+  return value;
+}
+
+// Exemplo de como usar a função formatDecimal ao preparar os dados para envio
+function prepareDataForSend(data) {
+  return {
+    ...data,
+    kg: formatDecimal(data.kg),
+    pd: formatDecimal(data.pd),
+    pt: formatDecimal(data.pt),
+    rh: formatDecimal(data.rh),
+    valorKg: formatDecimal(data.valorKg),
+    valor: formatDecimal(data.valor)
+  };
+}
 
 
 
