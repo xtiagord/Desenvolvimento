@@ -146,6 +146,9 @@ syncInputs.forEach(input => {
     }
   });
 });
+document.getElementById('resetButton').style.display = 'block';
+document.getElementById('editButton').style.display = 'block';
+
 
   // Exibir o botão de adicionar linha após a extração
   document.getElementById('addRowButton').style.display = 'block';
@@ -293,14 +296,12 @@ try {
   return [];
 }
 }
-
-// Função para inicializar ou carregar contagem de representantes do localStorage
 function carregarContagemRepresentantes() {
   let contagemJSON = localStorage.getItem('contagemRepresentantes');
   if (contagemJSON) {
-      return JSON.parse(contagemJSON);
+    return JSON.parse(contagemJSON);
   } else {
-      return {};
+    return {};
   }
 }
 
@@ -320,28 +321,28 @@ function enviarDados() {
 
   // Atualizar a contagem apenas se um representante estiver selecionado
   if (representanteSelecionado) {
-      // Atualizar o representante atual
-      representanteAtual = representanteSelecionado;
+    // Atualizar o representante atual
+    representanteAtual = representanteSelecionado;
 
-      // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
-      if (contagemRepresentantes.hasOwnProperty(representanteAtual)) {
-          // Incrementar o contador para o representante atual
-          contagemRepresentantes[representanteAtual]++;
-      } else {
-          // Inicializar contagem para o novo representante
-          contagemRepresentantes[representanteAtual] = 1;
-      }
+    // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
+    if (contagemRepresentantes.hasOwnProperty(representanteAtual)) {
+      // Incrementar o contador para o representante atual
+      contagemRepresentantes[representanteAtual]++;
+    } else {
+      // Inicializar contagem para o novo representante
+      contagemRepresentantes[representanteAtual] = 1;
+    }
 
-      // Salvar a contagem atualizada no localStorage
-      salvarContagemRepresentantes();
+    // Salvar a contagem atualizada no localStorage
+    salvarContagemRepresentantes();
 
-      // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
-      let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-      for (let i = 0; i < npdfInputs.length; i++) {
-          npdfInputs[i].value = contagemRepresentantes[representanteAtual];
-      }
+    // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
+    let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+    for (let i = 0; i < npdfInputs.length; i++) {
+      npdfInputs[i].value = contagemRepresentantes[representanteAtual];
+    }
   } else {
-      alert("Selecione um representante antes de enviar.");
+    alert("Selecione um representante antes de enviar.");
   }
 }
 
@@ -354,24 +355,6 @@ function mostrarEnviar() {
 window.onload = function() {
   contagemRepresentantes = carregarContagemRepresentantes();
 };
-
-function resetarContagem() {
-  // Resetar a contagem de todos os representantes para 0
-  contagemRepresentantes = {};
-
-  // Salvar a contagem atualizada no localStorage
-  salvarContagemRepresentantes();
-
-  // Atualizar todos os campos de input (SN e Npdf) para 0
-  let snInputs = document.querySelectorAll("[id^=SN]");
-  let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-  for (let i = 0; i < snInputs.length; i++) {
-      snInputs[i].value = 0;
-  }
-  for (let i = 0; i < npdfInputs.length; i++) {
-      npdfInputs[i].value = 0;
-  }
-}
 
 // Função para adicionar uma nova linha à tabela
 function addNewRow() {
@@ -414,3 +397,104 @@ function addNewRow() {
 
 // Adiciona o evento de clique ao botão de adicionar linha
 document.getElementById('addRowButton').addEventListener('click', addNewRow);
+
+// Função para abrir o modal de edição
+async function abrirModalEdicao() {
+  let modalContent = document.getElementById("editModalContent");
+  
+  // Limpa o conteúdo do modal antes de adicionar novos itens
+  modalContent.innerHTML = "";
+
+  try {
+    const response = await fetch('/api/representantes');
+    const representantes = await response.json();
+    const idsProcessados = new Set(); // Para rastrear IDs já processados
+    
+    console.log("Representantes:", representantes); // Verificação no console
+
+    for (let representanteID in contagemRepresentantes) {
+      if (contagemRepresentantes.hasOwnProperty(representanteID)) {
+        // Verifica se o representante já foi processado
+        if (idsProcessados.has(representanteID)) continue;
+
+        // Busca o nome do representante com base no ID
+        const representante = representantes.find(rep => rep.id === parseInt(representanteID));
+        if (!representante) continue;
+        
+        const representanteNome = representante.nome;
+        const campoID = `rep_${representanteID}`;
+        modalContent.innerHTML += `
+          <div class="form-group">
+            <label for="${campoID}">${representanteNome}</label>
+            <input type="number" class="form-control" id="${campoID}" value="${contagemRepresentantes[representanteID]}">
+          </div>
+        `;
+
+        // Marca o ID como processado
+        idsProcessados.add(representanteID);
+      }
+    }
+
+    $('#editModal').modal('show'); // Usando jQuery para abrir o modal
+  } catch (error) {
+    console.error('Erro ao buscar representantes:', error);
+  }
+}
+
+// Função para salvar as edições do modal
+function salvarEdicoes() {
+  let modalContent = document.getElementById("editModalContent");
+
+  // Atualiza a contagem de representantes com base nos valores dos inputs no modal
+  for (let representanteID in contagemRepresentantes) {
+    if (contagemRepresentantes.hasOwnProperty(representanteID)) {
+      let input = modalContent.querySelector(`#rep_${representanteID}`);
+      if (input) {
+        contagemRepresentantes[representanteID] = parseInt(input.value) || 0;
+      }
+    }
+  }
+
+  salvarContagemRepresentantes();
+  $('#editModal').modal('hide'); // Usando jQuery para fechar o modal
+}
+
+// Função para mostrar o modal de confirmação de reset
+function mostrarConfirmacaoReset() {
+  $('#confirmResetModal').modal('show');
+}
+
+// Função para confirmar o reset
+document.getElementById('confirmResetButton').addEventListener('click', function() {
+  // Fechar o modal de confirmação
+  $('#confirmResetModal').modal('hide');
+
+  // Resetar a contagem
+  resetarContagem();
+
+  // Exibir o modal de sucesso
+  $('#successResetModal').modal('show');
+});
+
+// Função para resetar a contagem
+function resetarContagem() {
+  // Resetar a contagem de todos os representantes para 0
+  contagemRepresentantes = {};
+
+  // Salvar a contagem atualizada no localStorage
+  salvarContagemRepresentantes();
+
+  // Atualizar todos os campos de input (SN e Npdf) para 0
+  let snInputs = document.querySelectorAll("[id^=SN]");
+  let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+  for (let i = 0; i < snInputs.length; i++) {
+    snInputs[i].value = 0;
+  }
+  for (let i = 0; i < npdfInputs.length; i++) {
+    npdfInputs[i].value = 0;
+  }
+}
+
+// Adiciona o evento de clique aos botões
+document.getElementById('resetButton').addEventListener('click', mostrarConfirmacaoReset);
+document.getElementById('editButton').addEventListener('click', abrirModalEdicao);
