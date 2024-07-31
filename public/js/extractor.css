@@ -42,4 +42,17 @@
     margin-left: 1rem; /* Adiciona espaço à esquerda do dropdown */
   }
 
+  .custom-card {
+    margin: 20px;
+    padding: 20px;
+}
+.custom-width {
+    width: 100%;
+}
+.custom-spacing {
+    margin-bottom: 10px;
+}
+.table-container {
+    margin-top: 20px;
+}
   

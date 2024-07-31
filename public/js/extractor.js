@@ -28,6 +28,21 @@ function displayData(data) {
   const resultDiv = document.getElementById('result');
   resultDiv.innerHTML = '';
 
+  // Cria o elemento card
+  const card = document.createElement('div');
+  card.className = 'card mb-4'; // Adiciona a classe de card do Bootstrap e uma margem inferior
+
+  // Cria o cabeçalho do card
+  const cardHeader = document.createElement('div');
+  cardHeader.className = 'card-header';
+  cardHeader.innerHTML = '<h5 class="mb-0">Dados Extraídos</h5>'; // Cabeçalho do card
+  card.appendChild(cardHeader);
+
+  // Cria o corpo do card
+  const cardBody = document.createElement('div');
+  cardBody.className = 'card-body';
+
+  // Cria a tabela e adiciona ao corpo do card
   const table = document.createElement('table');
   table.className = 'table table-striped';
 
@@ -55,38 +70,49 @@ function displayData(data) {
   data.forEach((row, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td><input type="text" id="lote${index}" class="form-control form-control-lg custom-width lote-input" value="${row.lote}"></td>
-        <td><input type="text" id="Npdf${index}" class="form-control form-control-lg custom-width-n" value="${row.Npdf}" readonly></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.kg}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.pd}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.pt}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.rh}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.valorKg}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.valor}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.data}"></td>
-        <td><input type="text" class="form-control form-control-lg custom-width" value="${row.hora}"></td>
+        <td><input type="text" id="lote${index}" class="form-control custom-spacing custom-width lote-input" value="${row.lote || ''}"></td>
+        <td><input type="text" id="Npdf${index}" class="form-control custom-spacing custom-width custom-n" value="${row.Npdf || ''}" readonly></td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.kg || ''}"></td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.pd || ''}"></td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.pt || ''}"></td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.rh || ''}"></td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.valorKg || ''}"></td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.valor || ''}"></td>
         <td>
-            <select id="representante${index}" class="form-control form-control-lg custom-width representante-select sync-input">
+            ${row.data === undefined ? 
+                `<input type="date" id="data${index}" class="form-control custom-spacing custom-width" placeholder="dd/mm/yyyy">` :
+                `<input type="text" id="data${index}" class="form-control custom-spacing custom-width" value="${row.data}">`
+            }
+        </td>
+        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.hora || ''}"></td>
+        <td>
+            <select id="representante${index}" class="form-control custom-spacing custom-width representante-select sync-input">
                 <!-- Options will be populated dynamically -->
             </select>
         </td>
         <td>
-            <input list="fornecedores${index}" id="fornecedor${index}" class="form-control form-control-lg custom-width fornecedor-input sync-input" value="${row.fornecedor}">
+            <input list="fornecedores${index}" id="fornecedor${index}" class="form-control custom-spacing custom-width fornecedor-input sync-input" value="${row.fornecedor || ''}">
             <datalist id="fornecedores${index}" class="fornecedor-datalist">
                 <!-- Options will be populated dinamicamente -->
             </datalist>
         </td>
-        <td><input type="text" id="SN${index}" class="form-control form-control-lg custom-width sn-input" value="${row.sn}"></td>
+        <td><input type="text" id="SN${index}" class="form-control custom-spacing custom-width sn-input" value="${row.sn || ''}"></td>
     `;
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
-  resultDiv.appendChild(table);
+
+  // Adiciona a tabela ao corpo do card
+  cardBody.appendChild(table);
+  card.appendChild(cardBody);
+
+  // Adiciona o card ao container de resultados
+  resultDiv.appendChild(card);
 
   // Preencher os selects de representante com os valores atuais
   const representanteSelects = resultDiv.querySelectorAll('.representante-select');
   representanteSelects.forEach((select, index) => {
-    select.value = data[index].representante;
+    select.value = data[index].representante || '';
   });
 
   // Preencher os datalists de fornecedor com os valores atuais
@@ -99,6 +125,19 @@ function displayData(data) {
       datalist.appendChild(newOption);
     });
     input.value = data[index].fornecedor; 
+  });
+
+  // Adicionar evento para sincronizar data entre os campos
+  const dateInputs = resultDiv.querySelectorAll('input[type="date"]');
+  dateInputs.forEach(dateInput => {
+    dateInput.addEventListener('change', (event) => {
+      const selectedDate = event.target.value;
+      dateInputs.forEach(input => {
+        if (input !== event.target) {
+          input.value = selectedDate;
+        }
+      });
+    });
   });
 
   // Atualizar os dropdowns principais com os dados atuais
@@ -147,6 +186,10 @@ syncInputs.forEach(input => {
   });
 });
 
+document.getElementById('resetButton').style.display = 'block';
+document.getElementById('editButton').style.display = 'block';
+
+
   // Exibir o botão de adicionar linha após a extração
   document.getElementById('addRowButton').style.display = 'block';
 }
@@ -161,6 +204,25 @@ function populateDropdownsInTable(className, selectId) {
       datalist.appendChild(newOption);
     });
   });
+}
+function formatDecimal(value) {
+  if (typeof value === 'string') {
+    return value.replace(',', '.');
+  }
+  return value;
+}
+
+// Exemplo de como usar a função formatDecimal ao preparar os dados para envio
+function prepareDataForSend(data) {
+  return {
+    ...data,
+    kg: formatDecimal(data.kg),
+    pd: formatDecimal(data.pd),
+    pt: formatDecimal(data.pt),
+    rh: formatDecimal(data.rh),
+    valorKg: formatDecimal(data.valorKg),
+    valor: formatDecimal(data.valor)
+  };
 }
 
 
@@ -274,14 +336,12 @@ try {
   return [];
 }
 }
-
-// Função para inicializar ou carregar contagem de representantes do localStorage
 function carregarContagemRepresentantes() {
   let contagemJSON = localStorage.getItem('contagemRepresentantes');
   if (contagemJSON) {
-      return JSON.parse(contagemJSON);
+    return JSON.parse(contagemJSON);
   } else {
-      return {};
+    return {};
   }
 }
 
@@ -301,28 +361,28 @@ function enviarDados() {
 
   // Atualizar a contagem apenas se um representante estiver selecionado
   if (representanteSelecionado) {
-      // Atualizar o representante atual
-      representanteAtual = representanteSelecionado;
+    // Atualizar o representante atual
+    representanteAtual = representanteSelecionado;
 
-      // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
-      if (contagemRepresentantes.hasOwnProperty(representanteAtual)) {
-          // Incrementar o contador para o representante atual
-          contagemRepresentantes[representanteAtual]++;
-      } else {
-          // Inicializar contagem para o novo representante
-          contagemRepresentantes[representanteAtual] = 1;
-      }
+    // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
+    if (contagemRepresentantes.hasOwnProperty(representanteAtual)) {
+      // Incrementar o contador para o representante atual
+      contagemRepresentantes[representanteAtual]++;
+    } else {
+      // Inicializar contagem para o novo representante
+      contagemRepresentantes[representanteAtual] = 1;
+    }
 
-      // Salvar a contagem atualizada no localStorage
-      salvarContagemRepresentantes();
+    // Salvar a contagem atualizada no localStorage
+    salvarContagemRepresentantes();
 
-      // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
-      let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-      for (let i = 0; i < npdfInputs.length; i++) {
-          npdfInputs[i].value = contagemRepresentantes[representanteAtual];
-      }
+    // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
+    let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+    for (let i = 0; i < npdfInputs.length; i++) {
+      npdfInputs[i].value = contagemRepresentantes[representanteAtual];
+    }
   } else {
-      alert("Selecione um representante antes de enviar.");
+    alert("Selecione um representante antes de enviar.");
   }
 }
 
@@ -335,24 +395,6 @@ function mostrarEnviar() {
 window.onload = function() {
   contagemRepresentantes = carregarContagemRepresentantes();
 };
-
-function resetarContagem() {
-  // Resetar a contagem de todos os representantes para 0
-  contagemRepresentantes = {};
-
-  // Salvar a contagem atualizada no localStorage
-  salvarContagemRepresentantes();
-
-  // Atualizar todos os campos de input (SN e Npdf) para 0
-  let snInputs = document.querySelectorAll("[id^=SN]");
-  let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-  for (let i = 0; i < snInputs.length; i++) {
-      snInputs[i].value = 0;
-  }
-  for (let i = 0; i < npdfInputs.length; i++) {
-      npdfInputs[i].value = 0;
-  }
-}
 
 // Função para adicionar uma nova linha à tabela
 function addNewRow() {
@@ -395,3 +437,104 @@ function addNewRow() {
 
 // Adiciona o evento de clique ao botão de adicionar linha
 document.getElementById('addRowButton').addEventListener('click', addNewRow);
+
+// Função para abrir o modal de edição
+async function abrirModalEdicao() {
+  let modalContent = document.getElementById("editModalContent");
+  
+  // Limpa o conteúdo do modal antes de adicionar novos itens
+  modalContent.innerHTML = "";
+
+  try {
+    const response = await fetch('/api/representantes');
+    const representantes = await response.json();
+    const idsProcessados = new Set(); // Para rastrear IDs já processados
+    
+    console.log("Representantes:", representantes); // Verificação no console
+
+    for (let representanteID in contagemRepresentantes) {
+      if (contagemRepresentantes.hasOwnProperty(representanteID)) {
+        // Verifica se o representante já foi processado
+        if (idsProcessados.has(representanteID)) continue;
+
+        // Busca o nome do representante com base no ID
+        const representante = representantes.find(rep => rep.id === parseInt(representanteID));
+        if (!representante) continue;
+        
+        const representanteNome = representante.nome;
+        const campoID = `rep_${representanteID}`;
+        modalContent.innerHTML += `
+          <div class="form-group">
+            <label for="${campoID}">${representanteNome}</label>
+            <input type="number" class="form-control" id="${campoID}" value="${contagemRepresentantes[representanteID]}">
+          </div>
+        `;
+
+        // Marca o ID como processado
+        idsProcessados.add(representanteID);
+      }
+    }
+
+    $('#editModal').modal('show'); // Usando jQuery para abrir o modal
+  } catch (error) {
+    console.error('Erro ao buscar representantes:', error);
+  }
+}
+
+// Função para salvar as edições do modal
+function salvarEdicoes() {
+  let modalContent = document.getElementById("editModalContent");
+
+  // Atualiza a contagem de representantes com base nos valores dos inputs no modal
+  for (let representanteID in contagemRepresentantes) {
+    if (contagemRepresentantes.hasOwnProperty(representanteID)) {
+      let input = modalContent.querySelector(`#rep_${representanteID}`);
+      if (input) {
+        contagemRepresentantes[representanteID] = parseInt(input.value) || 0;
+      }
+    }
+  }
+
+  salvarContagemRepresentantes();
+  $('#editModal').modal('hide'); // Usando jQuery para fechar o modal
+}
+
+// Função para mostrar o modal de confirmação de reset
+function mostrarConfirmacaoReset() {
+  $('#confirmResetModal').modal('show');
+}
+
+// Função para confirmar o reset
+document.getElementById('confirmResetButton').addEventListener('click', function() {
+  // Fechar o modal de confirmação
+  $('#confirmResetModal').modal('hide');
+
+  // Resetar a contagem
+  resetarContagem();
+
+  // Exibir o modal de sucesso
+  $('#successResetModal').modal('show');
+});
+
+// Função para resetar a contagem
+function resetarContagem() {
+  // Resetar a contagem de todos os representantes para 0
+  contagemRepresentantes = {};
+
+  // Salvar a contagem atualizada no localStorage
+  salvarContagemRepresentantes();
+
+  // Atualizar todos os campos de input (SN e Npdf) para 0
+  let snInputs = document.querySelectorAll("[id^=SN]");
+  let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+  for (let i = 0; i < snInputs.length; i++) {
+    snInputs[i].value = 0;
+  }
+  for (let i = 0; i < npdfInputs.length; i++) {
+    npdfInputs[i].value = 0;
+  }
+}
+
+// Adiciona o evento de clique aos botões
+document.getElementById('resetButton').addEventListener('click', mostrarConfirmacaoReset);
+document.getElementById('editButton').addEventListener('click', abrirModalEdicao);
