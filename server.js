@@ -14,11 +14,11 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Configuração do MySQL
-const db = mysql.createPool({
+const db = mysql.createConnection({
     host: "localhost",
-    user: "tiago",
+    user: "root",
     password: "1234",
-    database: "sys",
+    database: "sys_test",
 });
 
 
@@ -27,6 +27,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'js')));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Configuração do Multer para upload de arquivos
 const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
@@ -333,6 +335,11 @@ app.get('/', (req, res) => {
             console.log("index.html enviado com sucesso");
         }
     });
+});
+
+// Servir o arquivo Configuração.html
+app.get('/public/configuracao.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'configuracao.html'));
 });
 
 // Servir o arquivo Cadastro.html
@@ -763,30 +770,151 @@ app.get('/api/representantes-com-kg-e-valor', (req, res) => {
     });
 });
 
-// Endpoint para média de PD
-app.get('/api/media-pd', (req, res) => {
+
+// Endpoint para salvar a ordem dos cards
+app.post('/api/saveCardOrder', (req, res) => {
+    const { user_id, order } = req.body;
+    console.log('Recebido para salvar:', { user_id, order }); // Log para depuração
+
+    // Verificar se a conexão está estabelecida
+    if (!db) {
+        return res.status(500).json({ error: 'Conexão com o banco de dados não estabelecida' });
+    }
+
+    // Excluir a ordem antiga
+    db.query('DELETE FROM card_order WHERE user_id = ?', [user_id], (err) => {
+        if (err) {
+            console.error('Erro ao excluir a ordem antiga:', err);
+            return res.status(500).json({ error: 'Erro ao excluir a ordem antiga' });
+        }
+
+        // Inserir a nova ordem
+        const values = order.map((card_id, index) => [user_id, card_id, index + 1]);
+        db.query('INSERT INTO card_order (user_id, card_id, position) VALUES ?', [values], (err) => {
+            if (err) {
+                console.error('Erro ao inserir a nova ordem:', err);
+                return res.status(500).json({ error: 'Erro ao inserir a nova ordem' });
+            }
+            res.json({ success: true });
+        });
+    });
+});
+
+// Endpoint para obter a ordem dos cards
+app.get('/api/getCardOrder', (req, res) => {
+    const { user_id } = req.query;
+
+    // Verificar se a conexão está estabelecida
+    if (!db) {
+        return res.status(500).json({ error: 'Conexão com o banco de dados não estabelecida' });
+    }
+
+    // Consultar a ordem dos cartões
+    db.query('SELECT card_id FROM card_order WHERE user_id = ? ORDER BY position', [user_id], (err, results) => {
+        if (err) {
+            console.error('Erro ao obter a ordem dos cards:', err);
+            return res.status(500).json({ error: 'Erro ao obter a ordem dos cards' });
+        }
+        const order = results.map(row => row.card_id);
+        res.json({ order });
+    });
+});
+
+// Endpoint para média de PD e Rh
+app.get('/api/media', (req, res) => {
     const query = `
         SELECT 
             representante, 
             SUM(kg) AS totalKg, 
             SUM(pd) AS totalPd, 
-            CASE WHEN SUM(pd) = 0 THEN 0 ELSE SUM(kg) / SUM(pd) END AS mediaPd
+            CASE WHEN SUM(pd) = 0 THEN 0 ELSE SUM(kg) / SUM(pd) END AS mediaPd,
+            SUM(rh) AS totalRh, 
+            CASE WHEN SUM(rh) = 0 THEN 0 ELSE SUM(kg) / SUM(rh) END AS mediaRh,
+            SUM(pt) AS totalPt,
+            CASE WHEN SUM(pt) = 0 THEN 0 ELSE SUM(kg) / SUM(pt) END AS mediaPt
         FROM dados
         GROUP BY representante;
     `;
 
-    console.log('Executando consulta SQL para média de PD:', query);
+    console.log('Executando consulta SQL para médias:', query);
 
     db.query(query, (error, results) => {
         if (error) {
-            console.error('Erro ao buscar média de PD:', error);
-            res.status(500).json({ error: 'Erro ao buscar média de PD' });
+            console.error('Erro ao buscar médias:', error);
+            res.status(500).json({ error: 'Erro ao buscar médias' });
         } else {
-            console.log('Resultados da consulta SQL para média de PD:', results);
+            console.log('Resultados da consulta SQL para médias:', results);
             res.json(results);
         }
     });
 });
+
+// Endpoint para obter lotes
+app.get('/api/lote', async (req, res) => {
+    const query = `
+     SELECT nome FROM lote 
+    `;
+  
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Erro ao buscar dados de lote:', err);
+        res.status(500).json({ error: 'Erro ao buscar dados de lote' });
+      } else {
+        res.json(results);
+      }
+    });
+  });
+
+// Rota para buscar dados de kg somados por lote
+app.get('/api/kg-e-lote', (req, res) => {
+    const query = `
+      SELECT lote, SUM(kg) as totalKg
+      FROM dados 
+      GROUP BY lote
+    `;
+  
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Erro ao buscar dados de kg e lote:', err);
+        res.status(500).json({ error: 'Erro ao buscar dados de kg e lote' });
+      } else {
+        res.json(results);
+      }
+    });
+  });
+
+//rota para salvar o numero de lote
+app.post('/api/lote', (req, res) => {
+    const { nome, iddados } = req.body;
+    const query = 'INSERT INTO lote (nome, iddados) VALUES (?, ?)';
+    
+    db.query(query, [nome, iddados], (err, result) => {
+      if (err) {
+        console.error('Error inserting data:', err);
+        return res.status(500).json({ error: 'Error inserting data' });
+      }
+      res.status(201).json({ message: 'Lote inserted successfully' });
+    });
+  });
+
+// Rota para buscar dados do valor total 
+  app.get('/api/valor-lotes', (req, res) => {
+    const query = `
+      SELECT lote, SUM(Valor) as totalValor
+      FROM dados 
+      GROUP BY lote
+    `;
+  
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error('Erro ao buscar dados de valor e lote:', err);
+        res.status(500).json({ error: 'Erro ao buscar dados de valor e lote' });
+      } else {
+        res.json(results);
+      }
+    });
+  });
+  
 
 
 

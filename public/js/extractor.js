@@ -30,7 +30,7 @@ function displayData(data) {
 
   // Cria o elemento card
   const card = document.createElement('div');
-  card.className = 'card mb-4'; // Adiciona a classe de card do Bootstrap e uma margem inferior
+  card.className = 'card mb-4 custom-card'; // Adiciona a classe de card do Bootstrap e uma margem inferior
 
   // Cria o cabeçalho do card
   const cardHeader = document.createElement('div');
@@ -40,12 +40,11 @@ function displayData(data) {
 
   // Cria o corpo do card
   const cardBody = document.createElement('div');
-  cardBody.className = 'card-body';
+  cardBody.className = 'card-body p-0';
 
   // Cria a tabela e adiciona ao corpo do card
   const table = document.createElement('table');
-  table.className = 'table table-striped';
-
+  table.className = 'table table-striped w-100'; // Adiciona a classe w-100 para ocupar a largura total
   const thead = document.createElement('thead');
   thead.innerHTML = `
       <tr>
@@ -70,7 +69,11 @@ function displayData(data) {
   data.forEach((row, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td><input type="text" id="lote${index}" class="form-control custom-spacing custom-width lote-input" value="${row.lote || ''}"></td>
+         <td>
+            <select id="lote${index}" class="form-control custom-spacing custom-width lote-input">
+                <!-- Options will be populated dynamically -->
+            </select>
+        </td>
         <td><input type="text" id="Npdf${index}" class="form-control custom-spacing custom-width custom-n" value="${row.Npdf || ''}" readonly></td>
         <td><input type="text" class="form-control custom-spacing custom-width" value="${row.kg || ''}"></td>
         <td><input type="text" class="form-control custom-spacing custom-width" value="${row.pd || ''}"></td>
@@ -127,6 +130,47 @@ function displayData(data) {
     input.value = data[index].fornecedor; 
   });
 
+// Preencher os selects de lote
+fetch('/api/lote')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao buscar lotes');
+        }
+        return response.json();
+    })
+    .then(lotes => {
+        // Adiciona select para cada linha
+        data.forEach((_, index) => {
+            const select = document.createElement('select');
+            select.id = `lotesSelect${index}`;
+            select.className = 'form-control custom-spacing custom-width lote-input';
+
+            lotes.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.nome; // Certifique-se de acessar a propriedade 'nome'
+                option.textContent = lote.nome; // Use a propriedade 'nome' para o texto da opção
+                select.appendChild(option);
+            });
+
+            // Substituir o input text por um select
+            const loteInput = document.getElementById(`lote${index}`);
+            loteInput.parentNode.replaceChild(select, loteInput);
+
+            // Adicionar evento change para sincronizar a seleção
+            select.addEventListener('change', function() {
+                const newValue = this.value;
+                const loteInputs = document.querySelectorAll('.lote-input');
+                loteInputs.forEach(input => {
+                    input.value = newValue;
+                });
+            });
+        });
+    })
+    .catch(error => {
+        console.error('Erro ao buscar lotes:', error);
+    });
+
+
   // Adicionar evento para sincronizar data entre os campos
   const dateInputs = resultDiv.querySelectorAll('input[type="date"]');
   dateInputs.forEach(dateInput => {
@@ -139,6 +183,7 @@ function displayData(data) {
       });
     });
   });
+
 
   // Atualizar os dropdowns principais com os dados atuais
   populateDropdownsInTable('representante-select', 'representanteSelect');
@@ -165,6 +210,7 @@ function displayData(data) {
    });
  });
   
+
 // Adicionar eventos de entrada para sincronizar outros campos
 const syncInputs = resultDiv.querySelectorAll('.sync-input');
 syncInputs.forEach(input => {
@@ -205,25 +251,7 @@ function populateDropdownsInTable(className, selectId) {
     });
   });
 }
-function formatDecimal(value) {
-  if (typeof value === 'string') {
-    return value.replace(',', '.');
-  }
-  return value;
-}
 
-// Exemplo de como usar a função formatDecimal ao preparar os dados para envio
-function prepareDataForSend(data) {
-  return {
-    ...data,
-    kg: formatDecimal(data.kg),
-    pd: formatDecimal(data.pd),
-    pt: formatDecimal(data.pt),
-    rh: formatDecimal(data.rh),
-    valorKg: formatDecimal(data.valorKg),
-    valor: formatDecimal(data.valor)
-  };
-}
 
 
 
@@ -303,13 +331,14 @@ document.getElementById('sendButton').addEventListener('click', async () => {
       sn: cells[12].value
     };
   });
+  const preparedData = prepareDataForSend(data);
 
   try {
     // Chamada única para /save
     const response = await fetch('/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(preparedData)
     });
 
     if (response.ok) {
@@ -321,6 +350,29 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     alert('Error: ' + error.message);
   }
 });
+
+function formatDecimal(value) {
+  if (value === null || value === undefined || value === '') return '';
+  return value.toString().replace(',', '.');
+}
+
+function prepareDataForSend(data) {
+  return data.map(item => {
+    const formattedItem = {
+      ...item,
+      kg: formatDecimal(item.kg),
+      pd: formatDecimal(item.pd),
+      pt: formatDecimal(item.pt),
+      rh: formatDecimal(item.rh),
+      valorKg: formatDecimal(item.valorKg),
+      valor: formatDecimal(item.valor)
+    };
+
+    // Adicione logs para verificar os valores formatados
+    console.log('Formatted item:', formattedItem);
+    return formattedItem;
+  });
+}
 
 
 async function fetchCooperadosByRepresentante(representanteId) {
@@ -538,3 +590,4 @@ function resetarContagem() {
 // Adiciona o evento de clique aos botões
 document.getElementById('resetButton').addEventListener('click', mostrarConfirmacaoReset);
 document.getElementById('editButton').addEventListener('click', abrirModalEdicao);
+

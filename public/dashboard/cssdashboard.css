@@ -4,6 +4,11 @@
     position: relative; /* Garante que o cabeçalho fixo fique dentro do modal */
 }
 
+/* Define o fundo da página como cinza */
+body {
+  background-color: #e2e2e2; /* Cor cinza clara para o fundo da página */
+}
+
 .modal-table thead {
     position: sticky;
     top: 0;
@@ -44,36 +49,95 @@ transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita do
 height: 100px; /* Ajuste a altura conforme necessário */
 }
 .chart-container {
-    width: 80%;
-    margin: auto;
-  }
+  width: 90%;
+  margin: auto;
+  padding: 10px;
+}
+.chart-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* Espaço entre os gráficos */
+}
+.chart-box {
+  position: relative;
+  width: calc(50% - 10px); /* 2 gráficos por linha */
+  min-width: 300px; /* Largura mínima para cada gráfico */
+  margin-bottom: 20px;
+  transition: width 0.3s ease; /* Transição suave para redimensionamento */
+}
+.full-width {
+  width: 100% !important; /* Largura total quando em modo de tela cheia */
+}
+.chart-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+.chart-controls button {
+  margin-left: 5px;
+}
+canvas {
+  width: 100% !important; /* Faz com que o canvas ocupe toda a largura do seu contêiner */
+  height: auto !important; /* Mantém a proporção do canvas */
+}
+.card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transição suave para o movimento e sombra */
+}
+.card.dragging {
+  opacity: 0.8; /* Torna o card semitransparente enquanto é arrastado */
+  transform: scale(1.05); /* Aumenta ligeiramente o card durante o arrasto */
+  box-shadow: 10 10px 10px rgba(0, 0, 0, 0.3); /* Adiciona uma sombra ao card arrastado */
+  z-index: 1000; /* Garante que o card arrastado fique acima dos outros elementos */
+  border: #343a40;
+}
 
-  .chart-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px; /* Espaço entre os gráficos */
-  }
+.mini-cards-row {
+  display: flex;
+  justify-content: space-between; /* Espaço uniforme entre os mini cards */
+  gap: 10px;
+  margin-bottom: 20px;
+}
 
-  .chart-box {
-    position: relative;
-    width: calc(50% - 20px); /* 2 gráficos por linha */
-    min-width: 300px; /* Largura mínima para cada gráfico */
-    margin-bottom: 20px;
-    transition: width 0.3s ease; /* Transição suave para redimensionamento */
-  }
+.mini-card {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px;
+  border-radius: 15px; /* Borda arredondada */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para destaque */
+}
 
-  .chart-controls {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-  }
+.card-body {
+  text-align: center; /* Centraliza o texto dentro dos mini cards */
+}
 
-  .chart-controls button {
-    margin-left: 5px;
-  }
+.mini-card1{
+  background-color: #006fdf;
+}
 
-  canvas {
-    width: 100% !important; /* Faz com que o canvas ocupe toda a largura do seu contêiner */
-    height: auto !important; /* Mantém a proporção do canvas */
-  }
+/* CSS */
+#mini-card1 {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px; /* Ajuste conforme necessário */
+  background: linear-gradient(#373b44, #4286f4);
+  color: #ffffff;
+  position: relative; /* Necessário para posicionar o ícone no fundo */
+  overflow: hidden; /* Para esconder partes do ícone que saem do card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  z-index: 0; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+#mini-card1::before {
+  content: "\f017"; /* Código do ícone de relógio no Font Awesome */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  font-weight: 900; /* Peso da fonte para ícones sólidos */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 100px; /* Ajuste o tamanho do ícone */
+  color: #ffffff42; /* Cor sólida para o ícone mais escuro */
+  transform: translate(-50%, -50%); /* Centraliza o ícone */
+  z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
+}

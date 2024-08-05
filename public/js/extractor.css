@@ -41,18 +41,33 @@
   .nav-item.dropdown {
     margin-left: 1rem; /* Adiciona espaço à esquerda do dropdown */
   }
+  .table-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 20px;
+  }
 
   .custom-card {
-    margin: 20px;
-    padding: 20px;
-}
-.custom-width {
     width: 100%;
-}
-.custom-spacing {
-    margin-bottom: 10px;
-}
-.table-container {
-    margin-top: 20px;
-}
-  
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+    margin: 0;
+  }
+
+  .table {
+    width: 100%;
+    table-layout: fixed;
+    overflow-x: auto;
+  }
+
+  .form-control.custom-width {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .form-control.custom-width {
+    min-width: 80px;
+  }
