@@ -52,8 +52,10 @@ const query = (sql, values, callback) => {
 };
 
 // Configuração do Multer para upload de arquivos
-const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 const extractUpload = multer().single('pdf');
+
 
 // Função para atualizar as informações das pastas
 const foldersInfoFile = path.join(__dirname, 'foldersInfo.json');
@@ -394,6 +396,11 @@ app.get('/public/pasta.html', (req, res) => {
 // Arquivo Dashboard 
 app.get('/public/dashboard.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// Arquivo FOTO E PDF
+app.get('/public/ArchivePast.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'ArchivePast.html'));
 });
 
 app.get('/api/dados', (req, res) => {
@@ -976,7 +983,49 @@ app.post('/api/salvar-edicoes', (req, res) => {
         });
 });
 
+// Endpoint para upload de arquivos
+app.post('/upload', upload.single('file'), (req, res) => {
+    const { originalname, buffer } = req.file;
 
+    const query = 'INSERT INTO arquivos (nome_original, dados) VALUES (?, ?)';
+    db.query(query, [originalname, buffer], (err, result) => {
+        if (err) {
+            console.error('Erro ao salvar no banco de dados:', err);
+            res.status(500).send('Erro ao salvar no banco de dados');
+            return;
+        }
+        res.json({ id: result.insertId, originalname });
+    });
+});
+
+// Endpoint para servir arquivos do banco de dados
+app.get('/file/:id', (req, res) => {
+    const { id } = req.params;
+
+    const query = 'SELECT nome_original, dados FROM arquivos WHERE id = ?';
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar arquivo no banco de dados:', err);
+            res.status(500).send('Erro ao buscar arquivo no banco de dados');
+            return;
+        }
+
+        if (results.length === 0) {
+            res.status(404).send('Arquivo não encontrado');
+            return;
+        }
+
+        const { nome_original, dados } = results[0];
+        res.setHeader('Content-Disposition', `inline; filename="${nome_original}"`);
+        res.send(dados);
+    });
+});
+
+// Middleware para tratamento de erros
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Algo deu errado!');
+});
 
 // Iniciar o servidor
 app.listen(PORT, () => {
