@@ -277,6 +277,7 @@ app.post('/create-subfolder', (req, res) => {
             return res.status(400).send('Date, main folder, subfolder name, directory, and new file name are required.');
         }
 
+        // Valida e formata a data
         const dateParts = date.split('/');
         if (dateParts.length !== 3) {
             return res.status(400).send('Invalid date format. Please use DD/MM/YYYY.');
@@ -285,47 +286,54 @@ app.post('/create-subfolder', (req, res) => {
         const [day, month, year] = dateParts;
         const formattedDate = `${day}-${month}-${year}`;
 
+        // Cria o caminho da pasta
         const mainFolderPath = path.join(directory, `ENTREGAS ${formattedDate}`);
-        let specificFolderPath;
-        if (mainFolder === '- PARAGUAI' || mainFolder === '- BOLIVIA') {
-            specificFolderPath = path.join(mainFolderPath, mainFolder);
-        } else {
-            specificFolderPath = mainFolderPath;
-        }
-
+        const specificFolderPath = mainFolder === '- PARAGUAI' || mainFolder === '- BOLIVIA' ? path.join(mainFolderPath, mainFolder) : mainFolderPath;
         const subFolderPath = mainFolder === 'ENTREGAS' ? path.join(specificFolderPath, subFolderName) : path.join(specificFolderPath, baseFolder, subFolderName);
 
+        // Cria a pasta se não existir
         fs.mkdir(subFolderPath, { recursive: true }, (err) => {
             if (err) {
                 return res.status(500).send('Error creating subfolder.');
             }
 
-            if (req.files['file']) {
-                const file = req.files['file'][0];
-                const tempPath = file.path;
-                const fileExt = path.extname(file.originalname);
-                const targetPath = path.join(subFolderPath, newFileName + fileExt);
+            // Processa o arquivo e o PDF, se houver
+            const handleFile = (fileKey, renameFile) => {
+                if (req.files[fileKey]) {
+                    const file = req.files[fileKey][0];
+                    const tempPath = file.path;
+                    const fileExt = path.extname(file.originalname);
 
-                fs.copyFile(tempPath, targetPath, (err) => {
-                    if (err) {
-                        console.error(err);
-                        return res.status(500).send('Error copying the uploaded file.');
-                    }
+                    // Decide o nome do arquivo
+                    const targetFileName = renameFile ? newFileName + fileExt : file.originalname;
+                    const targetPath = path.join(subFolderPath, targetFileName);
 
-                    fs.unlink(tempPath, (err) => {
-                        if (err) {
-                            console.error(err);
-                            return res.status(500).send('Error deleting the temporary file.');
-                        }
+                    return new Promise((resolve, reject) => {
+                        fs.copyFile(tempPath, targetPath, (err) => {
+                            if (err) return reject(err);
 
-                        updateFoldersInfo(subFolderPath);
-                        res.send('Subfolder and file created successfully.');
+                            fs.unlink(tempPath, (err) => {
+                                if (err) return reject(err);
+                                resolve();
+                            });
+                        });
                     });
-                });
-            } else {
+                }
+                return Promise.resolve();
+            };
+
+            Promise.all([
+                handleFile('file', true),  // Renomeia o arquivo
+                handleFile('pdfFile', false) // Não renomeia o PDF
+            ])
+            .then(() => {
                 updateFoldersInfo(subFolderPath);
-                res.send('Subfolder created successfully.');
-            }
+                res.send('Subfolder and files created successfully.');
+            })
+            .catch((err) => {
+                console.error(err);
+                res.status(500).send('Error handling files.');
+            });
         });
     });
 });
