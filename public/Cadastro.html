@@ -13,9 +13,9 @@
     <header>
         <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
             <a class="navbar-brand" href="#">
-                <img src="/public/VAL.svg" width="30" height="30" class="d-inline-block align-top" alt="">
+                <img src="/login/photo/untitled (1).png" width="30" height="30" class="d-inline-block align-top" alt="">
                 Valmarc
-            </a>
+              </a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -43,7 +43,7 @@
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="#">Cadastro</a>
-                        <a class="dropdown-item" href="#">Configurações</a>
+                        <a class="dropdown-item" href="configuracao.html">Configurações</a>
                     </div>
                 </div>
             </div>
@@ -69,8 +69,9 @@
             </div>        
         </div>
     </div>
-  <!-- Modal de Detalhes -->
-  <div class="modal fade" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
+
+ <!-- Modal de Detalhes -->
+<div class="modal fade" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -102,12 +103,14 @@
                 </table>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-warning" id="editButton">Editar</button>
                 <button type="button" class="btn btn-primary" id="exportToXLS">Exportar Excel</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- Modal de Cadastro -->
 <div class="modal fade" id="cadastroModal" tabindex="-1" aria-labelledby="cadastroModalLabel" aria-hidden="true">

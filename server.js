@@ -9,17 +9,28 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 
 
+
 // Inicializar o Express
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Configuração do MySQL
+// Criação da conexão
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "1234",
-    database: "sys_test",
+    host: 'localhost',
+    user: 'root',
+    password: '1234',
+    database: 'sys_test'
 });
+
+// Conectar ao banco de dados
+db.connect(err => {
+    if (err) {
+        console.error('Erro ao conectar ao banco de dados:', err);
+        return;
+    }
+    console.log('Conectado ao banco de dados.');
+});
+
 
 
 // Configurar o middleware
@@ -29,6 +40,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'js')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Método para consultas usando callbacks
+const query = (sql, values, callback) => {
+    pool.query(sql, values, (err, results) => {
+        if (err) {
+            return callback(err);
+        }
+        callback(null, results);
+    });
+};
 
 // Configuração do Multer para upload de arquivos
 const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
@@ -395,8 +416,6 @@ app.get('/api/dados', (req, res) => {
     });
 });
 
-
-
 app.get('/api/representantes', (req, res) => {
     const sql = 'SELECT * FROM representantes';
     db.query(sql, (err, results) => {
@@ -570,8 +589,6 @@ app.delete('/api/cooperados/:id', (req, res) => {
     });
 });
 
-
-
 app.delete('/api/representantes/:id', async (req, res) => {
     const representanteId = req.params.id; // Corrigido para representanteId
 
@@ -587,7 +604,6 @@ app.delete('/api/representantes/:id', async (req, res) => {
         res.status(500).json({ error: 'Erro ao excluir representante' });
     }
 });
-
 
 // Rota para editar um cooperado por ID
 app.put('/api/cooperados/:id', (req, res) => {
@@ -623,8 +639,6 @@ app.get('/api/representantes/:nome', (req, res) => {
         }
     });
 });
-
-
 
 app.put('/api/representantes/:id', (req, res) => {
     const idRepresentante = req.params.id;
@@ -770,7 +784,6 @@ app.get('/api/representantes-com-kg-e-valor', (req, res) => {
     });
 });
 
-
 // Endpoint para salvar a ordem dos cards
 app.post('/api/saveCardOrder', (req, res) => {
     const { user_id, order } = req.body;
@@ -849,6 +862,7 @@ app.get('/api/media', (req, res) => {
     });
 });
 
+
 // Endpoint para obter lotes
 app.get('/api/lote', async (req, res) => {
     const query = `
@@ -913,8 +927,46 @@ app.post('/api/lote', (req, res) => {
         res.json(results);
       }
     });
-  });
-  
+});
+
+app.post('/api/salvar-edicoes', (req, res) => {
+    const dados = req.body;
+    console.log('Dados recebidos:', dados);
+
+    const atualizarDados = (item, callback) => {
+        const { Npdf, kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn } = item;
+        console.log('Atualizando dados:', { kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf });
+        const queryStr = `
+            UPDATE dados SET
+            kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
+            WHERE Npdf = ?
+        `;
+        db.query(queryStr, [kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf], (err, results) => {
+            if (err) {
+                return callback(err);
+            }
+            callback(null, results);
+        });
+    };
+
+    const updatePromises = dados.map(item => {
+        return new Promise((resolve, reject) => {
+            atualizarDados(item, (err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(result);
+            });
+        });
+    });
+
+    Promise.all(updatePromises)
+        .then(() => res.status(200).json({ message: 'Edições salvas com sucesso' }))
+        .catch(err => {
+            console.error('Erro ao salvar edições:', err);
+            res.status(500).json({ error: 'Erro ao salvar edições' });
+        });
+});
 
 
 

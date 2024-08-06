@@ -443,3 +443,124 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+document.getElementById('editButton').addEventListener('click', function() {
+    const table = document.getElementById('tableData');
+    const isEditing = table.classList.contains('editing');
+    
+    if (!isEditing) {
+        enableEditing(table);
+        this.textContent = 'Salvar';
+        table.classList.add('editing');
+    } else {
+        disableEditing(table);
+        this.textContent = 'Editar';
+        table.classList.remove('editing');
+        saveTableData(table);
+    }
+});
+
+function enableEditing(table) {
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        cells.forEach(cell => {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = cell.textContent;
+            cell.textContent = '';
+            cell.appendChild(input);
+        });
+    });
+}
+
+function disableEditing(table) {
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        cells.forEach(cell => {
+            const input = cell.querySelector('input');
+            if (input) {
+                cell.textContent = input.value;
+            }
+        });
+    });
+}
+
+function saveTableData(table) {
+    const rows = table.querySelectorAll('tbody tr');
+    const data = [];
+
+    rows.forEach(row => {
+        const rowData = {};
+        const cells = row.querySelectorAll('td');
+        cells.forEach(cell => {
+            const input = cell.querySelector('input');
+            if (input) {
+                const field = cell.getAttribute('data-field'); // Usa getAttribute para mapear
+                console.log('Field:', field, 'Value:', input.value); // Adicione logs
+                rowData[field] = input.value;
+            }
+        });
+        data.push(rowData);
+    });
+
+    console.log('Data to save:', data); // Log dos dados antes de enviar
+
+    fetch('/api/salvar-edicoes', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao salvar edições');
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log('Edições salvas com sucesso:', result);
+    })
+    .catch(error => {
+        console.error('Erro ao salvar edições:', error);
+    });
+}
+
+$(document).ready(function() {
+    $('#detalhesModal').on('show.bs.modal', function () {
+        $.ajax({
+            url: '/api/dados',
+            method: 'GET',
+            success: function(data) {
+                console.log(data); // Verifique a estrutura dos dados recebidos
+
+                const tableBody = $('#modalDataBody');
+                tableBody.empty(); // Limpar o corpo da tabela
+
+                data.forEach(item => {
+                    const row = `
+                        <tr>
+                            <td data-field="Npdf">${item.Npdf}</td>
+                            <td data-field="kg">${item.kg}</td>
+                            <td data-field="pd">${item.pd}</td>
+                            <td data-field="pt">${item.pt}</td>
+                            <td data-field="rh">${item.rh}</td>
+                            <td data-field="valorkg">${item.valorkg}</td>
+                            <td data-field="Valor">${item.Valor}</td>
+                            <td data-field="data">${item.data}</td>
+                            <td data-field="hora">${item.hora}</td>
+                            <td data-field="fornecedor">${item.fornecedor}</td>
+                            <td data-field="sn">${item.sn}</td>
+                        </tr>
+                    `;
+                    tableBody.append(row);
+                });
+            },
+            error: function(err) {
+                console.error("Erro ao buscar dados:", err);
+            }
+        });
+    });
+});
+
