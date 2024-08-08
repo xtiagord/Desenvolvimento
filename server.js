@@ -51,10 +51,10 @@ const query = (sql, values, callback) => {
     });
 };
 
-// Configuração do Multer para upload de arquivos
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const extractUpload = multer().single('pdf');
+//const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
 
 
 // Função para atualizar as informações das pastas
@@ -983,43 +983,184 @@ app.post('/api/salvar-edicoes', (req, res) => {
         });
 });
 
-// Endpoint para upload de arquivos
-app.post('/upload', upload.single('file'), (req, res) => {
-    const { originalname, buffer } = req.file;
+// // Endpoint para upload de arquivos
+// app.post('/upload', upload.single('file'), (req, res) => {
+//     const { npdf_id, representante_id } = req.body;
+//     const file = req.file;
+  
+//     if (!file) {
+//       return res.status(400).send('Nenhum arquivo enviado.');
+//     }
+  
+//     const { originalname, buffer } = file;
+//     const sql = 'INSERT INTO arquivos (nome_original, dados, npdf_id, representante_id) VALUES (?, ?, ?, ?)';
+//     db.query(sql, [originalname, buffer, npdf_id, representante_id], (err) => {
+//       if (err) {
+//         console.error('Erro ao salvar o arquivo no banco de dados:', err);
+//         return res.status(500).send('Erro ao salvar o arquivo.');
+//       }
+//       res.status(200).send('Arquivo enviado com sucesso.');
+//     });
+//   });
 
-    const query = 'INSERT INTO arquivos (nome_original, dados) VALUES (?, ?)';
-    db.query(query, [originalname, buffer], (err, result) => {
-        if (err) {
-            console.error('Erro ao salvar no banco de dados:', err);
-            res.status(500).send('Erro ao salvar no banco de dados');
-            return;
-        }
-        res.json({ id: result.insertId, originalname });
-    });
-});
-
-// Endpoint para servir arquivos do banco de dados
+/// Endpoint para buscar e retornar um arquivo
 app.get('/file/:id', (req, res) => {
     const { id } = req.params;
 
+    // Consultar o banco de dados para buscar o arquivo
     const query = 'SELECT nome_original, dados FROM arquivos WHERE id = ?';
     db.query(query, [id], (err, results) => {
         if (err) {
-            console.error('Erro ao buscar arquivo no banco de dados:', err);
-            res.status(500).send('Erro ao buscar arquivo no banco de dados');
+            console.error('Erro ao buscar o arquivo no banco de dados:', err);
+            res.status(500).send('Erro ao buscar o arquivo no banco de dados');
             return;
         }
-
         if (results.length === 0) {
             res.status(404).send('Arquivo não encontrado');
             return;
         }
 
+        // Extrair dados do arquivo
         const { nome_original, dados } = results[0];
-        res.setHeader('Content-Disposition', `inline; filename="${nome_original}"`);
+
+        // Determinar o tipo MIME com base na extensão do arquivo
+        let mimetype = 'application/octet-stream'; // Default
+        if (nome_original.endsWith('.jpg') || nome_original.endsWith('.jpeg')) {
+            mimetype = 'image/jpeg';
+        } else if (nome_original.endsWith('.png')) {
+            mimetype = 'image/png';
+        } else if (nome_original.endsWith('.pdf')) {
+            mimetype = 'application/pdf';
+        }
+
+        // Configurar o cabeçalho da resposta
+        res.setHeader('Content-Type', mimetype);
         res.send(dados);
     });
 });
+
+// Endpoint para buscar lista de arquivos
+app.get('/files', (req, res) => {
+    const query = 'SELECT id, nome_original FROM arquivos';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar arquivos no banco de dados:', err);
+            res.status(500).send('Erro ao buscar arquivos no banco de dados');
+            return;
+        }
+        res.json(results);
+    });
+});
+
+app.get('/api/fotos/:representanteId', (req, res) => {
+    const { representanteId } = req.params;
+
+    const query = 'SELECT id, nome_original FROM arquivos WHERE representante_id = ?';
+    db.query(query, [representanteId], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar fotos no banco de dados:', err);
+            return res.status(500).send('Erro ao buscar fotos');
+        }
+        res.json(results);
+    });
+});
+
+app.post('/create-folder', async (req, res) => {
+    const { folder_name, representante_id } = req.body;
+  
+    const dir = path.join(__dirname, 'uploads', folder_name);
+  
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  
+    // Insira a pasta no banco de dados
+    const query = 'INSERT INTO pastas (nome, representante_id) VALUES (?, ?)';
+    db.query(query, [folder_name, representante_id], (err, result) => {
+      if (err) {
+        console.error('Erro ao criar pasta no banco de dados:', err);
+        res.status(500).send('Erro ao criar pasta');
+      } else {
+        res.send('Pasta criada com sucesso!');
+      }
+    });
+});
+
+// Endpoint para upload de PDF
+app.post('/upload', upload.single('pdfFile'), (req, res) => {
+    const representanteId = req.body.representanteId;
+    const file = req.file;
+
+    if (!file) {
+        return res.status(400).send('Nenhum arquivo enviado.');
+    }
+
+    const query = 'INSERT INTO pdfs (name, data, representante_id) VALUES (?, ?, ?)';
+    db.query(query, [file.originalname, file.buffer, representanteId], (err, result) => {
+        if (err) {
+            console.error('Erro ao salvar o PDF:', err);
+            return res.status(500).send('Erro ao salvar o arquivo.');
+        }
+        res.send('Arquivo salvo com sucesso.');
+    });
+});
+
+
+// Rota para exibir o PDF
+app.get('/pdfs/:id', (req, res) => {
+    const pdfId = req.params.id;
+    const query = 'SELECT name, data FROM pdfs WHERE id = ?';
+
+    db.query(query, [pdfId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Arquivo não encontrado.');
+        }
+
+        const pdf = results[0];
+
+        // Configura o cabeçalho para exibir o PDF diretamente no navegador
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="' + pdf.name + '"');
+        
+        // Envia o PDF para exibição no navegador
+        res.send(pdf.data);
+    });
+});
+
+
+// Rota para exibir a lista de PDFs com links para visualização
+app.get('/pdfs', (req, res) => {
+    const representanteId = req.query.representante_id;
+    const query = representanteId
+        ? 'SELECT id, name FROM pdfs WHERE representante_id = ?'
+        : 'SELECT id, name FROM pdfs';
+
+    db.query(query, [representanteId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao buscar os arquivos no banco de dados.');
+        }
+
+        // Gerar a lista de PDFs com links para visualização
+        let html = '<ul>';
+        results.forEach(pdf => {
+            html += `<li><a href="#" onclick="exibirPDF('/pdfs/${pdf.id}')">${pdf.name}</a></li>`;
+        });
+        html += '</ul>';
+
+        res.send(html);
+    });
+});
+
+
+
+  
+
 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
