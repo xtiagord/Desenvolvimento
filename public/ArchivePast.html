@@ -5,42 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>File Upload</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-  <style>
-    .drop-zone {
-      border: 2px dashed #007bff;
-      padding: 20px;
-      cursor: pointer;
-      text-align: center;
-    }
-    .drop-zone.dragover {
-      background-color: #e9ecef;
-    }
-     /* Ajuste do modal para ocupar toda a tela */
-     .modal-dialog-fullscreen {
-            max-width: 100%;
-            max-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-        .modal-content {
-            height: 100vh;
-            border: 0;
-        }
-        .modal-body {
-            padding: 0;
-            height: 100%;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: 10;
-        }
-  </style>
+  <link rel="stylesheet" href="/ArchivePast/archivePast.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
 </head>
 <body>
+    <header>
+        <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+            <a class="navbar-brand" href="#">
+                <img src="/login/photo/untitled (1).png" width="30" height="30" class="d-inline-block align-top" alt="">
+                Valmarc
+              </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/dashboard.html">Dashboard</a>
+                      </li>
+                    <li class="nav-item">
+                        <a class="nav-item nav-link" href="/public/pasta.html">Pastas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/Cliente.html">Cooperados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Extrator.html">Lançamentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/Cadastro.html">Representante</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/public/ArchivePast.html">PDFs</a>
+                    </li>
+                </ul>
+                <div class="nav-item dropdown ml-auto">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Menu
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">Cadastro</a>
+                        <a class="dropdown-item" href="configuracao.html">Configurações</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
     <div class="container mt-5">
         <div class="card">
             <div class="card-header">
@@ -75,14 +87,16 @@
                             <!-- As opções serão carregadas dinamicamente -->
                         </select>
                     </div>
-    
+        
                     <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
-    
+        
                     <div id="lista-pdfs" class="row">
                         <!-- A lista de PDFs será carregada aqui em cards -->
                     </div>
                 </div>
             </div>
+        </div>
+        
     
              <!-- Modal para visualização de PDF -->
         <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
@@ -104,86 +118,21 @@
     </div>
 
   
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-  <script>
-document.addEventListener('DOMContentLoaded', function() {
-        fetch('/api/representantes')
-            .then(response => response.json())
-            .then(representantes => {
-                const select = document.getElementById('representanteSelect');
-                representantes.forEach(representante => {
-                    const option = document.createElement('option');
-                    option.value = representante.id;
-                    option.textContent = representante.nome;
-                    select.appendChild(option);
-                });
-            })
-            .catch(error => console.error('Erro ao carregar representantes:', error));
-    });
-  const pdfIdInput = document.getElementById('pdfIdInput'); // Certifique-se de que o id do input está correto
-const representanteIdInput = document.getElementById('representanteIdInput'); // Certifique-se de que o id do input está correto
-async function uploadFile(file, folderName) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('npdf_id', pdfIdInput ? pdfIdInput.value : ''); // Verifica se pdfIdInput está definido
-    formData.append('representante_id', representanteIdInput ? representanteIdInput.value : ''); // Verifica se representanteIdInput está definido
-    formData.append('folder_name', folderName);
-
-    const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData,
-    });
-
-    if (!response.ok) {
-        console.error('Falha ao fazer upload do arquivo');
-    }
-}
-
-function carregarRepresentantes() {
-    fetch('/representantes')
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('representante');
-            data.forEach(representante => {
-                const option = document.createElement('option');
-                option.value = representante.id;
-                option.textContent = representante.nome;
-                select.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Erro ao carregar representantes:', error);
-            alert('Erro ao carregar a lista de representantes.');
-        });
-}
-
-function carregarPDFs() {
-    const representanteId = document.getElementById('representante').value;
-    const url = representanteId ? `/pdfs?representante_id=${representanteId}` : '/pdfs';
-
-    fetch(url)
-        .then(response => response.text())
-        .then(data => {
-            document.getElementById('lista-pdfs').innerHTML = data;
-        })
-        .catch(error => {
-            console.error('Erro ao carregar PDFs:', error);
-            alert('Erro ao carregar a lista de PDFs.');
-        });
-}
-
-function exibirPDF(url) {
-        document.getElementById('pdfViewer').setAttribute('src', url);
-        $('#pdfModal').modal('show'); // Mostrar o modal
-    }
-
-// Carregar os representantes quando a página carregar
-document.addEventListener('DOMContentLoaded', carregarRepresentantes);
-
-
-</script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="/ArchivePast/archivePast.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 </html>
