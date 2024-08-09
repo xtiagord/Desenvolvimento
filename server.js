@@ -7,6 +7,11 @@ const pdfParse = require('pdf-parse');
 const mysql = require('mysql2');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
+const JSZip = require('jszip');
+const { promisify } = require('util');
+const { PDFDocument } = require('pdf-lib');
+
+
 
 
 
@@ -1186,8 +1191,61 @@ app.delete('/pdfs/:id', (req, res) => {
 });
 
 
+app.get('/download-pdfs', async (req, res) => {
+    const representanteIds = req.query.representante_ids ? req.query.representante_ids.split(',') : [];
+    const option = req.query.option;
 
+    let queryStr = 'SELECT name, data FROM pdfs';
+    let queryParams = [];
 
+    if (representanteIds.length > 0) {
+        queryStr += ' WHERE representante_id IN (?)';
+        queryParams.push(representanteIds);
+    }
+
+    try {
+        const pdfs = await promisify(db.query).bind(db)(queryStr, queryParams);
+
+        if (option === 'unify') {
+            const mergedPdf = await PDFDocument.create();
+
+            for (const pdf of pdfs) {
+                if (pdf.data && pdf.data.toString('utf-8').startsWith('%PDF-')) { 
+                    const pdfDoc = await PDFDocument.load(pdf.data);
+                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                } else {
+                    console.error(`Arquivo inválido ou corrompido: ${pdf.name}`);
+                }
+            }
+
+            const mergedPdfBytes = await mergedPdf.save();
+
+            res.setHeader('Content-Disposition', 'attachment; filename="unified_pdfs.pdf"');
+            res.setHeader('Content-Type', 'application/pdf');
+            res.send(Buffer.from(mergedPdfBytes));
+        } else {
+            const zip = new JSZip();
+            const zipFolder = zip.folder('pdfs');
+
+            for (const pdf of pdfs) {
+                if (pdf.data) {
+                    let buffer = Buffer.isBuffer(pdf.data) ? pdf.data : Buffer.from(pdf.data, 'binary');
+                    zipFolder.file(pdf.name, buffer);
+                }
+            }
+
+            const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+            res.setHeader('Content-Disposition', 'attachment; filename="pdfs.zip"');
+            res.setHeader('Content-Type', 'application/zip');
+            res.send(zipBuffer);
+        }
+    } catch (error) {
+        console.error('Erro ao buscar PDFs:', error);
+        res.status(500).send('Erro ao buscar PDFs do banco de dados.');
+    }
+});
 
   
 

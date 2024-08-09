@@ -87,7 +87,7 @@
                             <!-- As opções serão carregadas dinamicamente -->
                         </select>
                         <div class="form-group">
-                            <label for="pdfsPorLinha">PDFs por linha:</label>
+                            <label for="pdfsPorLinha">Vizualicação PDFs:</label>
                             <select id="pdfsPorLinha" class="form-control" onchange="carregarPDFs()">
                                 <option value="1">1 por linha</option>
                                 <option value="2">2 por linha</option>
@@ -98,6 +98,8 @@
                     </div>
         
                     <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
+                    <button onclick="toggleEditButtons()" class="btn btn-info mb-4">Mostrar/Esconder Opções de Edição</button>
+                    <button class="btn btn-primary mb-4" data-toggle="modal" data-target="#downloadModal">Download PDFs</button>
         
                     <div id="lista-pdfs" class="row">
                         <!-- Os cards de PDFs serão carregados aqui -->
@@ -108,23 +110,65 @@
 
         
         
-             <!-- Modal para visualização de PDF -->
-        <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-fullscreen" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="pdfModalLabel">Visualizador de PDF</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <iframe id="pdfViewer" frameborder="0"></iframe>
-                    </div>
-                </div>
+ <!-- Modal para visualização de PDF -->
+<div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-fullscreen" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfModalLabel">Visualizador de PDF</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfViewer" frameborder="0" style="width: 100%; height: 80vh;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button id="prevPdf" class="btn btn-secondary" onclick="navigatePDF(-1)" style="display:none;">Anterior</button>
+                <button id="nextPdf" class="btn btn-secondary" onclick="navigatePDF(1)" style="display:none;">Próximo</button>
             </div>
         </div>
     </div>
+</div>
+<!-- Modal para seleção e download de PDFs -->
+<div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="downloadModalLabel">Download de PDFs</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="representanteDownload">Escolha o Representante:</label>
+                    <select id="representanteDownload" class="form-control">
+                        <option value="">Todos</option>
+                        <!-- As opções serão carregadas dinamicamente -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="downloadOption">Opção de Download:</label>
+                    <select id="downloadOption" onchange="mostrarCheckboxes()">
+                        <option value="">Selecione uma opção</option>
+                        <option value="zip">Baixar ZIP</option>
+                        <option value="unify">Baixar PDF Unificado</option>
+                    </select>     
+                    <div id="representantesCheckboxes" style="display: none;">
+                        <h4>Selecione os Representantes:</h4>
+                        <div id="checkboxContainer" class="row">
+                            <!-- Checkboxes dos representantes serão carregados aqui -->
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
