@@ -86,6 +86,15 @@
                             <option value="">Todos</option>
                             <!-- As opções serão carregadas dinamicamente -->
                         </select>
+                        <div class="form-group">
+                            <label for="pdfsPorLinha">PDFs por linha:</label>
+                            <select id="pdfsPorLinha" class="form-control" onchange="carregarPDFs()">
+                                <option value="1">1 por linha</option>
+                                <option value="2">2 por linha</option>
+                                <option value="3">3 por linha</option>
+                                <option value="4">4 por linha</option>
+                            </select>
+                        </div>
                     </div>
         
                     <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
@@ -96,6 +105,8 @@
                 </div>
             </div>
         </div>
+
+        
         
              <!-- Modal para visualização de PDF -->
         <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">

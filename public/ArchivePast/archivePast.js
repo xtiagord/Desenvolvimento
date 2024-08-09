@@ -51,6 +51,7 @@ fetch('/representantes')
 
 function carregarPDFs() {
     const representanteId = document.getElementById('representante').value;
+    const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
     const url = representanteId ? `/pdfs?representante_id=${representanteId}` : '/pdfs';
 
     fetch(url)
@@ -61,7 +62,7 @@ function carregarPDFs() {
 
             data.forEach(pdf => {
                 const card = document.createElement('div');
-                card.className = 'col-md-4 mb-4';
+                card.className = `col-md-${12 / pdfsPorLinha} mb-4`; // Calcula a largura com base na seleção
 
                 card.innerHTML = `
                     <div class="card">
@@ -82,6 +83,7 @@ function carregarPDFs() {
             alert('Erro ao carregar a lista de PDFs.');
         });
 }
+
 
 
 
