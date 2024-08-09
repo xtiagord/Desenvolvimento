@@ -1132,6 +1132,22 @@ app.get('/pdfs/:id', (req, res) => {
     });
 });
 
+app.put('/pdfs/:id', (req, res) => {
+    const pdfId = req.params.id;
+    const novoNome = req.body.novoNome;
+    const query = 'UPDATE pdfs SET name = ? WHERE id = ?';
+
+    db.query(query, [novoNome, pdfId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao renomear o arquivo no banco de dados.');
+        }
+
+        res.send('Nome do PDF atualizado com sucesso.');
+    });
+});
+
+
 
 // Rota para exibir a lista de PDFs com links para visualização
 app.get('/pdfs', (req, res) => {
@@ -1146,16 +1162,30 @@ app.get('/pdfs', (req, res) => {
             return res.status(500).send('Erro ao buscar os arquivos no banco de dados.');
         }
 
-        // Gerar a lista de PDFs com links para visualização
-        let html = '<ul>';
-        results.forEach(pdf => {
-            html += `<li><a href="#" onclick="exibirPDF('/pdfs/${pdf.id}')">${pdf.name}</a></li>`;
-        });
-        html += '</ul>';
-
-        res.send(html);
+        // Retorna a lista de PDFs em formato JSON
+        res.json(results);
     });
 });
+
+app.delete('/pdfs/:id', (req, res) => {
+    const pdfId = req.params.id;
+    const query = 'DELETE FROM pdfs WHERE id = ?';
+
+    db.query(query, [pdfId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao deletar o arquivo no banco de dados.');
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('PDF não encontrado.');
+        }
+
+        res.send('PDF deletado com sucesso.');
+    });
+});
+
+
 
 
 
@@ -1172,3 +1202,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+

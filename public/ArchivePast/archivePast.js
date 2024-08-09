@@ -50,19 +50,40 @@ fetch('/representantes')
 }
 
 function carregarPDFs() {
-const representanteId = document.getElementById('representante').value;
-const url = representanteId ? `/pdfs?representante_id=${representanteId}` : '/pdfs';
+    const representanteId = document.getElementById('representante').value;
+    const url = representanteId ? `/pdfs?representante_id=${representanteId}` : '/pdfs';
 
-fetch(url)
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById('lista-pdfs').innerHTML = data;
-    })
-    .catch(error => {
-        console.error('Erro ao carregar PDFs:', error);
-        alert('Erro ao carregar a lista de PDFs.');
-    });
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const listaPDFs = document.getElementById('lista-pdfs');
+            listaPDFs.innerHTML = '';
+
+            data.forEach(pdf => {
+                const card = document.createElement('div');
+                card.className = 'col-md-4 mb-4';
+
+                card.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${pdf.name}</h5>
+                            <button onclick="exibirPDF('/pdfs/${pdf.id}')" class="btn btn-primary">Ver PDF</button>
+                            <button onclick="renomearPDF(${pdf.id})" class="btn btn-warning">Renomear</button>
+                            <button onclick="deletarPDF(${pdf.id})" class="btn btn-danger">Deletar</button>
+                        </div>
+                    </div>
+                `;
+
+                listaPDFs.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar PDFs:', error);
+            alert('Erro ao carregar a lista de PDFs.');
+        });
 }
+
+
 
 function exibirPDF(url) {
     document.getElementById('pdfViewer').setAttribute('src', url);
@@ -71,3 +92,49 @@ function exibirPDF(url) {
 
 // Carregar os representantes quando a página carregar
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
+
+
+function renomearPDF(id) {
+    const novoNome = prompt("Digite o novo nome para o PDF:");
+    if (novoNome) {
+        fetch(`/pdfs/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ novoNome: novoNome })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Nome do PDF atualizado com sucesso.');
+                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+            } else {
+                alert('Erro ao renomear o PDF.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao renomear o PDF:', error);
+            alert('Erro ao renomear o PDF.');
+        });
+    }
+}
+
+function deletarPDF(id) {
+    if (confirm("Tem certeza que deseja deletar este PDF?")) {
+        fetch(`/pdfs/${id}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('PDF deletado com sucesso.');
+                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+            } else {
+                alert('Erro ao deletar o PDF.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao deletar o PDF:', error);
+            alert('Erro ao deletar o PDF.');
+        });
+    }
+}
