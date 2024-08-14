@@ -114,6 +114,61 @@
     </div>
 </div>
 
+<script>
+$(document).ready(function() {
+    $('#detalhesModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Button that triggered the modal
+        var nomeRepresentante = button.data('representante'); // Extract info from data-* attributes
+        loadRepresentanteInfo(nomeRepresentante);
+    });
+
+    function loadRepresentanteInfo(nomeRepresentante) {
+        $.ajax({
+            url: `http://localhost:3001/dados/${encodeURIComponent(nomeRepresentante)}`, // Endpoint para buscar dados do representante
+            method: 'GET',
+            success: function(dados) {
+                console.log('Dados recebidos:', dados); // Log para verificar os dados recebidos
+
+                // Limpar conteúdo anterior do modal
+                $('#modalDataBody').empty();
+
+                if (dados.length === 0) {
+                    $('#modalDataBody').append('<tr><td colspan="11">Nenhum dado encontrado para este representante.</td></tr>');
+                } else {
+                    // Preencher o modal com os dados obtidos
+                    dados.forEach(dado => {
+                        const row = `
+                            <tr>
+                                <td>${dado.Npdf}</td>
+                                <td>${dado.kg}</td>
+                                <td>${dado.pd}</td>
+                                <td>${dado.pt}</td>
+                                <td>${dado.rh}</td>
+                                <td>${dado.valorkg}</td>
+                                <td>${dado.Valor}</td>
+                                <td>${dado.data}</td>
+                                <td>${dado.hora}</td>
+                                <td>${dado.fornecedor}</td>
+                                <td>${dado.sn}</td>
+                            </tr>
+                        `;
+                        console.log('Adicionando linha:', row); // Log para verificar cada linha adicionada
+                        $('#modalDataBody').append(row);
+                    });
+                }
+
+                // Abrir o modal após preencher os dados
+                $('#detalhesModal').modal('show');
+            },
+            error: function(err) {
+                console.error("Erro ao carregar dados do representante:", err);
+            }
+        });
+    }
+});
+</script>
+
+
 
 <!-- Modal de Cadastro -->
 <div class="modal fade" id="cadastroModal" tabindex="-1" aria-labelledby="cadastroModalLabel" aria-hidden="true">

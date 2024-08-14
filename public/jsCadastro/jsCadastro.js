@@ -528,10 +528,13 @@ function saveTableData(table) {
 }
 
 $(document).ready(function() {
-    $('#detalhesModal').on('show.bs.modal', function () {
+    $('.open-modal').on('click', function () {
+        const nomeRepresentante = $(this).closest('.representante-card').data('representante');
+
         $.ajax({
             url: '/api/dados',
             method: 'GET',
+            data: { nomeRepresentante: nomeRepresentante }, // Envia o nome do representante
             success: function(data) {
                 console.log(data); // Verifique a estrutura dos dados recebidos
 
@@ -556,6 +559,9 @@ $(document).ready(function() {
                     `;
                     tableBody.append(row);
                 });
+
+                // Abrir o modal após preencher os dados
+                $('#detalhesModal').modal('show');
             },
             error: function(err) {
                 console.error("Erro ao buscar dados:", err);
@@ -563,4 +569,5 @@ $(document).ready(function() {
         });
     });
 });
+
 

@@ -11,10 +11,6 @@ const JSZip = require('jszip');
 const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
 
-
-
-
-
 // Inicializar o Express
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -24,7 +20,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '1234',
-    database: 'sys_test'
+    database: 'sys'
 });
 
 // Conectar ao banco de dados
@@ -91,9 +87,15 @@ const updateFoldersInfo = (folderPath) => {
     fs.writeFileSync(foldersInfoFile, JSON.stringify(foldersInfo, null, 2));
 };
 
+// Função para remover pontos usados como separadores de milhar e preservar vírgulas como decimais
+function formatNumber(value) {
+    return value.replace(/\.(?=\d{3}(?:\D|$))/g, '');
+}
+
 // Função para extrair dados do PDF
 function extractPDFData(text) {
-    const tableRegex = /(\d,\d+)\s*(\d+,\d+)\s*(\d+,\d+)\s*(\d,\d{4})\s*(\d+,\d+)\s*(\d+,\d+)/gm;
+    // Regex para capturar os valores na tabela
+    const tableRegex = /(\d[.,]\d+)\s*(\d{1,3}[.,]\d{4})\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)\s*(\d[.,]\d{4})\s*(\d+[.,]\d+)\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)/gm;
     const dataRegex = /Data\/Hora:\s+(\d{2}\/\d{2}\/\d{4})/;
     const horaRegex = /\b\d{2}:\d{2}\b/i;
     const representanteRegex = /Apelido\s+([A-Za-z]+)\s+[A-Za-z]+/;
@@ -103,17 +105,19 @@ function extractPDFData(text) {
     const tableData = [];
     let match;
 
+    // Itera sobre todas as correspondências na tabela
     while ((match = tableRegex.exec(text)) !== null) {
+        // Formata os valores capturados
         const data = {
-            kg: match[1],
-            pd: match[2],
-            pt: match[3],
-            rh: match[4],
-            valorKg: match[5],
-            valor: match[6]
+            kg: formatNumber(match[1]),
+            pd: formatNumber(match[2]),
+            pt: formatNumber(match[3]),
+            rh: formatNumber(match[4]),
+            valorKg: formatNumber(match[5]),
+            valor: formatNumber(match[6])
         };
 
-        
+        // Captura e adiciona a data
         const dataMatch = dataRegex.exec(text);
         if (dataMatch) {
             console.log("Data encontrada:", dataMatch[1]);
@@ -122,14 +126,16 @@ function extractPDFData(text) {
             console.log("Data não encontrada");
         }
 
+        // Captura e adiciona a hora
         const horaMatch = horaRegex.exec(text);
         if (horaMatch) {
-            console.log("Hora encontrada:", horaMatch[1]);
+            console.log("Hora encontrada:", horaMatch[0]);
             data.hora = horaMatch[0];
         } else {
             console.log("Hora não encontrada");
         }
 
+        // Captura e adiciona o representante
         const representanteMatch = representanteRegex.exec(text);
         if (representanteMatch) {
             console.log("Representante encontrado:", representanteMatch[1]);
@@ -138,6 +144,7 @@ function extractPDFData(text) {
             console.log("Representante não encontrado");
         }
 
+        // Captura e adiciona o fornecedor
         const fornecedorMatch = fornecedorRegex.exec(text);
         if (fornecedorMatch) {
             console.log("Fornecedor encontrado:", fornecedorMatch[1]);
@@ -146,13 +153,15 @@ function extractPDFData(text) {
             console.log("Fornecedor não encontrado");
         }
 
+        // Captura e adiciona o SN
         const snRegexMatch = snRegex.exec(text);
-        if(snRegexMatch){
-            console.log("SN encontrado:", snRegex[0]);
+        if (snRegexMatch) {
+            console.log("SN encontrado:", snRegexMatch[0]);
             data.sn = snRegexMatch[0];
         } else {
             console.log("SN não encontrado");
         }
+
         tableData.push(data);
     }
 
@@ -160,6 +169,7 @@ function extractPDFData(text) {
 
     return tableData;
 }
+
 
 // Endpoint para extração de PDF
 app.post('/extract', extractUpload, async (req, res) => {
