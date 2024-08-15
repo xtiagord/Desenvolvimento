@@ -677,19 +677,54 @@ app.get('/api/representantes/:nome', (req, res) => {
     });
 });
 
-app.put('/api/representantes/:id', (req, res) => {
-    const idRepresentante = req.params.id;
+app.put('/api/representantes/:id', async (req, res) => {
+    const representanteId = parseInt(req.params.id);
     const { nome } = req.body;
-    const query = 'UPDATE representantes SET nome = ? WHERE id = ?';
-    db.query(query, [nome, idRepresentante], (err, results) => {
-        if (err) {
-            console.error('Erro ao atualizar representante:', err);
-            res.status(500).send('Erro no servidor');
-            return;
+
+    if (isNaN(representanteId) || !nome) {
+        return res.status(400).json({ success: false, error: 'Dados inválidos para a atualização' });
+    }
+
+    try {
+        // Obter o nome antigo do representante antes de atualizar
+        const [oldNameResult] = await db.promise().query('SELECT nome FROM representantes WHERE id = ?', [representanteId]);
+        const oldName = oldNameResult[0]?.nome;
+
+        if (!oldName) {
+            return res.status(404).json({ success: false, error: 'Representante não encontrado' });
         }
-        res.send('Representante atualizado com sucesso');
-    });
+
+        // Inicia a transação
+        await db.promise().beginTransaction();
+
+        // Atualiza o nome na tabela de representantes
+        const updateRepresentanteSql = `
+            UPDATE representantes 
+            SET nome = ? 
+            WHERE id = ?
+        `;
+        await db.promise().query(updateRepresentanteSql, [nome, representanteId]);
+
+        // Atualiza o nome na tabela de dados para o representante correspondente
+        const updateDadosSql = `
+            UPDATE dados 
+            SET representante = ? 
+            WHERE representante = ?
+        `;
+        await db.promise().query(updateDadosSql, [nome, oldName]);
+
+        // Confirma a transação
+        await db.promise().commit();
+
+        res.json({ success: true, message: 'Representante e dados atualizados com sucesso!' });
+    } catch (err) {
+        // Desfaz a transação em caso de erro
+        await db.promise().rollback();
+        console.error('Erro ao atualizar o representante:', err);
+        res.status(500).json({ success: false, error: 'Erro ao atualizar o representante e dados' });
+    }
 });
+
 
 app.get('/api/equipamentos', (req, res) => {
     const sql = 'SELECT * FROM equipamentos';
@@ -1118,31 +1153,49 @@ app.post('/create-folder', async (req, res) => {
     });
 });
 
-// Endpoint para upload de PDF
-app.post('/upload', upload.single('pdfFile'), (req, res) => {
+// Endpoint para upload de arquivos
+app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 10 }, { name: 'photoFiles', maxCount: 10 }]), (req, res) => {
     const representanteId = req.body.representanteId;
-    const loteId = req.body.loteId;
-    const file = req.file;
+    const pdfFiles = req.files['pdfFiles'] || [];
+    const photoFiles = req.files['photoFiles'] || [];
 
-
-     console.log('representante_id:', representanteId); // Depuração
-    console.log('lote_id:', loteId); // Depuração
-
-    if (!file) {
+    if (pdfFiles.length === 0 && photoFiles.length === 0) {
         return res.status(400).send('Nenhum arquivo enviado.');
     }
 
-    const query = 'INSERT INTO pdfs (name, data, representante_id, lote_id) VALUES (?, ?, ?, ?)';
-    db.query(query, [file.originalname, file.buffer,  representanteId, loteId], (err, result) => {
-        if (err) {
-            console.error('Erro ao salvar o PDF:', err);
-            return res.status(500).send('Erro ao salvar o arquivo.');
-        }
-        res.send('Arquivo salvo com sucesso.');
+    const queries = [];
+    const params = [];
+
+    pdfFiles.forEach(file => {
+        queries.push('INSERT INTO pdfs (name, data, representante_id) VALUES (?, ?, ?)');
+        params.push([file.originalname, file.buffer, representanteId]);
     });
+
+    photoFiles.forEach(file => {
+        queries.push('INSERT INTO photos (name, data, representante_id) VALUES (?, ?, ?)');
+        params.push([file.originalname, file.buffer, representanteId]);
+    });
+
+    // Função para executar a query de inserção
+    const saveFile = (query, params) => new Promise((resolve, reject) => {
+        db.query(query, params, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+
+    // Executar todas as queries
+    Promise.all(queries.map((query, index) => saveFile(query, params[index])))
+        .then(() => res.send('Arquivos salvos com sucesso.'))
+        .catch(err => {
+            console.error('Erro ao salvar arquivos:', err);
+            res.status(500).send('Erro ao salvar os arquivos.');
+        });
 });
 
-[]
+
 // Rota para exibir o PDF
 app.get('/pdfs/:id', (req, res) => {
     const pdfId = req.params.id;

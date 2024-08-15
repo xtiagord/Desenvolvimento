@@ -56,13 +56,17 @@
     <div class="container mt-5">
         <div class="card">
             <div class="card-header">
-                <h1>Upload de PDF</h1>
+                <h1>Upload de Arquivos</h1>
             </div>
             <div class="card-body">
-                <form action="/upload" method="POST" enctype="multipart/form-data">
+                <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="pdfFile">Escolha o PDF:</label>
-                        <input type="file" name="pdfFile" id="pdfFile" class="form-control" accept="application/pdf" />
+                        <label for="pdfFiles">Escolha os PDFs:</label>
+                        <input type="file" name="pdfFiles" id="pdfFiles" class="form-control" accept="application/pdf" multiple />
+                    </div>
+                    <div class="form-group">
+                        <label for="photoFiles">Escolha as Fotos:</label>
+                        <input type="file" name="photoFiles" id="photoFiles" class="form-control" accept="image/*" multiple />
                     </div>
                     <div class="form-group">
                         <label for="representanteSelect">Escolha o Representante:</label>
@@ -70,20 +74,11 @@
                             <!-- Opções serão carregadas aqui -->
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="loteSelect">Escolha o Lote:</label>
-                        <select name="loteId" id="loteSelect" class="form-control">
-                            <!-- Opções serão carregadas aqui -->
-                        </select>
-                    </div>                    
-                    <div class="form-group">
-                        <label for="npdf">Número do PDF :</label>
-                        <input type="text" name="npdf" id="npdf" class="form-control" readonly />
-                    </div>
                     <button type="submit" class="btn btn-primary">Enviar</button>
                 </form>
             </div>
         </div>
+    </div>    
         <div class="container mt-5">
             <div class="card mb-4">
                 <div class="card-header">
@@ -178,6 +173,7 @@
         </div>
     </div>
 </div>
+
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

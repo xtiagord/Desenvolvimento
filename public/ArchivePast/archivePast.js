@@ -1,49 +1,60 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const representanteSelect = document.getElementById('representanteSelect');
+
     fetch('/api/representantes')
         .then(response => response.json())
         .then(representantes => {
-            const select = document.getElementById('representanteSelect');
             representantes.forEach(representante => {
                 const option = document.createElement('option');
                 option.value = representante.id;
                 option.textContent = representante.nome;
-                select.appendChild(option);
+                representanteSelect.appendChild(option);
             });
         })
         .catch(error => console.error('Erro ao carregar representantes:', error));
-        fetch('/api/lote')
-        .then(response => response.json())
-        .then(lote => {
-            const select = document.getElementById('loteSelect');
-            lote.forEach(lote => {
-                const option = document.createElement('option');
-                option.value = lote.id;
-                option.textContent = lote.nome;
-                select.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar lote:', error));
+});
+
+document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+
+    const formData = new FormData();
+    const pdfFiles = document.getElementById('pdfFiles').files;
+    const photoFiles = document.getElementById('photoFiles').files;
+    const representanteId = document.getElementById('representanteSelect').value;
+
+    Array.from(pdfFiles).forEach(file => {
+        formData.append('pdfFiles', file);
+    });
+
+    Array.from(photoFiles).forEach(file => {
+        formData.append('photoFiles', file);
+    });
+
+    formData.append('representanteId', representanteId);
+
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            console.error('Falha ao fazer upload dos arquivos');
+        } else {
+            console.log('Arquivos enviados com sucesso');
+        }
+    } catch (error) {
+        console.error('Erro ao enviar arquivos:', error);
+    }
 });
 
 
-const loteSelect = document.getElementById('loteSelect');
-async function uploadFile(file, folderName) {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('npdf_id', pdfIdInput ? pdfIdInput.value : '');
-    formData.append('representante_id', representanteIdInput ? representanteIdInput.value : '');
-    formData.append('lote_id', loteIdInput ? loteIdInput.value : ''); // Certifique-se de que "loteId" é o nome correto
+/*document.querySelector('form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    uploadFiles();
+});*/
 
-    console.log('FormData loteId:', loteSelect ? loteSelect.value : 'undefined'); // Depuração
-    const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData,
-    });
 
-    if (!response.ok) {
-        console.error('Falha ao fazer upload do arquivo');
-    }
-}
 function carregarRepresentantes() {
 fetch('/representantes')
     .then(response => response.json())
