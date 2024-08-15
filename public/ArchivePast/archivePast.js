@@ -11,26 +11,39 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         })
         .catch(error => console.error('Erro ao carregar representantes:', error));
+        fetch('/api/lote')
+        .then(response => response.json())
+        .then(lote => {
+            const select = document.getElementById('loteSelect');
+            lote.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.id;
+                option.textContent = lote.nome;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar lote:', error));
 });
-const pdfIdInput = document.getElementById('pdfIdInput'); // Certifique-se de que o id do input está correto
-const representanteIdInput = document.getElementById('representanteIdInput'); // Certifique-se de que o id do input está correto
+
+
+const loteSelect = document.getElementById('loteSelect');
 async function uploadFile(file, folderName) {
-const formData = new FormData();
-formData.append('file', file);
-formData.append('npdf_id', pdfIdInput ? pdfIdInput.value : ''); // Verifica se pdfIdInput está definido
-formData.append('representante_id', representanteIdInput ? representanteIdInput.value : ''); // Verifica se representanteIdInput está definido
-formData.append('folder_name', folderName);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('npdf_id', pdfIdInput ? pdfIdInput.value : '');
+    formData.append('representante_id', representanteIdInput ? representanteIdInput.value : '');
+    formData.append('lote_id', loteIdInput ? loteIdInput.value : ''); // Certifique-se de que "loteId" é o nome correto
 
-const response = await fetch('/upload', {
-    method: 'POST',
-    body: formData,
-});
+    console.log('FormData loteId:', loteSelect ? loteSelect.value : 'undefined'); // Depuração
+    const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData,
+    });
 
-if (!response.ok) {
-    console.error('Falha ao fazer upload do arquivo');
+    if (!response.ok) {
+        console.error('Falha ao fazer upload do arquivo');
+    }
 }
-}
-
 function carregarRepresentantes() {
 fetch('/representantes')
     .then(response => response.json())
@@ -48,12 +61,10 @@ fetch('/representantes')
         alert('Erro ao carregar a lista de representantes.');
     });
 }
-
 function carregarPDFs() {
     const representanteId = document.getElementById('representante').value;
     const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
     const url = representanteId ? `/pdfs?representante_id=${representanteId}` : '/pdfs';
-
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -84,18 +95,12 @@ function carregarPDFs() {
         });
 }
 
-
-
-
-
-
 let pdfs = [];
 let currentPdfIndex = 0;
 
 function exibirPDF(url) {
     document.getElementById('pdfViewer').setAttribute('src', url);
     $('#pdfModal').modal('show'); // Mostrar o modal
-
     // Atualiza a lista de PDFs e o índice atual
     pdfs = []; // Inicializar ou atualizar com a lista de PDFs
     currentPdfIndex = pdfs.findIndex(pdf => pdf.url === url);
@@ -103,12 +108,10 @@ function exibirPDF(url) {
     // Atualiza a visibilidade dos botões de navegação
     atualizarNavegacao();
 }
-
 function atualizarNavegacao() {
     document.getElementById('prevPdf').style.display = currentPdfIndex > 0 ? 'inline-block' : 'none';
     document.getElementById('nextPdf').style.display = currentPdfIndex < pdfs.length - 1 ? 'inline-block' : 'none';
 }
-
 function navigatePDF(direction) {
     // Calcula o novo índice
     const newIndex = currentPdfIndex + direction;
@@ -120,12 +123,8 @@ function navigatePDF(direction) {
         atualizarNavegacao();
     }
 }
-
-
 // Carregar os representantes quando a página carregar
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
-
-
 function renomearPDF(id) {
     const novoNome = prompt("Digite o novo nome para o PDF:");
     if (novoNome) {
@@ -162,9 +161,6 @@ function renomearPDF(id) {
         });
     }
 }
-
-
-
 function deletarPDF(id) {
     if (confirm("Tem certeza que deseja deletar este PDF?")) {
         fetch(`/pdfs/${id}`, {
@@ -184,9 +180,7 @@ function deletarPDF(id) {
         });
     }
 }
-
 let editButtonsVisible = false;
-
 function toggleEditButtons() {
     editButtonsVisible = !editButtonsVisible; // Alterna o estado
     const editButtons = document.querySelectorAll('.edit-button');
@@ -229,12 +223,8 @@ function baixarPDFs() {
 
     window.location.href = url; // Inicia o download
 }
-
-
-
 // Chama a função para carregar representantes ao abrir o modal
 $('#downloadModal').on('show.bs.modal', carregarRepresentantesParaDownload);
-
 
 function carregarRepresentantesComoCheckboxes() {
     fetch('/representantes')
@@ -267,8 +257,6 @@ function carregarRepresentantesComoCheckboxes() {
             alert('Erro ao carregar a lista de representantes.');
         });
 }
-
-
 function mostrarCheckboxes() {
     const downloadOption = document.getElementById('downloadOption').value;
     const checkboxContainer = document.getElementById('representantesCheckboxes');

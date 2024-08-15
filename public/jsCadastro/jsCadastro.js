@@ -1,41 +1,4 @@
 $(document).ready(function() {
-    $('#clientModal').on('show.bs.modal', function () {
-        $.ajax({
-            url: '/api/dados',
-            method: 'GET',
-            success: function(data) {
-                console.log(data); // Verifique a estrutura dos dados recebidos
-
-                const tableBody = $('#data-table-body');
-                tableBody.empty(); // Limpar o corpo da tabela
-
-                data.forEach(item => {
-                    const row = `
-                        <tr>
-                            <td>${item.Npdf}</td>
-                            <td>${item.kg}</td>
-                            <td>${item.pd}</td>
-                            <td>${item.pt}</td>
-                            <td>${item.rh}</td>
-                            <td>${item.valorkg}</td>
-                            <td>${item.Valor}</td>
-                            <td>${item.data}</td>
-                            <td>${item.hora}</td>
-                            <td>${item.representante}</td> <!-- Exibir o nome do representante -->
-                            <td>${item.fornecedor}</td>
-                            <td>${item.sn}</td>
-                        </tr>
-                    `;
-                    tableBody.append(row);
-                });
-            },
-            error: function(err) {
-                console.error("Erro ao buscar dados:", err);
-            }
-        });
-    });
-});
-$(document).ready(function() {
 $('#salvarCadastro').click(function() {
     // Aqui você pode processar os dados do formulário
     const nome = $('#nome').val();
@@ -185,50 +148,7 @@ row.append(button);
         }
     });
 
-// Função para carregar as informações do representante
-function loadRepresentanteInfo(nomeRepresentante) {
-$.ajax({
-    url: `http://localhost:3001/dados/${encodeURIComponent(nomeRepresentante)}`, // Endpoint para buscar dados do representante
-    method: 'GET',
-    success: function(dados) {
-        console.log('Dados recebidos:', dados); // Log para verificar os dados recebidos
 
-        // Limpar conteúdo anterior do modal
-        $('#modalDataBody').empty();
-
-        if (dados.length === 0) {
-            $('#modalDataBody').append('<tr><td colspan="11">Nenhum dado encontrado para este representante.</td></tr>');
-        } else {
-            // Preencher o modal com os dados obtidos
-            dados.forEach(dado => {
-                const row = `
-                    <tr>
-                        <td>${dado.Npdf}</td>
-                        <td>${dado.kg}</td>
-                        <td>${dado.pd}</td>
-                        <td>${dado.pt}</td>
-                        <td>${dado.rh}</td>
-                        <td>${dado.valorkg}</td>
-                        <td>${dado.Valor}</td>
-                        <td>${dado.data}</td>
-                        <td>${dado.hora}</td>
-                        <td>${dado.fornecedor}</td>
-                        <td>${dado.sn}</td>
-                    </tr>
-                `;
-                console.log('Adicionando linha:', row); // Log para verificar cada linha adicionada
-                $('#modalDataBody').append(row);
-            });
-        }
-
-        // Abrir o modal após preencher os dados
-        $('#detalhesModal').modal('show');
-    },
-    error: function(err) {
-        console.error("Erro ao carregar dados do representante:", err);
-    }
-});
-}
 });
 document.getElementById('exportToXLS').addEventListener('click', function() {
 // Seleciona a tabela dentro do modal pelo ID
@@ -259,7 +179,16 @@ XLSX.utils.book_append_sheet(wb, ws, 'Planilha1');
 XLSX.writeFile(wb, 'dados.xlsx');
 });
 document.getElementById('exportAllToExcel').addEventListener('click', function() {
-    fetch('/api/exportarRepresentantes')
+    const loteSelecionado = document.getElementById('loteSelect').value.trim();
+
+    if (!loteSelecionado) {
+        document.getElementById('loteAlert').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('loteAlert').style.display = 'none';
+
+    fetch(`/api/exportarRepresentantes?lote=${encodeURIComponent(loteSelecionado)}`)
     .then(response => response.json())
     .then(data => {
         // Dados obtidos, vamos agrupar por representante
@@ -292,6 +221,7 @@ document.getElementById('exportAllToExcel').addEventListener('click', function()
     });
 });
 
+
 // Event listener para o botão "Cliente: EDITAR/EXCLUIR"
 document.querySelector('.btn-danger').addEventListener('click', function() {
 // Limpa a lista de representantes para evitar duplicações
@@ -323,19 +253,20 @@ fetch('/api/representantes')
 
 // Função para editar representante
 function editarRepresentante(idRepresentante) {
-fetch(`/api/representantes/${idRepresentante}`)
-.then(response => response.json())
-.then(data => {
-    const modalEdicao = document.getElementById('modalEdicaoRepresentante');
-    modalEdicao.querySelector('#inputNome').value = data.nome;
-    modalEdicao.setAttribute('data-idrepresentante', idRepresentante);
-    $('#modalEdicaoRepresentante').modal('show');
-})
-.catch(error => {
-    console.error('Erro ao carregar dados do representante:', error);
-    alert('Erro ao carregar dados do representante. Por favor, tente novamente.');
-});
+    fetch(`/api/representantes/${idRepresentante}`)
+        .then(response => response.json())
+        .then(data => {
+            const modalEdicao = document.getElementById('modalEdicaoRepresentante');
+            modalEdicao.querySelector('#inputNome').value = data.nome;
+            modalEdicao.setAttribute('data-idrepresentante', idRepresentante);
+            $('#modalEdicaoRepresentante').modal('show');
+        })
+        .catch(error => {
+            console.error('Erro ao carregar dados do representante:', error);
+            alert('Erro ao carregar dados do representante. Por favor, tente novamente.');
+        });
 }
+
 
 // Função para excluir representante
 function excluirRepresentante(representanteId) {
@@ -569,5 +500,156 @@ $(document).ready(function() {
         });
     });
 });
+$(document).ready(function() {
+    // Carregar a lista de representantes e lotes ao carregar a página
+    loadRepresentantes();
+    loadLotes();
 
+    // Adicionar um listener ao botão para carregar informações
+    $('#loadInfoButton').click(function() {
+        loadRepresentanteInfo();
+    });
+});
 
+// Função para carregar a lista de representantes
+function loadRepresentantes() {
+    $.ajax({
+        url: 'http://localhost:3001/api/representantes', // Endpoint para buscar representantes
+        method: 'GET',
+        success: function(representantes) {
+            const representantesList = $('#representantesList');
+            representantesList.empty();
+            representantes.forEach(rep => {
+                const button = `
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                        <button class="btn btn-info btn-lg btn-block" onclick="showRepresentanteInfo('${rep.nome}')">${rep.nome}</button>
+                    </div>`;
+                representantesList.append(button);
+            });
+        },
+        error: function(err) {
+            console.error("Erro ao carregar representantes:", err);
+        }
+    });
+}
+
+// Função para carregar a lista de lotes
+function loadLotes() {
+    $.ajax({
+        url: 'http://localhost:3001/api/lote', // Endpoint para buscar lotes
+        method: 'GET',
+        success: function(lotes) {
+            const loteSelect = $('#loteSelect');
+            loteSelect.empty(); // Limpar o select antes de preencher
+            loteSelect.append('<option value="" disabled selected>Escolha um lote</option>'); // Opção padrão
+
+            lotes.forEach(lote => {
+                const option = `<option value="${lote.nome}">${lote.nome}</option>`;
+                loteSelect.append(option);
+            });
+        },
+        error: function(err) {
+            console.error("Erro ao carregar lotes:", err);
+        }
+    });
+}
+
+// Função para exibir informações do representante no modal
+function showRepresentanteInfo(nomeRepresentante) {
+    $('#detalhesModalLabel').text(`Detalhes do Representante: ${nomeRepresentante}`);
+    loadRepresentanteInfo(nomeRepresentante);function loadRepresentanteInfo(nomeRepresentante) {
+        const loteSelecionado = $('#loteSelect').val(); // Obtém o valor selecionado
+    
+        // Verifica se o lote foi selecionado
+        if (!loteSelecionado) {
+            // Exibe o alerta se o lote não estiver selecionado
+            $('#loteAlert').show();
+            return;
+        }
+    
+        // Se o lote estiver selecionado, esconder o alerta
+        $('#loteAlert').hide();
+    
+        // Continue com o carregamento dos dados do representante
+        $.ajax({
+            url: `http://localhost:3001/dados/${encodeURIComponent(nomeRepresentante)}?lote=${encodeURIComponent(loteSelecionado)}`,
+            method: 'GET',
+            success: function(dados) {
+                console.log('Dados recebidos:', dados);
+    
+                // Limpar o conteúdo anterior do modal
+                $('#modalDataBody').empty();
+    
+                if (dados.length === 0) {
+                    $('#modalDataBody').append('<tr><td colspan="11">Nenhum dado encontrado para este representante.</td></tr>');
+                } else {
+                    // Preencher o modal com os dados obtidos
+                    dados.forEach(dado => {
+                        const row = `
+                            <tr>
+                                <td>${dado.Npdf}</td>
+                                <td>${dado.kg}</td>
+                                <td>${dado.pd}</td>
+                                <td>${dado.pt}</td>
+                                <td>${dado.rh}</td>
+                                <td>${dado.valorkg}</td>
+                                <td>${dado.Valor}</td>
+                                <td>${dado.data}</td>
+                                <td>${dado.hora}</td>
+                                <td>${dado.fornecedor}</td>
+                                <td>${dado.sn}</td>
+                            </tr>
+                        `;
+                        $('#modalDataBody').append(row);
+                    });
+                }
+    
+                // Abrir o modal após preencher os dados
+                $('#detalhesModal').modal('show');
+            },
+            error: function(err) {
+                console.error("Erro ao carregar dados do representante:", err);
+            }
+        });
+    }
+    
+}
+
+// Função para carregar informações do representante baseado no nome e lote
+
+document.getElementById('saveRepresentanteButton').addEventListener('click', function() {
+    const modalEdicao = document.getElementById('modalEdicaoRepresentante');
+    const idRepresentante = modalEdicao.getAttribute('data-idrepresentante');
+    const nome = modalEdicao.querySelector('#inputNome').value.trim();
+
+    if (!nome) {
+        alert('O nome do representante é obrigatório.');
+        return;
+    }
+
+    fetch(`/api/representantes/${idRepresentante}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nome })
+    })
+    .then(response => {
+        console.log('Resposta do servidor:', response); // Adicionado para depuração
+        return response.json(); // Tente converter a resposta para JSON
+    })
+    .then(data => {
+        console.log('Dados recebidos do servidor:', data); // Adicionado para depuração
+        if (data.success) {
+            alert(data.message);
+            $('#modalEdicaoRepresentante').modal('hide');
+            // Atualize a lista de representantes ou recarregue a página, conforme necessário
+        } else {
+            alert(data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao atualizar o representante:', error);
+        alert('Erro ao atualizar o representante. Por favor, tente novamente.');
+    });
+});

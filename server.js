@@ -20,7 +20,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '1234',
-    database: 'sys'
+    database: 'sys_test'
 });
 
 // Conectar ao banco de dados
@@ -459,19 +459,26 @@ app.get('/api/representantes', (req, res) => {
 
 app.get('/dados/:nomeRepresentante', (req, res) => {
     const nomeRepresentante = req.params.nomeRepresentante.trim();
-    console.log('Nome do Representante:', nomeRepresentante); // Adicione este log
+    const loteSelecionado = req.query.lote;  // Captura o parâmetro 'lote' da query string
 
-    const query = 'SELECT * FROM dados WHERE LOWER(representante) LIKE ?';
-    db.query(query, [`%${nomeRepresentante.toLowerCase()}%`], (err, results) => {
+    console.log('Nome do Representante:', nomeRepresentante);
+    console.log('Lote Selecionado:', loteSelecionado);
+
+    // Adapte sua query SQL para considerar o lote, se aplicável
+    const query = 'SELECT * FROM dados WHERE LOWER(representante) LIKE ? AND lote = ?';
+    db.query(query, [`%${nomeRepresentante.toLowerCase()}%`, loteSelecionado], (err, results) => {
         if (err) {
             console.error('Erro ao executar a consulta:', err);
             res.status(500).send('Erro no servidor');
             return;
         }
-        console.log('Resultados da consulta', results)
+
+        console.log('Resultados da consulta:', results);
         res.json(results);
     });
 });
+
+
 app.post('/api/cooperados', (req, res) => {
     const { nome, cpf, representanteId } = req.body;
 
@@ -670,19 +677,55 @@ app.get('/api/representantes/:nome', (req, res) => {
     });
 });
 
-app.put('/api/representantes/:id', (req, res) => {
-    const idRepresentante = req.params.id;
+app.put('/api/representantes/:id', async (req, res) => {
+    const representanteId = parseInt(req.params.id);
     const { nome } = req.body;
-    const query = 'UPDATE representantes SET nome = ? WHERE id = ?';
-    db.query(query, [nome, idRepresentante], (err, results) => {
-        if (err) {
-            console.error('Erro ao atualizar representante:', err);
-            res.status(500).send('Erro no servidor');
-            return;
+
+    if (isNaN(representanteId) || !nome) {
+        return res.status(400).json({ success: false, error: 'Dados inválidos para a atualização' });
+    }
+
+    try {
+        // Obter o nome antigo do representante antes de atualizar
+        const [oldNameResult] = await db.promise().query('SELECT nome FROM representantes WHERE id = ?', [representanteId]);
+        const oldName = oldNameResult[0]?.nome;
+
+        if (!oldName) {
+            return res.status(404).json({ success: false, error: 'Representante não encontrado' });
         }
-        res.send('Representante atualizado com sucesso');
-    });
+
+        // Inicia a transação
+        await db.promise().beginTransaction();
+
+        // Atualiza o nome na tabela de representantes
+        const updateRepresentanteSql = `
+            UPDATE representantes 
+            SET nome = ? 
+            WHERE id = ?
+        `;
+        await db.promise().query(updateRepresentanteSql, [nome, representanteId]);
+
+        // Atualiza o nome na tabela de dados para o representante correspondente
+        const updateDadosSql = `
+            UPDATE dados 
+            SET representante = ? 
+            WHERE representante = ?
+        `;
+        await db.promise().query(updateDadosSql, [nome, oldName]);
+
+        // Confirma a transação
+        await db.promise().commit();
+
+        res.json({ success: true, message: 'Representante e dados atualizados com sucesso!' });
+    } catch (err) {
+        // Desfaz a transação em caso de erro
+        await db.promise().rollback();
+        console.error('Erro ao atualizar o representante:', err);
+        res.status(500).json({ success: false, error: 'Erro ao atualizar o representante e dados' });
+    }
 });
+
+
 app.get('/api/equipamentos', (req, res) => {
     const sql = 'SELECT * FROM equipamentos';
     db.query(sql, (err, result) => {
@@ -726,8 +769,16 @@ app.get('/api/equipamentos/:representanteId', async (req, res) => {
     }
   });
   app.get('/api/exportarRepresentantes', (req, res) => {
-    const query = 'SELECT * FROM dados';
-    db.query(query, (err, results) => {
+    const loteSelecionado = req.query.lote;  // Captura o parâmetro 'lote' da query string
+    let query = 'SELECT * FROM dados';
+    let queryParams = [];
+
+    if (loteSelecionado) {
+        query += ' WHERE lote = ?';
+        queryParams.push(loteSelecionado);
+    }
+
+    db.query(query, queryParams, (err, results) => {
         if (err) {
             console.error('Erro ao buscar representantes:', err);
             res.status(500).json({ error: 'Erro ao buscar representantes' });
@@ -736,6 +787,7 @@ app.get('/api/equipamentos/:representanteId', async (req, res) => {
         res.json(results);
     });
 });
+
 
 // Rota para cadastrar usuários
 app.post('/register', async (req, res) => {
@@ -1104,14 +1156,19 @@ app.post('/create-folder', async (req, res) => {
 // Endpoint para upload de PDF
 app.post('/upload', upload.single('pdfFile'), (req, res) => {
     const representanteId = req.body.representanteId;
+    const loteId = req.body.loteId;
     const file = req.file;
+
+
+     console.log('representante_id:', representanteId); // Depuração
+    console.log('lote_id:', loteId); // Depuração
 
     if (!file) {
         return res.status(400).send('Nenhum arquivo enviado.');
     }
 
-    const query = 'INSERT INTO pdfs (name, data, representante_id) VALUES (?, ?, ?)';
-    db.query(query, [file.originalname, file.buffer, representanteId], (err, result) => {
+    const query = 'INSERT INTO pdfs (name, data, representante_id, lote_id) VALUES (?, ?, ?, ?)';
+    db.query(query, [file.originalname, file.buffer,  representanteId, loteId], (err, result) => {
         if (err) {
             console.error('Erro ao salvar o PDF:', err);
             return res.status(500).send('Erro ao salvar o arquivo.');
@@ -1120,13 +1177,13 @@ app.post('/upload', upload.single('pdfFile'), (req, res) => {
     });
 });
 
-
+[]
 // Rota para exibir o PDF
 app.get('/pdfs/:id', (req, res) => {
     const pdfId = req.params.id;
     const query = 'SELECT name, data FROM pdfs WHERE id = ?';
 
-    db.query(query, [pdfId], (err, results) => {
+    db.query(query, [pdfId], (err, results) => {    
         if (err) {
             console.error(err);
             return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
