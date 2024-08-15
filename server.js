@@ -677,54 +677,19 @@ app.get('/api/representantes/:nome', (req, res) => {
     });
 });
 
-app.put('/api/representantes/:id', async (req, res) => {
-    const representanteId = parseInt(req.params.id);
+app.put('/api/representantes/:id', (req, res) => {
+    const idRepresentante = req.params.id;
     const { nome } = req.body;
-
-    if (isNaN(representanteId) || !nome) {
-        return res.status(400).json({ success: false, error: 'Dados inválidos para a atualização' });
-    }
-
-    try {
-        // Obter o nome antigo do representante antes de atualizar
-        const [oldNameResult] = await db.promise().query('SELECT nome FROM representantes WHERE id = ?', [representanteId]);
-        const oldName = oldNameResult[0]?.nome;
-
-        if (!oldName) {
-            return res.status(404).json({ success: false, error: 'Representante não encontrado' });
+    const query = 'UPDATE representantes SET nome = ? WHERE id = ?';
+    db.query(query, [nome, idRepresentante], (err, results) => {
+        if (err) {
+            console.error('Erro ao atualizar representante:', err);
+            res.status(500).send('Erro no servidor');
+            return;
         }
-
-        // Inicia a transação
-        await db.promise().beginTransaction();
-
-        // Atualiza o nome na tabela de representantes
-        const updateRepresentanteSql = `
-            UPDATE representantes 
-            SET nome = ? 
-            WHERE id = ?
-        `;
-        await db.promise().query(updateRepresentanteSql, [nome, representanteId]);
-
-        // Atualiza o nome na tabela de dados para o representante correspondente
-        const updateDadosSql = `
-            UPDATE dados 
-            SET representante = ? 
-            WHERE representante = ?
-        `;
-        await db.promise().query(updateDadosSql, [nome, oldName]);
-
-        // Confirma a transação
-        await db.promise().commit();
-
-        res.json({ success: true, message: 'Representante e dados atualizados com sucesso!' });
-    } catch (err) {
-        // Desfaz a transação em caso de erro
-        await db.promise().rollback();
-        console.error('Erro ao atualizar o representante:', err);
-        res.status(500).json({ success: false, error: 'Erro ao atualizar o representante e dados' });
-    }
+        res.send('Representante atualizado com sucesso');
+    });
 });
-
 
 app.get('/api/equipamentos', (req, res) => {
     const sql = 'SELECT * FROM equipamentos';
