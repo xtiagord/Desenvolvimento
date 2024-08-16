@@ -48,7 +48,6 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     }
 });
 
-
 /*document.querySelector('form').addEventListener('submit', function(event) {
     event.preventDefault();
     uploadFiles();
@@ -280,3 +279,42 @@ function mostrarCheckboxes() {
     }
 }
 
+function carregarFotos() {
+    const representanteId = document.getElementById('representante').value;
+    const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
+    const url = representanteId ? `/photos?representante_id=${representanteId}` : '/photos';
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            const listaPhotos = document.getElementById('lista-photos');
+            listaPhotos.innerHTML = '';
+
+            if (data.length > 0) {
+                // Exibe a seção de fotos (divisão e título) ao carregar as fotos
+                document.getElementById('foto-section-wrapper').style.display = 'block';
+            }
+
+            data.forEach(photo => {
+                const card = document.createElement('div');
+                card.className = `col-md-${12 / pdfsPorLinha} mb-4`; // Calcula a largura com base na seleção
+
+                card.innerHTML = `
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">${photo.name}</h5>
+                            <button onclick="exibirFOTO('/photos/${photo.id}')" class="btn btn-primary">Ver Foto</button>
+                            <button onclick="renomearFOTO(${photo.id})" class="btn btn-warning edit-button">Renomear</button>
+                            <button onclick="deletarFOTO(${photo.id})" class="btn btn-danger edit-button">Deletar</button>
+                        </div>
+                    </div>
+                `;
+
+                listaPhotos.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar FOTOS:', error);
+            alert('Erro ao carregar a lista de FOTOS.');
+        });
+}

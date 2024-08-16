@@ -1119,19 +1119,6 @@ app.get('/files', (req, res) => {
     });
 });
 
-app.get('/api/fotos/:representanteId', (req, res) => {
-    const { representanteId } = req.params;
-
-    const query = 'SELECT id, nome_original FROM arquivos WHERE representante_id = ?';
-    db.query(query, [representanteId], (err, results) => {
-        if (err) {
-            console.error('Erro ao buscar fotos no banco de dados:', err);
-            return res.status(500).send('Erro ao buscar fotos');
-        }
-        res.json(results);
-    });
-});
-
 app.post('/create-folder', async (req, res) => {
     const { folder_name, representante_id } = req.body;
   
@@ -1332,7 +1319,26 @@ app.get('/download-pdfs', async (req, res) => {
     }
 });
 
-  
+app.get('/photos', (req, res) => {
+    const representanteId = req.query.representante_id;
+    let query = 'SELECT id, name FROM photos';
+    let params = [];
+
+    if (representanteId) {
+        query += ' WHERE representante_id = ?';
+        params.push(representanteId);
+    }
+
+    db.query(query, params, (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ message: 'Erro ao buscar as fotos.' });
+        }
+
+        res.json(results); // Retorna as fotos em formato JSON
+    });
+});
+
 
 
 // Middleware para tratamento de erros

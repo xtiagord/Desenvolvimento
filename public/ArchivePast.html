@@ -100,15 +100,24 @@
                                 <option value="4">4 por linha</option>
                             </select>
                         </div>
-                    </div>
-        
                     <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
+                    <button onclick="carregarFotos()" class="btn btn-secondary mb-4">Listar Fotos</button>
                     <button onclick="toggleEditButtons()" class="btn btn-info mb-4">Mostrar/Esconder Opções de Edição</button>
                     <button class="btn btn-primary mb-4" data-toggle="modal" data-target="#downloadModal">Download PDFs</button>
         
                     <div id="lista-pdfs" class="row">
                         <!-- Os cards de PDFs serão carregados aqui -->
                     </div>
+                    
+                    <!-- Divisão da seção de fotos inicialmente oculta -->
+                    <div id="foto-section-wrapper" style="display: none;">
+                        <h3 class="mt-4 text-center">Seção de Fotos</h3>
+                        <hr class="my-4">
+                        <div id="lista-photos" class="row">
+                            <!-- Os cards de photos serão carregados aqui -->
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -173,6 +182,7 @@
         </div>
     </div>
 </div>
+
 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
