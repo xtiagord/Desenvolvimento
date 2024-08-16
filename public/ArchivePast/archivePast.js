@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     const representanteSelect = document.getElementById('representanteSelect');
-
     fetch('/api/representantes')
         .then(response => response.json())
         .then(representantes => {
@@ -13,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Erro ao carregar representantes:', error));
 });
+
 document.getElementById('representanteSelect').addEventListener('change', function() {
     const representante = this.options[this.selectedIndex].text; // Usa o nome do representante selecionado
     const loteSelect = document.getElementById('loteSelect');
@@ -37,10 +37,8 @@ document.getElementById('representanteSelect').addEventListener('change', functi
 document.getElementById('loteSelect').addEventListener('change', function() {
     const representante = document.getElementById('representanteSelect').options[document.getElementById('representanteSelect').selectedIndex].text;
     const lote = this.value;
-    const npdfSelect = document.getElementById('npdfSelect');
-    
+    const npdfSelect = document.getElementById('npdfSelect');   
     npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
-
     fetch(`/api/npdfs?representante=${encodeURIComponent(representante)}&lote=${encodeURIComponent(lote)}`)
         .then(response => response.json())
         .then(npdfs => {
@@ -53,9 +51,6 @@ document.getElementById('loteSelect').addEventListener('change', function() {
         })
         .catch(error => console.error('Erro ao carregar Npdfs:', error));
 });
-
-
-
 document.getElementById('uploadForm').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -369,4 +364,73 @@ function carregarFotos() {
             console.error('Erro ao carregar FOTOS:', error);
             alert('Erro ao carregar a lista de FOTOS.');
         });
+}
+function atualizarDados() {
+    carregarFotos();
+    carregarPDFs();
+}
+function exibirFOTO(url) {
+    document.getElementById('photosViewer').setAttribute('src', url);
+    $('#photosModal').modal('show'); // Mostrar o modal
+    // Atualiza a lista de fotos e o índice atual
+    photos = []; // Inicializar ou atualizar com a lista de fotos
+    currentPdfIndex = photos.findIndex(photo => photo.url === url);
+}
+// Carregar os representantes quando a página carregar
+document.addEventListener('DOMContentLoaded', carregarRepresentantes);
+function renomearFOTO(id) {
+    const novoNome = prompt("Digite o novo nome para a FOTO:");
+    if (novoNome) {
+        let trimmedNome = novoNome.trim();
+
+        // Adiciona a extensão .pdf se não estiver presente
+        if (!trimmedNome.toLowerCase().endsWith('.jpg')) {
+            trimmedNome += '.jgp';
+        }
+
+        fetch(`/photos/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ novoNome: trimmedNome })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Nome da FOTO atualizado com sucesso.');
+                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+            } else {
+                return response.text(); // Para obter a mensagem de erro
+            }
+        })
+        .then(errorMessage => {
+            if (errorMessage) {
+                alert('Erro ao renomear a FOTO: ' + errorMessage);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao renomear a FOTO:', error);
+            alert('Erro ao renomear a FOTO.');
+        });
+    }
+}
+
+function deletarFOTO(id) {
+    if (confirm("Tem certeza que deseja deletar esta FOTO?")) {
+        fetch(`/photos/${id}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('FOTO deletado com sucesso.');
+                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+            } else {
+                alert('Erro ao deletar o FOTO.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao deletar o FOTO:', error);
+            alert('Erro ao deletar o FOT.');
+        });
+    }
 }

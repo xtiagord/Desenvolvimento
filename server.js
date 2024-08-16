@@ -1419,6 +1419,67 @@ app.get('/api/npdfs', (req, res) => {
     });
 });
 
+// Endpoint para obter uma foto
+app.get('/photos/:id', (req, res) => {
+    const photosId = req.params.id;
+    const query = 'SELECT name, data FROM photos WHERE id = ?';
+
+    db.query(query, [photosId], (err, results) => {    
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Arquivo não encontrado.');
+        }
+
+        const photos = results[0];
+
+        // Configura o cabeçalho para exibir o PDF diretamente no navegador
+        res.setHeader('Content-Type', 'application/photos');
+        res.setHeader('Content-Disposition', 'inline; filename="' + photos.name + '"');
+        
+        // Envia o PDF para exibição no navegador
+        res.send(photos.data);
+    });
+});
+
+// Endpoint para renomear uma foto
+app.put('/photos/:id', (req, res) => {
+    const photosId = req.params.id;
+    const novoNome = req.body.novoNome;
+    const query = 'UPDATE photos SET name = ? WHERE id = ?';
+
+    db.query(query, [novoNome, photosId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao renomear o arquivo no banco de dados.');
+        }
+
+        res.send('Nome da FOTO atualizado com sucesso.');
+    });
+});
+
+// Endpoint para deletar uma foto
+app.delete('/photos/:id', (req, res) => {
+    const fotoId = req.params.id;
+    const query = 'DELETE FROM photos WHERE id = ?';
+
+    db.query(query, [fotoId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao deletar o arquivo no banco de dados.');
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('FOTO não encontrado.');
+        }
+
+        res.send('FOTO deletado com sucesso.');
+    });
+});
+
 
 
 // Middleware para tratamento de erros

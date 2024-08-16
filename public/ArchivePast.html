@@ -87,59 +87,55 @@
                         <select id="npdfSelect" class="form-control">
                             <!-- Opções de Npdfs serão carregadas aqui -->
                         </select>
-                    </div>
-                    
-                    
+                    </div>         
                     <button type="submit" class="btn btn-primary">Enviar</button>
                 </form>
             </div>
         </div>
     </div>    
-        <div class="container mt-5">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h1>Gerenciamento de PDFs</h1>
-                </div>
-                <div class="card-body">
+    <div class="container mt-5">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h1>Gerenciamento de PDFs</h1>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="representante">Escolha o Representante:</label>
+                    <select id="representante" class="form-control" onchange="atualizarDados()">
+                        <option value="">Todos</option>
+                        <!-- As opções serão carregadas dinamicamente -->
+                    </select>
                     <div class="form-group">
-                        <label for="representante">Escolha o Representante:</label>
-                        <select id="representante" class="form-control" onchange="carregarPDFs()">
-                            <option value="">Todos</option>
-                            <!-- As opções serão carregadas dinamicamente -->
+                        <label for="pdfsPorLinha">Visualização PDFs:</label>
+                        <select id="pdfsPorLinha" class="form-control" onchange="atualizarDados()">
+                            <option value="1">1 por linha</option>
+                            <option value="2">2 por linha</option>
+                            <option value="3">3 por linha</option>
+                            <option value="4">4 por linha</option>
                         </select>
-                        <div class="form-group">
-                            <label for="pdfsPorLinha">Vizualicação PDFs:</label>
-                            <select id="pdfsPorLinha" class="form-control" onchange="carregarPDFs()">
-                                <option value="1">1 por linha</option>
-                                <option value="2">2 por linha</option>
-                                <option value="3">3 por linha</option>
-                                <option value="4">4 por linha</option>
-                            </select>
-                        </div>
+                    </div>
                     <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
                     <button onclick="carregarFotos()" class="btn btn-secondary mb-4">Listar Fotos</button>
                     <button onclick="toggleEditButtons()" class="btn btn-info mb-4">Mostrar/Esconder Opções de Edição</button>
                     <button class="btn btn-primary mb-4" data-toggle="modal" data-target="#downloadModal">Download PDFs</button>
-        
+    
                     <div id="lista-pdfs" class="row">
                         <!-- Os cards de PDFs serão carregados aqui -->
                     </div>
-                    
+    
                     <!-- Divisão da seção de fotos inicialmente oculta -->
                     <div id="foto-section-wrapper" style="display: none;">
                         <h3 class="mt-4 text-center">Seção de Fotos</h3>
                         <hr class="my-4">
                         <div id="lista-photos" class="row">
-                            <!-- Os cards de photos serão carregados aqui -->
+                            <!-- Os cards de fotos serão carregados aqui -->
                         </div>
                     </div>
                     
                 </div>
             </div>
         </div>
-
-        
-        
+    </div>
  <!-- Modal para visualização de PDF -->
 <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-fullscreen" role="document">
@@ -192,14 +188,31 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>
-                
+                <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>              
             </div>
         </div>
     </div>
 </div>
-
-
+<!-- Modal para visualização de Fotos -->
+<div class="modal fade" id="photosModal" tabindex="-1" role="dialog" aria-labelledby="photosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="photosModalLabel">Visualizador de Fotos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="photosViewer" style="max-width: 100%; max-height: 80vh;" />
+            </div>
+            <div class="modal-footer">
+                <button id="prevPhoto" class="btn btn-secondary" onclick="navigatePhoto(-1)" style="display:none;">Anterior</button>
+                <button id="nextPhoto" class="btn btn-secondary" onclick="navigatePhoto(1)" style="display:none;">Próximo</button>
+            </div>
+        </div>
+    </div>
+</div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
