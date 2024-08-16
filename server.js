@@ -221,6 +221,7 @@ app.get('/representantes', (req, res) => {
       res.json(results);
     });
   });
+  
   app.post('/api/representantes', (req, res) => {
     const { nome, maquina } = req.body;
 
@@ -1143,6 +1144,8 @@ app.post('/create-folder', async (req, res) => {
 // Endpoint para upload de arquivos
 app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 10 }, { name: 'photoFiles', maxCount: 10 }]), (req, res) => {
     const representanteId = req.body.representanteId;
+    const lote = req.body.lote; // Obtém o lote do corpo da requisição
+    const npdf = req.body.npdf;
     const pdfFiles = req.files['pdfFiles'] || [];
     const photoFiles = req.files['photoFiles'] || [];
 
@@ -1150,37 +1153,67 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 10 }, { name: '
         return res.status(400).send('Nenhum arquivo enviado.');
     }
 
-    const queries = [];
-    const params = [];
+    // Verificar se o representante ID é válido
+    db.query('SELECT COUNT(*) AS count FROM representantes WHERE id = ?', [representanteId], (err, rows) => {
+        if (err) {
+            console.error('Erro ao verificar representante:', err);
+            return res.status(500).send('Erro ao verificar o representante.');
+        }
 
-    pdfFiles.forEach(file => {
-        queries.push('INSERT INTO pdfs (name, data, representante_id) VALUES (?, ?, ?)');
-        params.push([file.originalname, file.buffer, representanteId]);
-    });
+        if (rows[0].count === 0) {
+            return res.status(400).send('ID do representante inválido.');
+        }
 
-    photoFiles.forEach(file => {
-        queries.push('INSERT INTO photos (name, data, representante_id) VALUES (?, ?, ?)');
-        params.push([file.originalname, file.buffer, representanteId]);
-    });
+        let queries = [];
+        let queryParams = [];
 
-    // Função para executar a query de inserção
-    const saveFile = (query, params) => new Promise((resolve, reject) => {
-        db.query(query, params, (err, result) => {
+        pdfFiles.forEach(file => {
+            queries.push('INSERT INTO pdfs (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
+            queryParams.push([file.originalname, file.buffer, representanteId, npdf, lote]);
+        });
+
+        photoFiles.forEach(file => {
+            queries.push('INSERT INTO photos (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
+            queryParams.push([file.originalname, file.buffer, representanteId, npdf, lote]);
+        });
+
+        // Função para executar a query de inserção
+        const saveFile = (query, params, callback) => {
+            db.query(query, params, (err, result) => {
+                if (err) {
+                    return callback(err);
+                }
+                callback(null, result);
+            });
+        };
+
+        // Executar todas as queries
+        let completedQueries = 0;
+        const totalQueries = queries.length;
+
+        const onQueryComplete = (err) => {
             if (err) {
-                return reject(err);
+                console.error('Erro ao salvar arquivos:', err);
+                return res.status(500).send('Erro ao salvar os arquivos.');
             }
-            resolve(result);
+
+            completedQueries++;
+            if (completedQueries === totalQueries) {
+                res.send('Arquivos salvos com sucesso.');
+            }
+        };
+
+        if (totalQueries === 0) {
+            return res.send('Nenhum arquivo para salvar.');
+        }
+
+        queries.forEach((query, index) => {
+            saveFile(query, queryParams[index], onQueryComplete);
         });
     });
-
-    // Executar todas as queries
-    Promise.all(queries.map((query, index) => saveFile(query, params[index])))
-        .then(() => res.send('Arquivos salvos com sucesso.'))
-        .catch(err => {
-            console.error('Erro ao salvar arquivos:', err);
-            res.status(500).send('Erro ao salvar os arquivos.');
-        });
 });
+
+
 
 
 // Rota para exibir o PDF
@@ -1336,6 +1369,53 @@ app.get('/photos', (req, res) => {
         }
 
         res.json(results); // Retorna as fotos em formato JSON
+    });
+});
+
+// Rota para obter os lotes com base no representante selecionado
+app.get('/api/lotes', (req, res) => {
+    const representante = req.query.representante;
+
+    if (!representante) {
+        return res.status(400).send('Representante é necessário.');
+    }
+
+    const query = `
+        SELECT DISTINCT lote
+        FROM dados
+        WHERE representante = ?
+    `;
+
+    db.query(query, [representante], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar lotes:', err);
+            return res.status(500).send('Erro ao buscar lotes.');
+        }
+        res.json(results);
+    });
+});
+
+// Rota para obter os Npdfs com base no representante e lote selecionados
+app.get('/api/npdfs', (req, res) => {
+    const representante = req.query.representante;
+    const lote = req.query.lote;
+
+    if (!representante || !lote) {
+        return res.status(400).send('Representante e lote são necessários.');
+    }
+
+    const query = `
+        SELECT DISTINCT Npdf
+        FROM dados
+        WHERE representante = ? AND lote = ?
+    `;
+
+    db.query(query, [representante, lote], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar Npdfs:', err);
+            return res.status(500).send('Erro ao buscar Npdfs.');
+        }
+        res.json(results);
     });
 });
 

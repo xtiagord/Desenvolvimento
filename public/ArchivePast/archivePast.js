@@ -13,6 +13,48 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Erro ao carregar representantes:', error));
 });
+document.getElementById('representanteSelect').addEventListener('change', function() {
+    const representante = this.options[this.selectedIndex].text; // Usa o nome do representante selecionado
+    const loteSelect = document.getElementById('loteSelect');
+    const npdfSelect = document.getElementById('npdfSelect');
+    
+    loteSelect.innerHTML = '';  // Limpar opções anteriores de lotes
+    npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
+
+    fetch(`/api/lotes?representante=${encodeURIComponent(representante)}`)
+        .then(response => response.json())
+        .then(lotes => {
+            lotes.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.lote;
+                option.textContent = lote.lote;
+                loteSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar lotes:', error));
+});
+
+document.getElementById('loteSelect').addEventListener('change', function() {
+    const representante = document.getElementById('representanteSelect').options[document.getElementById('representanteSelect').selectedIndex].text;
+    const lote = this.value;
+    const npdfSelect = document.getElementById('npdfSelect');
+    
+    npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
+
+    fetch(`/api/npdfs?representante=${encodeURIComponent(representante)}&lote=${encodeURIComponent(lote)}`)
+        .then(response => response.json())
+        .then(npdfs => {
+            npdfs.forEach(npdf => {
+                const option = document.createElement('option');
+                option.value = npdf.Npdf;
+                option.textContent = npdf.Npdf;
+                npdfSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar Npdfs:', error));
+});
+
+
 
 document.getElementById('uploadForm').addEventListener('submit', async function(event) {
     event.preventDefault();
@@ -21,6 +63,12 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     const pdfFiles = document.getElementById('pdfFiles').files;
     const photoFiles = document.getElementById('photoFiles').files;
     const representanteId = document.getElementById('representanteSelect').value;
+    const lote = document.getElementById('loteSelect').value;
+    const npdf = document.getElementById('npdfSelect').value;
+
+    console.log('Representante selecionado:', representanteId);
+    console.log('Lote selecionado:', lote);
+    console.log('Npdf selecionado:', npdf);
 
     Array.from(pdfFiles).forEach(file => {
         formData.append('pdfFiles', file);
@@ -31,6 +79,8 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     });
 
     formData.append('representanteId', representanteId);
+    formData.append('lote', lote);
+    formData.append('npdf', npdf);
 
     try {
         const response = await fetch('/upload', {
@@ -47,6 +97,8 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         console.error('Erro ao enviar arquivos:', error);
     }
 });
+
+
 
 /*document.querySelector('form').addEventListener('submit', function(event) {
     event.preventDefault();
