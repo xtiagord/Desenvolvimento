@@ -221,6 +221,111 @@ document.getElementById('exportAllToExcel').addEventListener('click', function()
     });
 });
 
+document.getElementById('exportaOnderExcell').addEventListener('click', function() {
+    const loteSelecionado = document.getElementById('loteSelect').value.trim();
+
+    if (!loteSelecionado) {
+        document.getElementById('loteAlert').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('loteAlert').style.display = 'none';
+    
+    fetch(`/api/exportarRepresentantes?lote=${encodeURIComponent(loteSelecionado)}`)
+    .then(response => response.json())
+    .then(data => {
+        // Agrupar os dados por representante
+        const groupedData = data.reduce((acc, item) => {
+            const representante = item.representante;
+            if (!acc[representante]) {
+                acc[representante] = [];
+            }
+            acc[representante].push(item);
+            return acc;
+        }, {});
+
+        let globalCounter = 1; // Contador global inicializado
+
+        // Função para formatar valores em formato monetário brasileiro
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        };
+
+        // Ordenar e formatar os dados para exportação
+        const formattedData = Object.keys(groupedData)
+            .sort()  // Ordenar os representantes em ordem alfabética
+            .flatMap(representante => {
+                let previousNpdf = null;
+                return groupedData[representante].map(item => {
+                    let npdfValue;
+                    if (item.Npdf === previousNpdf) {
+                        npdfValue = ''; // Deixar vazio se for repetido
+                    } else {
+                        npdfValue = globalCounter++; // Atribuir e incrementar o contador global
+                    }
+                    previousNpdf = item.Npdf;
+
+                    const equipamento = item.sn;
+                    // Extrair os últimos 3 dígitos do número de série (sn)
+                    const lastThreeDigits = item.sn.slice(-3);
+                    
+                    // Combinar "Cambe" ou "Marcio" com os últimos 3 dígitos do SN dependendo do representante
+                    let formattedEquipamento;
+                    if (representante === "ANDERSON") {
+                        formattedEquipamento = `CAMBE ${lastThreeDigits}`;
+                    } else if (representante === "DEPÓSITO") {
+                        formattedEquipamento = `MARCIO ${lastThreeDigits}`;
+                    } else if (representante === "JOSE") {
+                        formattedEquipamento = `JUAN ${lastThreeDigits}`;
+                    } else if (representante === "LUCAS") {
+                        formattedEquipamento = `GOIANIA ${lastThreeDigits}`;
+                    } else if (representante === "ARIEL") {
+                        if (equipamento.startsWith("ARG")) {
+                            formattedEquipamento = `ARG ${lastThreeDigits}`;
+                        } else if (equipamento.startsWith("SN-")) {
+                            formattedEquipamento = `ARIEL ${lastThreeDigits}`;
+                        } else {
+                            formattedEquipamento = `${representante} ${lastThreeDigits}`;
+                        }
+                    } else {
+                        formattedEquipamento = `${representante} ${lastThreeDigits}`;
+                    }
+
+                    return {
+                        npdf: npdfValue,
+                        comprador: representante, // Manter o nome original do representante
+                        equipamento: formattedEquipamento, // Nome do representante ou "Cambe"/"Marcio" + últimos 3 dígitos do SN
+                        valor: formatCurrency(parseFloat(item.Valor)), // Formatando o valor
+                        pgto: item.pgto,
+                        plan: item.plan,
+                        hedge: item.hedge,
+                        pag: item.pag,
+                        kg: item.kg.replace('.', ','), // Substituindo ponto por vírgula
+                        pd: item.pd.replace('.', ','), // Substituindo ponto por vírgula
+                        pt: item.pt.replace('.', ','), // Substituindo ponto por vírgula
+                        rh: item.rh.replace('.', ',')  // Substituindo ponto por vírgula
+                    };
+                });
+            });
+
+        // Criar uma nova planilha
+        const wb = XLSX.utils.book_new();
+
+        // Adicionar os dados formatados a uma única aba
+        const ws = XLSX.utils.json_to_sheet(formattedData);
+
+        // Adicionar a aba à planilha
+        XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
+
+        // Exportar o arquivo Excel
+        XLSX.writeFile(wb, `representantes_${loteSelecionado}_formatados.xlsx`);
+    })
+    .catch(error => {
+        console.error('Erro ao exportar dados:', error);
+        alert('Erro ao exportar dados. Por favor, tente novamente.');
+    });
+});
+
 
 // Event listener para o botão "Cliente: EDITAR/EXCLUIR"
 document.querySelector('.btn-danger').addEventListener('click', function() {
