@@ -622,8 +622,13 @@ function loadRepresentantes() {
         url: 'http://localhost:3001/api/representantes', // Endpoint para buscar representantes
         method: 'GET',
         success: function(representantes) {
+            // Ordenar os representantes por nome
+            representantes.sort((a, b) => a.nome.localeCompare(b.nome));
+
             const representantesList = $('#representantesList');
-            representantesList.empty();
+            representantesList.empty(); // Limpar a lista existente
+
+            // Adicionar botões para cada representante
             representantes.forEach(rep => {
                 const button = `
                     <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
@@ -637,6 +642,7 @@ function loadRepresentantes() {
         }
     });
 }
+
 
 // Função para carregar a lista de lotes
 function loadLotes() {

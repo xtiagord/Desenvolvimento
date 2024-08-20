@@ -53,6 +53,17 @@
         </nav>
     </header>
     <div class="container mt-3">
+        <label for="loteSelect">Selecione o Lote para exibir:</label>
+        <select id="loteSelect" class="form-control">
+            <option value="" disabled selected>Escolha um lote</option>
+            <!-- Opções de lote serão inseridas aqui -->
+        </select>
+        <!-- Alerta que será exibido se o lote não for selecionado -->
+        <div id="loteAlert" class="alert alert-danger mt-3" style="display: none;">
+            Por favor, selecione um lote antes de visualizar ou Exportar os Dados de cada representante.
+        </div>
+    </div>
+    <div class="container mt-3">
         <!-- Botões dos representantes -->
         <div id="representantesList" class="row">
             <!-- Aqui os botões dos representantes serão adicionados dinamicamente -->
@@ -71,19 +82,9 @@
                 <button type="button" class="btn btn-warning btn-lg btn-uniform w-100" id="exportAllToExcel">EXPORTAR EXCEL</button>
             </div> 
             <div class="col-md-2">
-                <button type="button" class="btn btn-info btn-md btn-uniform w-100" id="exportaOnderExcell" >EXPORTAR EXCEL EM ORDEM</button>
+                <button type="button" class="btn btn-secondary btn-md btn-uniform w-100" id="exportaOnderExcell" >EXPORTAR EXCEL EM ORDEM</button>
             </div>  
-            <div class="container mt-3">
-                <label for="loteSelect">Selecione o Lote:</label>
-                <select id="loteSelect" class="form-control">
-                    <option value="" disabled selected>Escolha um lote</option>
-                    <!-- Opções de lote serão inseridas aqui -->
-                </select>
-                <!-- Alerta que será exibido se o lote não for selecionado -->
-                <div id="loteAlert" class="alert alert-danger mt-3" style="display: none;">
-                    Por favor, selecione um lote antes de visualizar ou Exportar os Dados de cada representante.
-                </div>
-            </div>
+            
             
 
 <!-- Modal de Detalhes -->
