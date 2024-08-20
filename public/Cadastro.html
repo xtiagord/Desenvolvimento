@@ -52,39 +52,51 @@
             </div>
         </nav>
     </header>
-    <div class="container mt-3">
-        <label for="loteSelect">Selecione o Lote para exibir:</label>
-        <select id="loteSelect" class="form-control">
-            <option value="" disabled selected>Escolha um lote</option>
-            <!-- Opções de lote serão inseridas aqui -->
-        </select>
-        <!-- Alerta que será exibido se o lote não for selecionado -->
-        <div id="loteAlert" class="alert alert-danger mt-3" style="display: none;">
-            Por favor, selecione um lote antes de visualizar ou Exportar os Dados de cada representante.
+    <!-- Card para selecionar lote e exibir alertas -->
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-header">
+            <h5>Selecione o Lote e Opções de Exportação</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label for="loteSelect">Selecione o Lote para exibir:</label>
+                <select id="loteSelect" class="form-control">
+                    <option value="" disabled selected>Escolha um lote</option>
+                    <!-- Opções de lote serão inseridas aqui -->
+                </select>
+                <!-- Alerta que será exibido se o lote não for selecionado -->
+                <div id="loteAlert" class="alert alert-danger mt-3" style="display: none;">
+                    Por favor, selecione um lote antes de visualizar ou Exportar os Dados de cada representante.
+                </div>
+            </div>
+
+            <!-- Botões dos representantes -->
+            <div id="representantesList" class="row">
+                <!-- Aqui os botões dos representantes serão adicionados dinamicamente -->
+            </div>
+        </div>
+        <div class="card-footer">
+            <!-- Botões "Cliente: EXCLUIR" e "Cadastro" -->
+            <div class="row mt-3">
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-danger btn-lg btn-uniform w-100" data-toggle="modal" data-target="#modalRepresentantes">Cliente: EDITAR/EXCLUIR</button>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-success btn-lg btn-uniform w-100" data-toggle="modal" data-target="#cadastroModal">Cliente: CADASTRAR</button>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-warning btn-lg btn-uniform w-100" id="exportAllToExcel" data-toggle="tooltip" data-placement="bottom" title="Exportar Excel: Crie um arquivo Excel com uma planilha para cada representante, contendo todos os dados relevantes.">EXPORTAR EXCEL</button>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-secondary btn-md btn-uniform w-100" id="exportaOnderExcell" data-toggle="tooltip" data-placement="bottom" title="Exportar para Excel: Gere uma única planilha com todos os representantes, organizados em ordem numérica e alfabética.">EXPORTAR EXCEL EM ORDEM</button>
+                </div>                
+            </div>
         </div>
     </div>
-    <div class="container mt-3">
-        <!-- Botões dos representantes -->
-        <div id="representantesList" class="row">
-            <!-- Aqui os botões dos representantes serão adicionados dinamicamente -->
-        </div>
+</div>
 
-        <!-- Botões "Cliente: EXCLUIR" e "Cadastro" -->
-        <div class="row mt-3">
-            <div class="col-md-2">
-                <button type="button" class="btn btn-danger btn-lg btn-uniform w-100" data-toggle="modal" data-target="#modalRepresentantes">Cliente: EDITAR/EXCLUIR</button>
-            </div>
-            
-            <div class="col-md-2">
-                <button type="button" class="btn btn-success btn-lg btn-uniform w-100" data-toggle="modal" data-target="#cadastroModal">Cliente: CADASTRAR</button>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-warning btn-lg btn-uniform w-100" id="exportAllToExcel">EXPORTAR EXCEL</button>
-            </div> 
-            <div class="col-md-2">
-                <button type="button" class="btn btn-secondary btn-md btn-uniform w-100" id="exportaOnderExcell" >EXPORTAR EXCEL EM ORDEM</button>
-            </div>  
-            
             
 
 <!-- Modal de Detalhes -->
@@ -252,6 +264,8 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script src="/jsCadastro/jsCadastro.js"></script>
 </body>
 </html>

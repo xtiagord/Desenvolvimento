@@ -764,3 +764,9 @@ document.getElementById('saveRepresentanteButton').addEventListener('click', fun
         alert('Erro ao atualizar o representante. Por favor, tente novamente.');
     });
 });
+
+//iniciar o tooltip se tudo der certo!!
+$(document).ready(function() {
+    // Inicializar todos os tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+});

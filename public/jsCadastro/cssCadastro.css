@@ -7,6 +7,11 @@
     max-width: none;
 }
 
+/* Define o fundo da página como cinza */
+body {
+    background-color: #e2e2e2; /* Cor cinza clara para o fundo da página */
+  }
+
 .modal-content {
     height: 100%;
     border-radius: 0; /* Remove bordas arredondadas para ocupar toda a tela */
@@ -85,3 +90,16 @@
   }
 
   
+/* CSS para garantir que todos os botões tenham o mesmo tamanho */
+.btn-uniform {
+    /* Adiciona altura fixa para botões */
+    height: 60px; /* Ajuste conforme necessário */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Garante que todos os botões sejam responsivos e ocupem toda a largura do container */
+.btn-uniform.w-100 {
+    width: 100%;
+}
