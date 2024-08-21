@@ -56,6 +56,7 @@ function displayData(data) {
           <th scope="col">RH</th>
           <th scope="col">Valor KG</th>
           <th scope="col">Valor</th>
+          <th scope="col">Tipo</th>
           <th scope="col">Data</th>
           <th scope="col">Hora</th>
           <th scope="col">Representante</th>
@@ -81,6 +82,7 @@ function displayData(data) {
         <td><input type="text" class="form-control custom-spacing custom-width" value="${row.rh || ''}"></td>
         <td><input type="text" class="form-control custom-spacing custom-width" value="${row.valorKg || ''}"></td>
         <td><input type="text" class="form-control custom-spacing custom-width" value="${row.valor || ''}"></td>
+        <td><input type="text" class="form-control custom-spacing custom-width tipo-input" value="${row.tipo || ''}"></td>
         <td>
             ${row.data === undefined ? 
                 `<input type="date" id="data${index}" class="form-control custom-spacing custom-width" placeholder="dd/mm/yyyy">` :
@@ -199,6 +201,19 @@ fetch('/api/lote')
     })
   })
 
+  //Evento de entrada para sincronizar os campos "tipo"
+  const tipoInputs = resultDiv.querySelectorAll('.tipo-input');
+  tipoInputs.forEach((input, index) => {
+      input.addEventListener('input', function() {
+          const newValue = this.value;
+          tipoInputs.forEach((syncInput, syncIndex) => {
+              if (syncIndex !== index) {
+                  syncInput.value = newValue;
+              }
+          });
+      });
+  });
+
  // Adicionar evento de entrada para sincronizar os campos "Lote"
  const loteInputs = resultDiv.querySelectorAll('.lote-input');
  const firstLoteInput = loteInputs[0]; // Primeiro campo "Lote"
@@ -251,9 +266,6 @@ function populateDropdownsInTable(className, selectId) {
     });
   });
 }
-
-
-
 
 async function fetchCooperadosByRepresentante(representanteId) {
   try {
@@ -324,11 +336,12 @@ document.getElementById('sendButton').addEventListener('click', async () => {
       rh: cells[5].value,
       valorKg: cells[6].value,
       valor: cells[7].value,
-      data: cells[8].value,
-      hora: cells[9].value,
-      representante: cells[10].options[cells[10].selectedIndex].text, // Pegando o nome do representante
-      fornecedor: cells[11].value, // Pegando o fornecedor selecionado
-      sn: cells[12].value
+      tipo: cells[8].value,
+      data: cells[9].value,
+      hora: cells[10].value,
+      representante: cells[11].options[cells[11].selectedIndex].text, // Pegando o nome do representante
+      fornecedor: cells[12].value, // Pegando o fornecedor selecionado
+      sn: cells[13].value
     };
   });
   const preparedData = prepareDataForSend(data);
