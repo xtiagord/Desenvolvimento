@@ -66,7 +66,7 @@
       <div id="result"></div>
   </div>
     <div class="d-flex mt-2">
-      <button id="sendButton" class="btn btn-success mt-2 " style="display: none;" onclick="enviarDados()">Enviar</button>
+      <button id="sendButton" class="btn btn-success mt-2 " style="display: none;">Enviar</button>
       <button id="addRowButton" class="btn btn-primary mt-2 ml-3 " style="display: none;">Adicionar Linha</button>
       <button id="resetButton" class="btn btn-danger mt-2 ml-3" style="display: none;"
         onclick="mostrarConfirmacaoReset()">Resetar Contagem</button>
@@ -139,6 +139,31 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Confirmação -->
+<div class="modal fade" id="confirmacaoModal" tabindex="-1" role="dialog" aria-labelledby="confirmacaoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="confirmacaoModalLabel">Confirmação de Envio</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <p>Por favor, confirme as seguintes informações antes de enviar:</p>
+              <ul id="detalhesConfirmacao">
+                  <!-- Detalhes serão inseridos aqui -->
+              </ul>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              <button type="button" class="btn btn-success" id="confirmarEnvio" onclick="enviarDados()">Confirmar</button>
+          </div>
+      </div>
+  </div>
+</div>
+
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>

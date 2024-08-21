@@ -1013,43 +1013,43 @@ app.post('/api/lote', (req, res) => {
 });
 
 app.post('/api/salvar-edicoes', (req, res) => {
-    const dados = req.body;
-    console.log('Dados recebidos:', dados);
+    const { dados } = req.body;
 
-    const atualizarDados = (item, callback) => {
-        const { Npdf, kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn } = item;
-        console.log('Atualizando dados:', { kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf });
+    if (!dados || !Array.isArray(dados)) {
+        return res.status(400).json({ error: "Dados inválidos fornecidos" });
+    }
+
+    dados.forEach(item => {
+        const { iddados, kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf, tipo } = item;
+
+        if (!iddados) {
+            console.error('iddados não fornecido');
+            return;
+        }
+
+        console.log('Atualizando dados:', {
+            kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf, tipo
+        });
+
         const queryStr = `
             UPDATE dados SET
-            kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
-            WHERE Npdf = ?
+            kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
+            WHERE iddados = ?
         `;
-        db.query(queryStr, [kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf], (err, results) => {
-            if (err) {
-                return callback(err);
-            }
-            callback(null, results);
-        });
-    };
 
-    const updatePromises = dados.map(item => {
-        return new Promise((resolve, reject) => {
-            atualizarDados(item, (err, result) => {
-                if (err) {
-                    return reject(err);
-                }
-                resolve(result);
-            });
+        db.query(queryStr, [kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, iddados], (err, results) => {
+            if (err) {
+                console.error('Erro ao salvar edições:', err);
+                return res.status(500).json({ error: "Erro ao salvar edições" });
+            }
+            console.log('Dados atualizados com sucesso');
         });
     });
 
-    Promise.all(updatePromises)
-        .then(() => res.status(200).json({ message: 'Edições salvas com sucesso' }))
-        .catch(err => {
-            console.error('Erro ao salvar edições:', err);
-            res.status(500).json({ error: 'Erro ao salvar edições' });
-        });
+    res.status(200).json({ message: "Dados atualizados com sucesso" });
 });
+
+
 
 // // Endpoint para upload de arquivos
 // app.post('/upload', upload.single('file'), (req, res) => {

@@ -297,7 +297,7 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
                         equipamento: formattedEquipamento, // Nome do representante ou "Cambe"/"Marcio" + últimos 3 dígitos do SN
                         valor: formatCurrency(parseFloat(item.Valor)), // Formatando o valor
                         pgto: item.pgto,
-                        plan: item.plan,
+                        plan: item.tipo,
                         hedge: item.hedge,
                         pag: item.pag,
                         kg: item.kg.replace('.', ','), // Substituindo ponto por vírgula
@@ -456,7 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     row.insertCell(3).textContent = item.pd; // PD
                     row.insertCell(4).textContent = item.pt; // PT
                     row.insertCell(5).textContent = item.rh; // RH
-                    row.insertCell(6).textContent = item.Valor; // Valor
+                    row.insertCell(6).textContent = item.Valor;
+                    row.insertCell(6).textContent = item.tipo; // Valor
                     row.insertCell(7).textContent = item.representante; // Representante
                     row.insertCell(8).textContent = item.fornecedor; // Fornecedor
                     row.insertCell(9).textContent = item.sn; // SN
@@ -482,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('editButton').addEventListener('click', function() {
     const table = document.getElementById('tableData');
     const isEditing = table.classList.contains('editing');
-    
+
     if (!isEditing) {
         enableEditing(table);
         this.textContent = 'Salvar';
@@ -502,7 +503,7 @@ function enableEditing(table) {
         cells.forEach(cell => {
             const input = document.createElement('input');
             input.type = 'text';
-            input.value = cell.textContent;
+            input.value = cell.textContent.trim(); // Remova espaços desnecessários
             cell.textContent = '';
             cell.appendChild(input);
         });
@@ -516,7 +517,7 @@ function disableEditing(table) {
         cells.forEach(cell => {
             const input = cell.querySelector('input');
             if (input) {
-                cell.textContent = input.value;
+                cell.textContent = input.value.trim(); // Remova espaços desnecessários
             }
         });
     });
@@ -531,14 +532,19 @@ function saveTableData(table) {
         const cells = row.querySelectorAll('td');
         cells.forEach(cell => {
             const input = cell.querySelector('input');
-            if (input) {
-                const field = cell.getAttribute('data-field'); // Usa getAttribute para mapear
-                console.log('Field:', field, 'Value:', input.value); // Adicione logs
-                rowData[field] = input.value;
+            if (input && input.value) {
+                const field = cell.getAttribute('data-field');
+                if (field) {
+                    rowData[field] = input.value;
+                }
             }
         });
-        data.push(rowData);
+    
+        if (Object.keys(rowData).length > 0) {
+            data.push(rowData); // Adicione ao array somente se houver dados válidos
+        }
     });
+    
 
     console.log('Data to save:', data); // Log dos dados antes de enviar
 
@@ -561,7 +567,10 @@ function saveTableData(table) {
     .catch(error => {
         console.error('Erro ao salvar edições:', error);
     });
+    
 }
+
+
 
 $(document).ready(function() {
     $('.open-modal').on('click', function () {
@@ -581,17 +590,22 @@ $(document).ready(function() {
                     const row = `
                         <tr>
                             <td data-field="Npdf">${item.Npdf}</td>
-                            <td data-field="kg">${item.kg}</td>
-                            <td data-field="pd">${item.pd}</td>
-                            <td data-field="pt">${item.pt}</td>
-                            <td data-field="rh">${item.rh}</td>
-                            <td data-field="valorkg">${item.valorkg}</td>
-                            <td data-field="Valor">${item.Valor}</td>
-                            <td data-field="data">${item.data}</td>
-                            <td data-field="hora">${item.hora}</td>
-                            <td data-field="fornecedor">${item.fornecedor}</td>
-                            <td data-field="sn">${item.sn}</td>
-                        </tr>
+            <td data-field="kg">${item.kg}</td>
+            <td data-field="pd">${item.pd}</td>
+            <td data-field="pt">${item.pt}</td>
+            <td data-field="rh">${item.rh}</td>
+            <td data-field="valorkg">${item.valorkg}</td>
+            <td data-field="Valor">${item.Valor}</td>
+            <td data-field="tipo">${item.tipo}</td>
+            <td data-field="data">${item.data}</td>
+            <td data-field="hora">${item.hora}</td>
+            <td data-field="fornecedor">${item.fornecedor}</td>
+            <td data-field="sn">${item.sn}</td>
+            <td>
+                <button type="button" class="btn btn-sm btn-primary edit-row">Editar</button>
+                <button type="button" class="btn btn-sm btn-success save-row" style="display:none;">Salvar</button>
+            </td>
+        </tr>
                     `;
                     tableBody.append(row);
                 });
@@ -705,6 +719,7 @@ function showRepresentanteInfo(nomeRepresentante) {
                                 <td>${dado.rh}</td>
                                 <td>${dado.valorkg}</td>
                                 <td>${dado.Valor}</td>
+                                <td>${dado.tipo}</td>
                                 <td>${dado.data}</td>
                                 <td>${dado.hora}</td>
                                 <td>${dado.fornecedor}</td>
@@ -770,3 +785,4 @@ $(document).ready(function() {
     // Inicializar todos os tooltips
     $('[data-toggle="tooltip"]').tooltip();
 });
+

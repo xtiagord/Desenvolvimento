@@ -325,44 +325,122 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   }
 
   const rows = Array.from(table.querySelectorAll('tbody tr'));
-  const data = rows.map(row => {
+  const uniqueData = new Map();
+  let tipoValido = true;
+
+  rows.forEach(row => {
     const cells = row.querySelectorAll('input, select');
-    return {
-      lote: cells[0].value, // Novo campo de lote
-      Npdf: cells[1].value,
-      kg: cells[2].value,
-      pd: cells[3].value,
-      pt: cells[4].value,
-      rh: cells[5].value,
-      valorKg: cells[6].value,
-      valor: cells[7].value,
-      tipo: cells[8].value,
-      data: cells[9].value,
-      hora: cells[10].value,
-      representante: cells[11].options[cells[11].selectedIndex].text, // Pegando o nome do representante
-      fornecedor: cells[12].value, // Pegando o fornecedor selecionado
-      sn: cells[13].value
-    };
-  });
-  const preparedData = prepareDataForSend(data);
-
-  try {
-    // Chamada única para /save
-    const response = await fetch('/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(preparedData)
-    });
-
-    if (response.ok) {
-      alert('Data saved successfully');
+    const tipo = cells[8].value;
+    
+    // Destacar o campo tipo se estiver vazio
+    if (!tipo) {
+      cells[8].style.borderColor = 'yellow';
+      tipoValido = false;
     } else {
-      alert('Failed to save data');
+      cells[8].style.borderColor = ''; // Remove destaque se preenchido
     }
-  } catch (error) {
-    alert('Error: ' + error.message);
+
+    const representante = cells[11].options[cells[11].selectedIndex].text;
+    const lote = cells[0].value;
+    const fornecedor = cells[12].value;
+
+    if (!uniqueData.has(representante)) {
+      uniqueData.set(representante, { lote, tipo, representante, fornecedor });
+    }
+  });
+
+  if (!tipoValido) {
+    alert('Por favor preencha o campo "TIPO"');
+    return;
   }
+
+  const detalhes = Array.from(uniqueData.values()).map(item => `
+    <li><strong>Lote:</strong> ${item.lote}</li>
+    <li><strong>Tipo:</strong> ${item.tipo}</li>
+    <li><strong>Representante:</strong> ${item.representante}</li>
+    <li><strong>Fornecedor:</strong> ${item.fornecedor}</li>
+  `).join('');
+
+  document.getElementById('detalhesConfirmacao').innerHTML = detalhes;
+
+  // Exibir o modal de confirmação
+  $('#confirmacaoModal').modal('show');
+
+  document.getElementById('confirmarEnvio').onclick = async function() {
+    // Obter o valor selecionado do select
+    let representanteSelecionado = document.getElementById("representante0").value;
+
+    // Atualizar a contagem apenas se um representante estiver selecionado
+    if (representanteSelecionado) {
+      // Atualizar o representante atual
+      representanteAtual = representanteSelecionado;
+
+      // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
+      if (contagemRepresentantes.hasOwnProperty(representanteAtual)) {
+        // Incrementar o contador para o representante atual
+        contagemRepresentantes[representanteAtual]++;
+      } else {
+        // Inicializar contagem para o novo representante
+        contagemRepresentantes[representanteAtual] = 1;
+      }
+
+      // Salvar a contagem atualizada no localStorage
+      salvarContagemRepresentantes();
+
+      // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
+      let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+      for (let i = 0; i < npdfInputs.length; i++) {
+        npdfInputs[i].value = contagemRepresentantes[representanteAtual];
+      }
+    } else {
+      alert("Selecione um representante antes de confirmar.");
+      return; // Interrompe o processo se nenhum representante estiver selecionado
+    }
+
+    // Prepare and send the data
+    const preparedData = prepareDataForSend(rows.map(row => {
+      const cells = row.querySelectorAll('input, select');
+      return {
+        lote: cells[0].value,
+        Npdf: cells[1].value,
+        kg: cells[2].value,
+        pd: cells[3].value,
+        pt: cells[4].value,
+        rh: cells[5].value,
+        valorKg: cells[6].value,
+        valor: cells[7].value,
+        tipo: cells[8].value,
+        data: cells[9].value,
+        hora: cells[10].value,
+        representante: cells[11].options[cells[11].selectedIndex].text,
+        fornecedor: cells[12].value,
+        sn: cells[13].value
+      };
+    }));
+
+    try {
+      const response = await fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preparedData)
+      });
+
+      if (response.ok) {
+        alert('Data saved successfully');
+      } else {
+        alert('Failed to save data');
+      }
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+
+    // Fechar o modal após enviar os dados
+    $('#confirmacaoModal').modal('hide');
+  };
+
 });
+
+
 
 function formatDecimal(value) {
   if (value === null || value === undefined || value === '') return '';
@@ -424,9 +502,9 @@ function enviarDados() {
   // Obter o valor selecionado do select
   let representanteSelecionado = document.getElementById("representante0").value;
 
-  // Atualizar a contagem apenas se um representante estiver selecionado
+  // Verificar se um representante está selecionado
   if (representanteSelecionado) {
-    // Atualizar o representante atual
+    // Atualizar a contagem apenas se um representante estiver selecionado
     representanteAtual = representanteSelecionado;
 
     // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
@@ -450,6 +528,7 @@ function enviarDados() {
     alert("Selecione um representante antes de enviar.");
   }
 }
+
 
 // Função para mostrar o botão de enviar
 function mostrarEnviar() {
