@@ -381,16 +381,16 @@ function carregarFotos() {
 }
 
 function atualizarLotes() {
-    const representante = document.getElementById('representante').value;
-    console.log('Representante:', representante); // Log do representante
+    const representanteNome = document.getElementById('representante').selectedOptions[0].text; // Obtém o nome do representante
+    console.log('Representante:', representanteNome); // Log do nome do representante
 
-    if (!representante) {
+    if (!representanteNome) {
         document.getElementById('lote').innerHTML = '<option value="">Todos</option>';
         atualizarDados(); // Carrega todos PDFs e fotos se "Todos" estiver selecionado
         return;
     }
 
-    const url = `/api/lotes?representante=${encodeURIComponent(representante)}`;
+    const url = `/api/lotes?representante=${encodeURIComponent(representanteNome)}`;
     console.log('URL da solicitação:', url); // Log da URL
 
     fetch(url)
@@ -418,6 +418,9 @@ function atualizarLotes() {
             alert('Erro ao carregar a lista de lotes.');
         });
 }
+
+
+
 
 
 function atualizarDados() {
