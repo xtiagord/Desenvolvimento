@@ -16,23 +16,33 @@ document.addEventListener('DOMContentLoaded', function() {
 document.getElementById('representanteSelect').addEventListener('change', function() {
     const representante = this.options[this.selectedIndex].text; // Usa o nome do representante selecionado
     const loteSelect = document.getElementById('loteSelect');
-    const npdfSelect = document.getElementById('npdfSelect');
     
     loteSelect.innerHTML = '';  // Limpar opções anteriores de lotes
-    npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
 
     fetch(`/api/lotes?representante=${encodeURIComponent(representante)}`)
-        .then(response => response.json())
-        .then(lotes => {
-            lotes.forEach(lote => {
-                const option = document.createElement('option');
-                option.value = lote.lote;
-                option.textContent = lote.lote;
-                loteSelect.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar lotes:', error));
+    .then(response => response.json())
+    .then(lotes => {
+        // Adiciona uma opção vazia
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = 'Selecione o lote';
+        loteSelect.appendChild(emptyOption);
+        
+        lotes.forEach(lote => {
+            const option = document.createElement('option');
+            option.value = lote.lote;
+            option.textContent = lote.lote;
+            loteSelect.appendChild(option);
+        });
+
+        // Remove a opção vazia após a primeira seleção (opcional)
+        loteSelect.addEventListener('focus', function() {
+            emptyOption.disabled = true;
+        });
+    })
+    .catch(error => console.error('Erro ao carregar lotes:', error));
 });
+
 
 document.getElementById('loteSelect').addEventListener('change', function() {
     const representante = document.getElementById('representanteSelect').options[document.getElementById('representanteSelect').selectedIndex].text;
@@ -120,8 +130,10 @@ fetch('/representantes')
 }
 function carregarPDFs() {
     const representanteId = document.getElementById('representante').value;
+    const loteId = document.getElementById('lote').value;
     const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
-    const url = representanteId ? `/pdfs?representante_id=${representanteId}` : '/pdfs';
+    const url = representanteId ? `/pdfs?representante_id=${representanteId}&lote_id=${loteId}` : '/pdfs';
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -130,7 +142,7 @@ function carregarPDFs() {
 
             data.forEach(pdf => {
                 const card = document.createElement('div');
-                card.className = `col-md-${12 / pdfsPorLinha} mb-4`; // Calcula a largura com base na seleção
+                card.className = `col-md-${12 / pdfsPorLinha} mb-4`;
 
                 card.innerHTML = `
                     <div class="card">
@@ -151,6 +163,8 @@ function carregarPDFs() {
             alert('Erro ao carregar a lista de PDFs.');
         });
 }
+
+
 
 let pdfs = [];
 let currentPdfIndex = 0;
@@ -328,9 +342,10 @@ function mostrarCheckboxes() {
 
 function carregarFotos() {
     const representanteId = document.getElementById('representante').value;
+    const loteId = document.getElementById('lote').value;
     const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
-    const url = representanteId ? `/photos?representante_id=${representanteId}` : '/photos';
-    
+    const url = representanteId ? `/photos?representante_id=${representanteId}&lote_id=${loteId}` : '/photos';
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -338,13 +353,12 @@ function carregarFotos() {
             listaPhotos.innerHTML = '';
 
             if (data.length > 0) {
-                // Exibe a seção de fotos (divisão e título) ao carregar as fotos
                 document.getElementById('foto-section-wrapper').style.display = 'block';
             }
 
             data.forEach(photo => {
                 const card = document.createElement('div');
-                card.className = `col-md-${12 / pdfsPorLinha} mb-4`; // Calcula a largura com base na seleção
+                card.className = `col-md-${12 / pdfsPorLinha} mb-4`;
 
                 card.innerHTML = `
                     <div class="card">
@@ -365,6 +379,47 @@ function carregarFotos() {
             alert('Erro ao carregar a lista de FOTOS.');
         });
 }
+
+function atualizarLotes() {
+    const representante = document.getElementById('representante').value;
+    console.log('Representante:', representante); // Log do representante
+
+    if (!representante) {
+        document.getElementById('lote').innerHTML = '<option value="">Todos</option>';
+        atualizarDados(); // Carrega todos PDFs e fotos se "Todos" estiver selecionado
+        return;
+    }
+
+    const url = `/api/lotes?representante=${encodeURIComponent(representante)}`;
+    console.log('URL da solicitação:', url); // Log da URL
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Dados recebidos:', data); // Log dos dados recebidos
+
+            const loteSelect = document.getElementById('lote');
+            loteSelect.innerHTML = '<option value="">Todos</option>'; // Reseta os lotes
+
+            if (!Array.isArray(data) || data.length === 0) {
+                loteSelect.innerHTML += '<option value="">Nenhum lote encontrado</option>';
+                return;
+            }
+
+            data.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.lote;
+                option.textContent = lote.lote;
+                loteSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar lotes:', error);
+            alert('Erro ao carregar a lista de lotes.');
+        });
+}
+
+
 function atualizarDados() {
     carregarFotos();
     carregarPDFs();

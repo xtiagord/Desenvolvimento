@@ -70,39 +70,40 @@ function displayData(data) {
   data.forEach((row, index) => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-         <td>
-            <select id="lote${index}" class="form-control custom-spacing custom-width lote-input">
-                <!-- Options will be populated dynamically -->
-            </select>
-        </td>
-        <td><input type="text" id="Npdf${index}" class="form-control custom-spacing custom-width custom-n" value="${row.Npdf || ''}" readonly></td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.kg || ''}"></td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.pd || ''}"></td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.pt || ''}"></td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.rh || ''}"></td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.valorKg || ''}"></td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.valor || ''}"></td>
-        <td><input type="text" class="form-control custom-spacing custom-width tipo-input" value="${row.tipo || ''}"></td>
-        <td>
-            ${row.data === undefined ? 
-                `<input type="date" id="data${index}" class="form-control custom-spacing custom-width" placeholder="dd/mm/yyyy">` :
-                `<input type="text" id="data${index}" class="form-control custom-spacing custom-width" value="${row.data}">`
-            }
-        </td>
-        <td><input type="text" class="form-control custom-spacing custom-width" value="${row.hora || ''}"></td>
-        <td>
-            <select id="representante${index}" class="form-control custom-spacing custom-width representante-select sync-input">
-                <!-- Options will be populated dynamically -->
-            </select>
-        </td>
-        <td>
-            <input list="fornecedores${index}" id="fornecedor${index}" class="form-control custom-spacing custom-width fornecedor-input sync-input" value="${row.fornecedor || ''}">
-            <datalist id="fornecedores${index}" class="fornecedor-datalist">
-                <!-- Options will be populated dinamicamente -->
-            </datalist>
-        </td>
-        <td><input type="text" id="SN${index}" class="form-control custom-spacing custom-width sn-input" value="${row.sn || ''}"></td>
+      <td>
+          <select id="lote${index}" class="form-control custom-spacing custom-width lote-input large-input">
+              <!-- Options will be populated dynamically -->
+          </select>
+      </td>
+      <td><input type="text" id="Npdf${index}" class="form-control custom-spacing custom-width custom-n large-input" value="${row.Npdf || ''}" readonly></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.kg || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.pd || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.pt || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.rh || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.valorKg || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.valor || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input tipo-input" value="${row.tipo || ''}"></td>
+      <td>
+          ${row.data === undefined ? 
+              `<input type="date" id="data${index}" class="form-control custom-spacing custom-width large-input" placeholder="dd/mm/yyyy">` :
+              `<input type="text" id="data${index}" class="form-control custom-spacing custom-width large-input" value="${row.data}">`
+          }
+      </td>
+      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.hora || ''}"></td>
+      <td>
+          <select id="representante${index}" class="form-control custom-spacing custom-width representante-select sync-input large-input">
+              <!-- Options will be populated dynamically -->
+          </select>
+      </td>
+      <td>
+          <input list="fornecedores${index}" id="fornecedor${index}" class="form-control custom-spacing custom-width fornecedor-input sync-input large-input" value="${row.fornecedor || ''}">
+          <datalist id="fornecedores${index}" class="fornecedor-datalist large-input">
+              <!-- Options will be populated dinamicamente -->
+          </datalist>
+      </td>
+      <td><input type="text" id="SN${index}" class="form-control custom-spacing custom-width large-input sn-input" value="${row.sn || ''}"></td>
     `;
+    
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
@@ -683,3 +684,14 @@ function resetarContagem() {
 document.getElementById('resetButton').addEventListener('click', mostrarConfirmacaoReset);
 document.getElementById('editButton').addEventListener('click', abrirModalEdicao);
 
+const inputStyle = `
+  .large-input {
+    font-size: 0.8rem;  /* Aumenta o tamanho da fonte */
+    padding: 5px;     /* Aumenta o espaçamento interno */
+  }
+`;
+
+const styleSheet = document.createElement("style");
+styleSheet.type = "text/css";
+styleSheet.innerText = inputStyle;
+document.head.appendChild(styleSheet);

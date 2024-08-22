@@ -1262,20 +1262,30 @@ app.put('/pdfs/:id', (req, res) => {
 // Rota para exibir a lista de PDFs com links para visualização
 app.get('/pdfs', (req, res) => {
     const representanteId = req.query.representante_id;
-    const query = representanteId
-        ? 'SELECT id, name FROM pdfs WHERE representante_id = ?'
-        : 'SELECT id, name FROM pdfs';
+    const loteId = req.query.lote_id;
 
-    db.query(query, [representanteId], (err, results) => {
+    let query = 'SELECT * FROM pdfs WHERE 1=1';
+    let params = [];
+
+    if (representanteId) {
+        query += ' AND representante_id = ?';
+        params.push(representanteId);
+    }
+
+    if (loteId) {
+        query += ' AND lote = ?';
+        params.push(loteId);
+    }
+
+    db.query(query, params, (err, results) => {
         if (err) {
-            console.error(err);
-            return res.status(500).send('Erro ao buscar os arquivos no banco de dados.');
+            console.error('Erro ao buscar PDFs:', err);
+            return res.status(500).send('Erro ao buscar PDFs.');
         }
-
-        // Retorna a lista de PDFs em formato JSON
         res.json(results);
     });
 });
+
 
 app.delete('/pdfs/:id', (req, res) => {
     const pdfId = req.params.id;
@@ -1354,23 +1364,30 @@ app.get('/download-pdfs', async (req, res) => {
 
 app.get('/photos', (req, res) => {
     const representanteId = req.query.representante_id;
-    let query = 'SELECT id, name FROM photos';
+    const loteId = req.query.lote_id;
+
+    let query = 'SELECT * FROM photos WHERE 1=1';
     let params = [];
 
     if (representanteId) {
-        query += ' WHERE representante_id = ?';
+        query += ' AND representante_id = ?';
         params.push(representanteId);
+    }
+
+    if (loteId) {
+        query += ' AND lote = ?';
+        params.push(loteId);
     }
 
     db.query(query, params, (err, results) => {
         if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Erro ao buscar as fotos.' });
+            console.error('Erro ao buscar Fotos:', err);
+            return res.status(500).send('Erro ao buscar Fotos.');
         }
-
-        res.json(results); // Retorna as fotos em formato JSON
+        res.json(results);
     });
 });
+
 
 // Rota para obter os lotes com base no representante selecionado
 app.get('/api/lotes', (req, res) => {
@@ -1379,6 +1396,9 @@ app.get('/api/lotes', (req, res) => {
     if (!representante) {
         return res.status(400).send('Representante é necessário.');
     }
+
+    // Verificar o valor recebido
+    console.log('Representante recebido:', representante);
 
     const query = `
         SELECT DISTINCT lote
@@ -1391,9 +1411,14 @@ app.get('/api/lotes', (req, res) => {
             console.error('Erro ao buscar lotes:', err);
             return res.status(500).send('Erro ao buscar lotes.');
         }
-        res.json(results);
+
+        // Verificar os resultados da consulta
+        console.log('Lotes encontrados:', results);
+        res.json(results.map(result => ({ lote: result.lote })));
     });
 });
+
+
 
 // Rota para obter os Npdfs com base no representante e lote selecionados
 app.get('/api/npdfs', (req, res) => {

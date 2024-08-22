@@ -78,9 +78,11 @@
                     <div class="form-group">
                         <label for="loteSelect">Escolha o Lote:</label>
                         <select id="loteSelect" class="form-control">
+                            <option value="" disabled selected>Selecione o lote</option>
                             <!-- Opções de lotes serão carregadas aqui -->
                         </select>
                     </div>
+                    
                     
                     <div class="form-group">
                         <label for="npdfSelect">Escolha o Npdf:</label>
@@ -101,41 +103,50 @@
             <div class="card-body">
                 <div class="form-group">
                     <label for="representante">Escolha o Representante:</label>
-                    <select id="representante" class="form-control" onchange="atualizarDados()">
+                    <select id="representante" class="form-control" onchange="atualizarLotes()">
                         <option value="">Todos</option>
                         <!-- As opções serão carregadas dinamicamente -->
                     </select>
-                    <div class="form-group">
-                        <label for="pdfsPorLinha">Visualização PDFs:</label>
-                        <select id="pdfsPorLinha" class="form-control" onchange="atualizarDados()">
-                            <option value="1">1 por linha</option>
-                            <option value="2">2 por linha</option>
-                            <option value="3">3 por linha</option>
-                            <option value="4">4 por linha</option>
-                        </select>
-                    </div>
-                    <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
-                    <button onclick="carregarFotos()" class="btn btn-secondary mb-4">Listar Fotos</button>
-                    <button onclick="toggleEditButtons()" class="btn btn-info mb-4">Mostrar/Esconder Opções de Edição</button>
-                    <button class="btn btn-primary mb-4" data-toggle="modal" data-target="#downloadModal">Download PDFs</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lote">Escolha o Lote:</label>
+                    <select id="lote" class="form-control" onchange="atualizarDados()">
+                        <option value="">Todos</option>
+                        <!-- As opções de lote serão carregadas dinamicamente -->
+                    </select>
+                </div>
     
-                    <div id="lista-pdfs" class="row">
-                        <!-- Os cards de PDFs serão carregados aqui -->
-                    </div>
+                <div class="form-group">
+                    <label for="pdfsPorLinha">Visualização PDFs:</label>
+                    <select id="pdfsPorLinha" class="form-control" onchange="atualizarDados()">
+                        <option value="1">1 por linha</option>
+                        <option value="2">2 por linha</option>
+                        <option value="3">3 por linha</option>
+                        <option value="4">4 por linha</option>
+                    </select>
+                </div>
+                <button onclick="carregarPDFs()" class="btn btn-secondary mb-4">Listar PDFs</button>
+                <button onclick="carregarFotos()" class="btn btn-secondary mb-4">Listar Fotos</button>
+                <button onclick="toggleEditButtons()" class="btn btn-info mb-4">Mostrar/Esconder Opções de Edição</button>
+                <button class="btn btn-primary mb-4" data-toggle="modal" data-target="#downloadModal">Download PDFs</button>
     
-                    <!-- Divisão da seção de fotos inicialmente oculta -->
-                    <div id="foto-section-wrapper" style="display: none;">
-                        <h3 class="mt-4 text-center">Seção de Fotos</h3>
-                        <hr class="my-4">
-                        <div id="lista-photos" class="row">
-                            <!-- Os cards de fotos serão carregados aqui -->
-                        </div>
+                <div id="lista-pdfs" class="row">
+                    <!-- Os cards de PDFs serão carregados aqui -->
+                </div>
+    
+                <!-- Divisão da seção de fotos inicialmente oculta -->
+                <div id="foto-section-wrapper" style="display: none;">
+                    <h3 class="mt-4 text-center">Seção de Fotos</h3>
+                    <hr class="my-4">
+                    <div id="lista-photos" class="row">
+                        <!-- Os cards de fotos serão carregados aqui -->
                     </div>
-                    
                 </div>
             </div>
         </div>
     </div>
+    
  <!-- Modal para visualização de PDF -->
 <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-fullscreen" role="document">
