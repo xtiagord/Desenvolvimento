@@ -419,10 +419,6 @@ function atualizarLotes() {
         });
 }
 
-
-
-
-
 function atualizarDados() {
     carregarFotos();
     carregarPDFs();

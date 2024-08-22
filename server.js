@@ -419,6 +419,10 @@ app.get('/public/ArchivePast.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'ArchivePast.html'));
 });
 
+// Arquivo pecas
+app.get('/public/Pecas.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Pecas.html'));
+});
 app.get('/api/dados', (req, res) => {
     const sql = "SELECT * FROM dados";
     db.query(sql, (err, results) => {
