@@ -6,7 +6,7 @@
     <title>Cadastrar Cliente</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/cliente/pecas.css">
+    <link rel="stylesheet" href="/pecas/pecas.css">
 </head>
 <body>
     <header>
@@ -51,9 +51,43 @@
           </div>
         </nav>
       </header>
-</body>
+      <div class="container mt-5">
+        <h2 class="mb-4">Extrair Dados do PDF</h2>
+        <!-- Formulário para o upload do PDF e exibição dos dados extraídos -->
+        <form id="pdfForm">
+            <!-- Campo de upload de PDF -->
+            <div class="form-group">
+                <label for="pdfFile">Selecione o PDF:</label>
+                <input type="file" class="form-control-file" id="pdfFile" accept="application/pdf">
+            </div>
+
+            <!-- Campos para exibir os dados extraídos -->
+            <div class="form-group">
+                <label for="modelo">Modelo:</label>
+                <input type="text" class="form-control" id="modelo" readonly>
+            </div>
+            <div class="form-group">
+                <label for="codigo">Código:</label>
+                <input type="text" class="form-control" id="codigo" readonly>
+            </div>
+            <div class="form-group">
+                <label for="quantidade">Quantidade:</label>
+                <input type="text" class="form-control" id="quantidade" readonly>
+            </div>
+            <div class="form-group">
+                <label for="valor">Valor:</label>
+                <input type="text" class="form-control" id="valor" readonly>
+            </div>
+
+            <!-- Botão para iniciar a extração dos dados -->
+            <button type="submit" class="btn btn-primary">Extrair Dados</button>
+        </form>
+    </div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-<script src="pecas/pecasjs.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+<script src="/pecas/pecasjs.js"></script>
+</body>
 </html>
