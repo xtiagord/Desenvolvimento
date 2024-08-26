@@ -104,7 +104,135 @@ body {
     width: 100%;
 }
 
-body {
-    background-color: #e2e2e2; /* Cor cinza clara para o fundo da página */
-  }
-  
+.table th, .table td {
+    padding: 12px; /* Ajuste o espaço interno das células */
+    vertical-align: middle; /* Alinhamento vertical */
+}
+
+.table th:nth-child(1), .table td:nth-child(1) {
+    width: 120px; /* Largura da coluna de lote */
+}
+
+.table th:nth-child(2), .table td:nth-child(2) {
+    width: 150px; /* Largura da coluna de tipo */
+}
+
+.table th:nth-child(3), .table td:nth-child(3) {
+    width: 150px; /* Largura da coluna de modelo */
+}
+
+.table th:nth-child(4), .table td:nth-child(4) {
+    width: 150px; /* Largura da coluna de código */
+}
+
+.table th:nth-child(5), .table td:nth-child(5) {
+    width: 130px; /* Largura da coluna de quantidade */
+}
+
+.table th:nth-child(6), .table td:nth-child(6) {
+    width: 130px; /* Largura da coluna de valor */
+}
+
+.table th:nth-child(7), .table td:nth-child(7) {
+    width: 200px; /* Largura da coluna de clientes */
+}
+
+.table th:nth-child(8), .table td:nth-child(8) {
+    width: 150px; /* Largura da coluna de representante */
+}
+@media (max-width: 768px) {
+    .table th, .table td {
+        font-size: 14px; /* Ajusta o tamanho da fonte */
+        padding: 8px; /* Ajusta o espaço interno das células */
+    }
+
+    .table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+.container {
+    max-width: 1200px; /* Ajuste conforme necessário */
+    margin: 0 auto; /* Centraliza o container */
+    padding: 20px; /* Espaço interno ao redor do conteúdo */
+}
+
+h2 {
+    margin-bottom: 20px; /* Espaço abaixo do título */
+}
+
+.form-group {
+    margin-bottom: 20px; /* Espaço abaixo dos campos do formulário */
+}
+
+.table {
+    width: 100%; /* Garante que a tabela ocupe toda a largura do container */
+    border-collapse: separate;
+    border-spacing: 0 10px; /* Espaçamento entre as linhas */
+    table-layout: fixed; /* Garante que a tabela não se expanda além do container */
+    margin: 0 auto; /* Centraliza a tabela horizontalmente */
+}
+
+.table th, .table td {
+    padding: 12px; /* Ajuste o espaço interno das células */
+    vertical-align: middle; /* Alinhamento vertical */
+}
+
+.table th:nth-child(1), .table td:nth-child(1) {
+    width: 120px; /* Largura da coluna de lote */
+}
+
+.table th:nth-child(2), .table td:nth-child(2) {
+    width: 150px; /* Largura da coluna de tipo */
+}
+
+.table th:nth-child(3), .table td:nth-child(3) {
+    width: 150px; /* Largura da coluna de modelo */
+}
+
+.table th:nth-child(4), .table td:nth-child(4) {
+    width: 150px; /* Largura da coluna de código */
+}
+
+.table th:nth-child(5), .table td:nth-child(5) {
+    width: 130px; /* Largura da coluna de quantidade */
+}
+
+.table th:nth-child(6), .table td:nth-child(6) {
+    width: 130px; /* Largura da coluna de valor */
+}
+
+.table th:nth-child(7), .table td:nth-child(7) {
+    width: 200px; /* Largura da coluna de clientes */
+}
+
+.table th:nth-child(8), .table td:nth-child(8) {
+    width: 150px; /* Largura da coluna de representante */
+}
+
+.table thead th {
+    background-color: #f1f1f1; /* Cor de fundo dos cabeçalhos */
+    text-align: center; /* Centraliza o texto nos cabeçalhos */
+}
+
+.table tbody tr {
+    background-color: #fff; /* Cor de fundo das linhas */
+}
+
+.table tbody tr:nth-of-type(even) {
+    background-color: #f9f9f9; /* Cor de fundo alternada das linhas */
+}
+
+@media (max-width: 768px) {
+    .table th, .table td {
+        font-size: 14px; /* Ajusta o tamanho da fonte */
+        padding: 8px; /* Ajusta o espaço interno das células */
+    }
+
+    .table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}

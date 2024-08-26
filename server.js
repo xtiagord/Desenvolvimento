@@ -32,6 +32,15 @@ db.connect(err => {
     console.log('Conectado ao banco de dados.');
 });
 
+// Definir uma rota simples
+app.get('/index.html', (req, res) => {
+    res.send(__dirname + '/public/index.html');
+});
+
+// Iniciar o servidor
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
+});
 
 
 // Configurar o middleware
@@ -1146,7 +1155,7 @@ app.post('/create-folder', async (req, res) => {
 });
 
 // Endpoint para upload de arquivos
-app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 10 }, { name: 'photoFiles', maxCount: 10 }]), (req, res) => {
+app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 'photoFiles', maxCount: 10 }]), (req, res) => {
     const representanteId = req.body.representanteId;
     const lote = req.body.lote; // Obtém o lote do corpo da requisição
     const npdf = req.body.npdf;
@@ -1507,6 +1516,98 @@ app.delete('/photos/:id', (req, res) => {
 
         res.send('FOTO deletado com sucesso.');
     });
+});
+
+// Função para buscar o maior número de peça existente para uma combinação específica de representante e lote
+const getMaxPieceNumberForRepAndLot = (representante, lote) => {
+    return new Promise((resolve, reject) => {
+        db.query('SELECT MAX(npeca) AS maxNpeca FROM pecas WHERE representante_id = ? AND lote = ?', [representante, lote], (err, results) => {
+            if (err) return reject(err);
+            resolve(results[0].maxNpeca || 0);
+        });
+    });
+};
+
+// Função para atualizar o maior número de peça para uma combinação específica de representante e lote
+const updateMaxPieceNumberForRepAndLot = (representante, lote, maxNpeca) => {
+    return new Promise((resolve, reject) => {
+        db.query('INSERT INTO pecas_metadata (representante_id, lote, max_npeca) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE max_npeca = ?', [representante, lote, maxNpeca, maxNpeca], (err, results) => {
+            if (err) return reject(err);
+            resolve(results);
+        });
+    });
+};
+
+// Endpoint para salvar dados extraídos
+app.post('/api/save-extracted-data', async (req, res) => {
+    console.log('Dados recebidos:', req.body); // Adicione este log para depuração
+    const { tipo, modelo, codigo, quantidade, valor, representantes, clientes, lotes } = req.body;
+
+    // Verifica se todos os arrays têm o mesmo comprimento
+    if (tipo.length !== modelo.length || tipo.length !== codigo.length || tipo.length !== quantidade.length || tipo.length !== valor.length || tipo.length !== clientes.length || (lotes && tipo.length !== lotes.length)) {
+        console.error('Os arrays de dados têm comprimentos diferentes.');
+        return res.status(400).send('Dados inconsistentes.');
+    }
+
+    try {
+        // Inicializa um objeto para armazenar números de peças por combinação de representante e lote
+        const pieceNumbersByRepAndLot = {};
+
+        const values = await Promise.all(tipo.map(async (t, i) => {
+            const lote = lotes[i] || '';
+            const representante = representantes[i] || null;
+
+            // Se ainda não estiver calculado para essa combinação, busca o maior número de peça
+            if (!pieceNumbersByRepAndLot[representante]) {
+                pieceNumbersByRepAndLot[representante] = {};
+            }
+            if (!pieceNumbersByRepAndLot[representante][lote]) {
+                const maxPieceNumberForRepAndLot = await getMaxPieceNumberForRepAndLot(representante, lote);
+                pieceNumbersByRepAndLot[representante][lote] = maxPieceNumberForRepAndLot + 1;
+            }
+
+            // Obtem o número da peça atual e incrementa
+            const npeca = pieceNumbersByRepAndLot[representante][lote];
+            pieceNumbersByRepAndLot[representante][lote] += 1;
+
+            return [
+                representante, // Nome do representante, ou null se não houver
+                clientes[i] || '',
+                t,
+                modelo[i] || '',
+                codigo[i] || '',
+                quantidade[i] || '',
+                valor[i] || '',
+                lote,
+                npeca // Número da peça
+            ];
+        }));
+
+        // Salva os dados
+        const sql = 'INSERT INTO pecas (representante_id, clientes, tipo, modelo, codigo, quantidade, valor, lote, npeca) VALUES ?';
+
+        await new Promise((resolve, reject) => {
+            db.query(sql, [values], (err, result) => {
+                if (err) {
+                    console.error('Erro ao salvar dados:', err);
+                    return reject(err);
+                }
+                resolve(result);
+            });
+        });
+
+        // Atualiza o número máximo de peça para cada combinação de representante e lote
+        await Promise.all(Object.keys(pieceNumbersByRepAndLot).flatMap(rep => {
+            return Object.keys(pieceNumbersByRepAndLot[rep]).map(lote => {
+                return updateMaxPieceNumberForRepAndLot(rep, lote, pieceNumbersByRepAndLot[rep][lote] - 1);
+            });
+        }));
+
+        res.status(200).send('Dados salvos com sucesso.');
+    } catch (error) {
+        console.error('Erro ao processar os dados:', error);
+        res.status(500).send('Erro ao salvar os dados.');
+    }
 });
 
 

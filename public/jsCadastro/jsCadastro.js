@@ -116,7 +116,7 @@ error: function(err) {
 $(document).ready(function() {
     // Função para carregar opções de fornecedores e exibir botões
     $.ajax({
-        url: 'http://localhost:3001/representantes', // Endpoint para buscar representantes
+        url: '/api/representantes', // Endpoint para buscar representantes
         method: 'GET',
         success: function(data) {
             const fornecedoresButtons = $('#fornecedoresButtons');
@@ -633,7 +633,7 @@ $(document).ready(function() {
 // Função para carregar a lista de representantes
 function loadRepresentantes() {
     $.ajax({
-        url: 'http://localhost:3001/api/representantes', // Endpoint para buscar representantes
+        url: '/api/representantes', // Endpoint para buscar representantes
         method: 'GET',
         success: function(representantes) {
             // Ordenar os representantes por nome
@@ -661,7 +661,7 @@ function loadRepresentantes() {
 // Função para carregar a lista de lotes
 function loadLotes() {
     $.ajax({
-        url: 'http://localhost:3001/api/lote', // Endpoint para buscar lotes
+        url: '/api/lote', // Endpoint para buscar lotes
         method: 'GET',
         success: function(lotes) {
             const loteSelect = $('#loteSelect');
@@ -697,7 +697,7 @@ function showRepresentanteInfo(nomeRepresentante) {
     
         // Continue com o carregamento dos dados do representante
         $.ajax({
-            url: `http://localhost:3001/dados/${encodeURIComponent(nomeRepresentante)}?lote=${encodeURIComponent(loteSelecionado)}`,
+            url: `/dados/${encodeURIComponent(nomeRepresentante)}?lote=${encodeURIComponent(loteSelecionado)}`,
             method: 'GET',
             success: function(dados) {
                 console.log('Dados recebidos:', dados);
