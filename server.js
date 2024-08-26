@@ -428,6 +428,11 @@ app.get('/public/ArchivePast.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'ArchivePast.html'));
 });
 
+// Arquivo Pecas 
+app.get('/public/exibirPecas.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'exibirPecas.html'));
+});
+
 // Arquivo pecas
 app.get('/public/Pecas.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Pecas.html'));
@@ -1610,6 +1615,20 @@ app.post('/api/save-extracted-data', async (req, res) => {
     }
 });
 
+// Endpoint para obter as peças de um representante específico
+app.get('/api/representantes/:id/pecas', (req, res) => {
+    const id = req.params.id;
+    db.query(`
+        SELECT p.clientes, p.tipo, p.modelo, p.codigo, p.quantidade
+        FROM pecas p
+        WHERE p.representante_id = ?`, [id], (err, results) => {
+        if (err) {
+            console.error('Error querying database:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json(results);
+    });
+});
 
 
 // Middleware para tratamento de erros
