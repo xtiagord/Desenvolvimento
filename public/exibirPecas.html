@@ -61,10 +61,38 @@
          </nav>
       </header>
       <div class="container mt-5">
-         <h2 class="mb-4">Representantes</h2>
-         <!-- Container para os botões dos representantes -->
-         <div id="representantes-buttons" class="row mb-4">
+         <!-- Card para os botões dos representantes -->
+         <div class="card">
+            <div class="card-header">
+               <h5>Representantes</h5>
+            </div>
+            <div class="form-group">
+                <label for="select-lote">Selecione o lote:</label>
+                <select id="select-lote" class="form-control">
+                    <option value="">Selecione o lote</option>
+                </select>
+            </div> 
+             <!-- Mensagem de erro -->
+    <div id="error-message" class="alert alert-danger d-none" role="alert">
+        Por favor, selecione um lote antes de clicar em um representante.
+    </div>
+            <div class="card-body">
+    <div class="mb-3">
+        <!-- Container para os botões dos representantes -->
+        <div id="representantes-buttons" class="row mb-4">
             <!-- Botões serão gerados dinamicamente aqui -->
+        </div>
+    </div>
+    <!-- Container para os modais dos representantes -->
+    <div id="representantes-modals"></div>
+    <!-- Mensagem de erro para a seleção do lote -->
+    <div id="error-message" class="alert alert-danger d-none">Por favor, selecione um lote.</div>
+</div>
+            <div>
+                <button type="button" class="btn btn-success" onclick="exportAllToExcel()">Relatório Peças / Representante</button>
+            </div>
+            <div>
+                
          </div>
          <!-- Container para os modais dos representantes -->
          <div id="representantes-modals">
@@ -75,6 +103,7 @@
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
       <script src="/exibirPecas/exibirpecas.js"></script>
    </body>
 </html>

@@ -1615,16 +1615,29 @@ app.post('/api/save-extracted-data', async (req, res) => {
     }
 });
 
-// Endpoint para obter as peças de um representante específico
+
+// Endpoint para obter as peças filtradas por representante e lote
 app.get('/api/representantes/:id/pecas', (req, res) => {
-    const id = req.params.id;
-    db.query(`
-        SELECT p.clientes, p.tipo, p.modelo, p.codigo, p.quantidade
-        FROM pecas p
-        WHERE p.representante_id = ?`, [id], (err, results) => {
+    const representanteId = req.params.id;
+    const lote = req.query.lote;
+
+    let query = `
+        SELECT clientes, tipo, modelo, codigo, quantidade, valor
+        FROM pecas
+        WHERE representante_id = ?
+    `;
+
+    const params = [representanteId];
+
+    if (lote) {
+        query += ` AND lote = ?`;
+        params.push(lote);
+    }
+
+    db.query(query, params, (err, results) => {
         if (err) {
-            console.error('Error querying database:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
+            console.error('Erro ao buscar peças:', err);
+            return res.status(500).send('Erro ao buscar peças.');
         }
         res.json(results);
     });

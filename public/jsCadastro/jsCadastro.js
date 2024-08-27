@@ -692,7 +692,7 @@ function showRepresentanteInfo(nomeRepresentante) {
             return;
         }
     
-        // Se o lote estiver selecionado, esconder o alerta
+        // Se o lote estiver selecionado, esconder o alerta            
         $('#loteAlert').hide();
     
         // Continue com o carregamento dos dados do representante
