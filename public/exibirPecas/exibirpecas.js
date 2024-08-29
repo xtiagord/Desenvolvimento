@@ -349,4 +349,3 @@ function exportAllToExcel() {
         })
         .catch(error => console.error('Error fetching representatives data:', error));
 }
-

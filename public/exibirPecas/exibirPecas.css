@@ -111,3 +111,12 @@ body {
     z-index: 0; /* Garante que o cabeçalho esteja acima do corpo da tabela */
 }
 
+.modal-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #343a40; /* Cor de fundo do cabeçalho */
+    color: white; /* Cor do texto do cabeçalho */
+    border-radius: .25rem; /* Bordas arredondadas para todos os itens */
+    transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
+}

@@ -8,13 +8,14 @@
       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
       <link rel="stylesheet" href="/exibirPecas/exibirPecas.css">
       <link rel="stylesheet" href="/landing.css">
+      <link rel="stylesheet" href="/dashboardPecas/pecasDashboardStyle.css">
    </head>
    <body>
       <header>
          <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
             <a class="navbar-brand" href="#">
-            <img src="/login/photo/untitled (1).png" width="30" height="30" class="d-inline-block align-top" alt="">
-            Valmarc
+               <img src="/login/photo/untitled (1).png" width="30" height="30" class="d-inline-block align-top" alt="Logo">
+               Valmarc
             </a>
             <div class="collapse navbar-collapse">
                <ul class="navbar-nav mr-auto">
@@ -39,18 +40,19 @@
                   <!-- Dropdown para "Peças" -->
                   <li class="nav-item dropdown">
                      <a class="nav-link dropdown-toggle active" href="#" id="pecasDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                     Peças
+                        Peças
                      </a>
                      <div class="dropdown-menu" aria-labelledby="pecasDropdown">
                         <a class="dropdown-item" href="/public/Pecas.html">Cadastrar Peças</a>
                         <a class="dropdown-item" href="/public/exibirPecas.html">Exibir Peças</a>
+                        <a class="dropdown-item" href="/public/dashboardPecas.html">Gráficos Peças</a>
                      </div>
                   </li>
                </ul>
                <!-- Menu Dropdown no final -->
                <div class="nav-item dropdown ml-auto">
                   <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Menu
+                     Menu
                   </a>
                   <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                      <a class="dropdown-item" href="#">Cadastro</a>
@@ -60,50 +62,126 @@
             </div>
          </nav>
       </header>
+
       <div class="container mt-5">
          <!-- Card para os botões dos representantes -->
          <div class="card">
             <div class="card-header">
                <h5>Representantes</h5>
             </div>
-            <div class="form-group">
-                <label for="select-lote">Selecione o lote:</label>
-                <select id="select-lote" class="form-control">
-                    <option value="">Selecione o lote</option>
-                </select>
-            </div> 
-             <!-- Mensagem de erro -->
-    <div id="error-message" class="alert alert-danger d-none" role="alert">
-        Por favor, selecione um lote antes de clicar em um representante.
-    </div>
             <div class="card-body">
-    <div class="mb-3">
-        <!-- Container para os botões dos representantes -->
-        <div id="representantes-buttons" class="row mb-4">
-            <!-- Botões serão gerados dinamicamente aqui -->
-        </div>
-    </div>
-    <!-- Container para os modais dos representantes -->
-    <div id="representantes-modals"></div>
-    <!-- Mensagem de erro para a seleção do lote -->
-    <div id="error-message" class="alert alert-danger d-none">Por favor, selecione um lote.</div>
-</div>
-            <div>
-                <button type="button" class="btn btn-success" onclick="exportAllToExcel()">Relatório Peças / Representante</button>
+               <div class="form-group">
+                  <label for="select-lote">Selecione o lote:</label>
+                  <select id="select-lote" class="form-control">
+                     <option value="">Selecione o lote</option>
+                     <!-- Opções serão adicionadas dinamicamente -->
+                  </select>
+               </div>
+               <!-- Mensagem de erro -->
+               <div id="error-message" class="alert alert-danger d-none" role="alert">
+                  Por favor, selecione um lote antes de clicar em um representante.
+               </div>
+               <div class="mb-3">
+                  <!-- Container para os botões dos representantes -->
+                  <div id="representantes-buttons" class="row mb-4">
+                     <!-- Botões serão gerados dinamicamente aqui -->
+                  </div>
+               </div>
+               <!-- Container para os modais dos representantes -->
+               <div id="representantes-modals" class="table modal-table"></div>
+               <div>
+                  <button type="button" class="btn btn-success" onclick="exportAllToExcel()">Relatório Peças / Representante</button>
+               </div>
             </div>
-            <div>
-                
-         </div>
-         <!-- Container para os modais dos representantes -->
-         <div id="representantes-modals">
-            <!-- Modais serão gerados dinamicamente aqui -->
          </div>
       </div>
-      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+
+      <main>
+         <div class="container mt-4">
+             <!-- Card para a seleção do lote e resumos -->
+             <div class="card">
+                 <div class="card-body">
+                     <!-- Seção de Seleção de Lote -->
+                     <div class="header-bg mb-4 text-center">
+                         <h3 class="mb-0">Resumo de Peças por Representante</h3>
+                     </div>
+                     <label for="lote-select">Escolha um lote:</label>
+                     <select id="lote-select" class="form-select mb-4">
+                         <!-- Opções serão carregadas via JavaScript -->
+                     </select>
+     
+                     <!-- Divisão em linhas para os cards internos -->
+                     <div class="row">
+                         <!-- Card 1: Resumo por Representante -->
+                         <div class="col-md-6 mb-4">
+                             <div class="card">
+                                 <div class="card-body">
+                                     <h4 class="card-title text-center">Resumo por Representante</h4>
+                                     <div class="table-responsive">
+                                         <table id="pecas-table" class="table table-sm table-striped table-bordered">
+                                             <thead class="thead-dark">
+                                                 <tr>
+                                                     <th>Representante</th>
+                                                     <th>Total de Peças</th>
+                                                     <th>Valor Total</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody>
+                                                 <!-- Dados preenchidos pelo JavaScript -->
+                                             </tbody>
+                                         </table>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+     
+                         <!-- Card 2: Resumo por Tipo de Peça -->
+                         <div class="col-md-6 mb-4">
+                             <div class="card">
+                                 <div class="card-body">
+                                     <div class="d-flex justify-content-between align-items-center mb-3">
+                                         <h4 class="card-title mb-0">Resumo Tipo de Peça</h4>
+                                         <div class="btn-group">
+                                             <button class="btn btn-primary btn-sm" onclick="fetchResumoPorTipo('Reuso PÇ')">Reuso PÇ</button>
+                                             <button class="btn btn-primary btn-sm" onclick="fetchResumoPorTipo('CARCAÇA PÇ')">CARCAÇA PÇ</button>
+                                             <button class="btn btn-primary btn-sm" onclick="fetchResumoPorTipo()">TIPO KG</button>
+                                         </div>
+                                     </div>
+                                     <div class="table-responsive">
+                                         <table id="pecas-tipo-table" class="table table-sm table-striped table-bordered">
+                                             <thead class="thead-light">
+                                                 <tr>
+                                                     <th>Representante</th>
+                                                     <th>Tipo</th>
+                                                     <th>Total</th>
+                                                     <th>Valor Total</th>
+                                                 </tr>
+                                             </thead>
+                                             <tbody id="pecas-tipo-body">
+                                                 <!-- Dados preenchidos pelo JavaScript -->
+                                             </tbody>
+                                         </table>
+                                         <div id="pagination-controls" class="pagination justify-content-center">
+                                             <!-- Controles de paginação serão inseridos aqui -->
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </main>
+     
+      <!-- Scripts -->
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+       <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
       <script src="/exibirPecas/exibirpecas.js"></script>
+      <script src="/dashboardPecas/pecasDashboard.js"></script>
    </body>
 </html>

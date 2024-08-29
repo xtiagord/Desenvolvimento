@@ -433,6 +433,11 @@ app.get('/public/exibirPecas.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'exibirPecas.html'));
 });
 
+// Arquivo Pecas 
+app.get('/public/dashboardPecas.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboardPecas.html'));
+});
+
 // Arquivo pecas
 app.get('/public/Pecas.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Pecas.html'));
@@ -1643,6 +1648,65 @@ app.get('/api/representantes/:id/pecas', (req, res) => {
     });
 });
 
+// Endpoint para obter resumo das peças com base no lote
+app.get('/api/pecas/resumo', (req, res) => {
+    const lote = req.query.lote || '%'; // `%` para buscar todos os lotes
+
+    const query = `
+        SELECT 
+            r.nome AS representante_nome,
+            SUM(p.quantidade) AS total_pecas,
+            SUM(p.valor) AS valor_total
+        FROM pecas p
+        LEFT JOIN representantes r ON p.representante_id = r.id
+        WHERE p.lote LIKE ?
+        GROUP BY r.nome, p.representante_id;
+    `;
+
+    db.query(query, [lote], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar resumo das peças:', err);
+            return res.status(500).send('Erro ao buscar resumo das peças.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Nenhuma peça encontrada.');
+        }
+
+        res.json(results);
+    });
+});
+
+// Endpoint para obter resumo das peças por tipo com base no lote
+app.get('/api/pecas/resumo-por-tipo', async (req, res) => {
+    const tipoPeca = req.query.tipo || '%'; // `%` para buscar todos os tipos
+    const lote = req.query.lote || '%'; // `%` para buscar todos os lotes
+
+    const query = `
+        SELECT 
+            representantes.nome AS representante_nome,
+            pecas.tipo AS tipo_peca,
+            SUM(pecas.quantidade) AS total_pecas,
+            SUM(pecas.valor) AS valor_total
+        FROM pecas
+        JOIN representantes ON pecas.representante_id = representantes.id
+        WHERE pecas.tipo LIKE ? AND pecas.lote LIKE ?
+        GROUP BY representantes.nome, pecas.tipo;
+    `;
+
+    db.query(query, [tipoPeca, lote], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar resumo das peças:', err);
+            return res.status(500).send('Erro ao buscar resumo das peças.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Nenhuma peça encontrada.');
+        }
+
+        res.json(results);
+    });
+});
 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {

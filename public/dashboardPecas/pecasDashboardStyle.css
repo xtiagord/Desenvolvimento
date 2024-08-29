@@ -1,0 +1,64 @@
+.container {
+    margin-top: 20px;
+}
+
+/* Estilo para o cabeçalho da tabela */
+.table thead th {
+    background-color: #0091f8; /* Azul claro */
+    color: #ffffff; /* Azul mais escuro para o texto */
+}
+
+/* Estilo para as linhas da tabela ao passar o mouse */
+.table tbody tr:hover {
+    background-color: #0091f82c; /* Verde claro para o hover */
+}
+ /* Classe para cabeçalhos das tabelas */
+.table-header-small th {
+        font-size: 0.9rem; /* Ajuste o tamanho da fonte conforme necessário */
+        padding: 0.2rem;   /* Ajuste o padding conforme necessário */
+}
+.text-center-custom {
+    text-align: center;
+}
+
+/* Define largura fixa para colunas específicas */
+#pecas-table th:nth-child(1),
+#pecas-table td:nth-child(1) {
+    width: 1%; /* Ajuste conforme necessário */
+}
+
+#pecas-table th:nth-child(2),
+#pecas-table td:nth-child(2) {
+    width: 1%; /* Ajuste conforme necessário */
+}
+
+#pecas-table th:nth-child(3),
+#pecas-table td:nth-child(3) {
+    width: 5%; /* Ajuste conforme necessário */
+}
+
+#pecas-tipo-table th:nth-child(1),
+#pecas-tipo-table td:nth-child(1) {
+    width: 1%; /* Ajuste conforme necessário */
+}
+
+#pecas-tipo-table th:nth-child(2),
+#pecas-tipo-table td:nth-child(2) {
+    width: 1%; /* Ajuste conforme necessário */
+}
+
+#pecas-tipo-table th:nth-child(3),
+#pecas-tipo-table td:nth-child(3) {
+    width: 1%; /* Ajuste conforme necessário */
+}
+
+#pecas-tipo-table th:nth-child(4),
+#pecas-tipo-table td:nth-child(4) {
+    width: 10%; /* Ajuste conforme necessário */
+}
+
+.header-bg {
+    color: rgb(0, 0, 0); /* Cor do texto */
+    padding: 10px;
+    border-radius: 0.25rem;
+}
