@@ -104,7 +104,7 @@ function formatNumber(value) {
 // Função para extrair dados do PDF
 function extractPDFData(text) {
     // Regex para capturar os valores na tabela
-    const tableRegex = /(\d[.,]\d+)\s*(\d{1,3}[.,]\d{4})\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)\s*(\d[.,]\d{4})\s*(\d+[.,]\d+)\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)/gm;
+    const tableRegex = /(\d[.,]\d+)\s*(\d{1,3}[.,]\d{4})\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)\s*(\d[.,]\d{4})\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)/gm;
     const dataRegex = /Data\/Hora:\s+(\d{2}\/\d{2}\/\d{4})/;
     const horaRegex = /\b\d{2}:\d{2}\b/i;
     const representanteRegex = /Apelido\s+([A-Za-z]+)\s+[A-Za-z]+/;
@@ -442,6 +442,13 @@ app.get('/public/dashboardPecas.html', (req, res) => {
 app.get('/public/Pecas.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Pecas.html'));
 });
+
+// Servir o arquivo Financeiro.html
+app.get('/public/Financeiro.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'Financeiro.html'));
+});
+
+
 app.get('/api/dados', (req, res) => {
     const sql = "SELECT * FROM dados";
     db.query(sql, (err, results) => {
@@ -1707,6 +1714,59 @@ app.get('/api/pecas/resumo-por-tipo', async (req, res) => {
         res.json(results);
     });
 });
+
+
+// Rota para registrar um novo representante
+app.post('/api/representantes_financeiros', (req, res) => {
+    const { nome } = req.body;
+    const query = 'INSERT INTO representantes_financeiros (nome) VALUES (?)';
+    db.query(query, [nome], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.status(201).send({ id: results.insertId, nome });
+    });
+});
+
+// Rota para listar todos os representantes
+app.get('/api/representantes_financeiros', (req, res) => {
+    const query = 'SELECT * FROM representantes_financeiros';
+    db.query(query, (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
+// Rota para registrar um novo registro financeiro
+// Rota para adicionar um novo registro financeiro
+app.post('/api/registros_financeiros', (req, res) => {
+    const { representante_id, data, comprador, valor_debito, valor_credito, observacoes } = req.body;
+    const query = `
+        INSERT INTO registros_financeiros (representante_id, data, comprador, valor_debito, valor_credito, observacoes)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    db.query(query, [representante_id, data, comprador, valor_debito, valor_credito, observacoes], (err, results) => {
+        if (err) {
+            console.error('Erro ao inserir registro financeiro:', err);
+            return res.status(500).send(err);
+        }
+        res.status(201).send({ id: results.insertId, representante_id, data, comprador, valor_debito, valor_credito, observacoes });
+    });
+});
+
+// Rota para obter todos os registros financeiros
+app.get('/api/registros_financeiros', (req, res) => {
+    const representanteId = req.query.representante_id;
+    
+    // Substitua por sua lógica de consulta no banco de dados
+    const query = 'SELECT * FROM registros_financeiros WHERE representante_id = ?';
+    db.query(query, [representanteId], (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar registros financeiros:', error);
+            return res.status(500).json({ error: 'Erro ao buscar registros financeiros' });
+        }
+        res.json(results);
+    });
+});
+
 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
