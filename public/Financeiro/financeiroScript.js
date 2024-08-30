@@ -86,7 +86,7 @@ $(document).ready(function() {
                 $('#tabela-registros-modal tbody').append(
                     `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${reg.representante_id}">
                         <td>${reg.id}</td>
-                        <td class="editable">${reg.data}</td>
+                        <td class="editable">${formatDate(reg.data)}</td>
                         <td class="editable">${reg.comprador}</td>
                         <td class="editable">${formatCurrency(reg.valor_debito)}</td>
                         <td class="editable">${formatCurrency(reg.valor_credito)}</td>
@@ -259,5 +259,12 @@ $(document).ready(function() {
         });
     
     });
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
     
 });
