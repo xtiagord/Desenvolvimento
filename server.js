@@ -20,7 +20,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys_test'
+    database: 'sys'
 });
 
 // Conectar ao banco de dados

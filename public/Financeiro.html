@@ -6,6 +6,7 @@
       <title>Cadastrar Cliente</title>
       <!-- Bootstrap CSS -->
       <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
       <link rel="stylesheet" href="/landing.css">
       <link rel="stylesheet" href="/Financeiro/financeiroStyle.css">
    </head>
@@ -94,9 +95,9 @@
        </div>
        <button type="submit" class="btn btn-success">Salvar Registro</button>
        <!-- Botão para abrir o modal -->
-       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRepresentante">
-           Cadastrar Representante
-       </button>
+       <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRepresentante">
+         Cadastrar Representante
+     </button>     
        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRepresentantes">
            Exibir Representantes
        </button>
@@ -146,7 +147,6 @@
                <table class="table" id="tabela-registros-modal">
                    <thead>
                        <tr>
-                           <th>ID</th>
                            <th>Data</th>
                            <th>Comprador</th>
                            <th>Débito</th>
@@ -191,6 +191,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
+      <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
       <script src="/Financeiro/financeiroScript.js"></script>
    </body>
 </html>

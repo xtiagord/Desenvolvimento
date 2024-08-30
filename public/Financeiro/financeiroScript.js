@@ -85,7 +85,6 @@ $(document).ready(function() {
 
                 $('#tabela-registros-modal tbody').append(
                     `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${reg.representante_id}">
-                        <td>${reg.id}</td>
                         <td class="editable">${formatDate(reg.data)}</td>
                         <td class="editable">${reg.comprador}</td>
                         <td class="editable">${formatCurrency(reg.valor_debito)}</td>
@@ -266,5 +265,32 @@ $(document).ready(function() {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
+    $(document).ready(function() {
+        $('#form-representante').on('submit', function(event) {
+            event.preventDefault(); // Impede o comportamento padrão de envio do formulário
+    
+            // Coleta os dados do formulário
+            var formData = $(this).serialize();
+    
+            // Envia os dados via AJAX
+            $.ajax({
+                type: 'POST',
+                url: '/api/representantes_financeiros', // Substitua pelo URL de sua API ou endpoint
+                data: formData,
+                success: function(response) {
+                    // Manipule a resposta do servidor aqui
+                    console.log('Dados enviados com sucesso', response);
+                    $('#modalRepresentante').modal('hide'); // Fecha o modal após o sucesso
+                    // Atualize a tabela ou a interface conforme necessário
+                    location.reload();
+                },
+                error: function(xhr, status, error) {
+                    // Manipule o erro aqui
+                    console.error('Erro ao enviar dados', error);
+                }
+            });
+        });
+    });
+    
     
 });
