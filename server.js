@@ -1735,22 +1735,26 @@ app.get('/api/representantes_financeiros', (req, res) => {
     });
 });
 
-// Rota para registrar um novo registro financeiro
 // Rota para adicionar um novo registro financeiro
 app.post('/api/registros_financeiros', (req, res) => {
     const { representante_id, data, comprador, valor_debito, valor_credito, observacoes } = req.body;
-    const query = `
-        INSERT INTO registros_financeiros (representante_id, data, comprador, valor_debito, valor_credito, observacoes)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    db.query(query, [representante_id, data, comprador, valor_debito, valor_credito, observacoes], (err, results) => {
-        if (err) {
-            console.error('Erro ao inserir registro financeiro:', err);
-            return res.status(500).send(err);
+
+    // Validar se o representante_id não é nulo
+    if (!representante_id) {
+        return res.status(400).json({ error: 'O ID do representante é obrigatório' });
+    }
+
+    // Inserir o registro financeiro no banco de dados
+    const query = `INSERT INTO registros_financeiros (representante_id, data, comprador, valor_debito, valor_credito, observacoes) VALUES (?, ?, ?, ?, ?, ?)`;
+    db.query(query, [representante_id, data, comprador, valor_debito, valor_credito, observacoes], (error, results) => {
+        if (error) {
+            console.error('Erro ao inserir registro financeiro:', error);
+            return res.status(500).json({ error: 'Erro ao salvar o registro financeiro' });
         }
-        res.status(201).send({ id: results.insertId, representante_id, data, comprador, valor_debito, valor_credito, observacoes });
+        res.status(201).json({ message: 'Registro financeiro salvo com sucesso!' });
     });
 });
+
 
 // Rota para obter todos os registros financeiros
 app.get('/api/registros_financeiros', (req, res) => {
@@ -1764,6 +1768,41 @@ app.get('/api/registros_financeiros', (req, res) => {
             return res.status(500).json({ error: 'Erro ao buscar registros financeiros' });
         }
         res.json(results);
+    });
+});
+
+app.put('/api/registros_financeiros/:id', (req, res) => {
+    const { id } = req.params; // O ID do registro a ser atualizado
+    const { representante_id, data, comprador, valor_debito, valor_credito, observacoes } = req.body;
+
+    const query = `
+        UPDATE registros_financeiros
+        SET representante_id = ?, data = ?, comprador = ?, valor_debito = ?, valor_credito = ?, observacoes = ?
+        WHERE id = ?
+    `;
+
+    db.query(query, [representante_id, data, comprador, valor_debito, valor_credito, observacoes, id], (err, results) => {
+        if (err) {
+            console.error('Erro ao atualizar registro financeiro:', err);
+            return res.status(500).send(err);
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).send('Registro não encontrado');
+        }
+        res.status(200).send({ id, representante_id, data, comprador, valor_debito, valor_credito, observacoes });
+    });
+});
+
+app.delete('/api/registros_financeiros/:id', (req, res) => {
+    const id = req.params.id;
+
+    const query = `DELETE FROM registros_financeiros WHERE id = ?`;
+    db.query(query, [id], (error, results) => {
+        if (error) {
+            console.error('Erro ao excluir registro financeiro:', error);
+            return res.status(500).json({ error: 'Erro ao excluir o registro financeiro' });
+        }
+        res.status(200).json({ message: 'Registro financeiro excluído com sucesso!' });
     });
 });
 

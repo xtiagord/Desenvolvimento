@@ -1,4 +1,46 @@
 $(document).ready(function() {
+    // Inicialização de eventos
+    $('#form-registro').on('submit', function(event) {
+        event.preventDefault(); // Evita a submissão padrão do formulário
+
+        // Coletar os valores dos campos
+        const representante_id = $('#representante').val();
+        const data = $('#data').val();
+        const comprador = $('#comprador').val();
+        const valor_debito = unformatCurrency($('#valor_debito').val());
+        const valor_credito = unformatCurrency($('#valor_credito').val());
+        const observacoes = $('#observacoes').val();
+
+        // Validar dados
+        if (!representante_id || !data || !comprador || isNaN(valor_debito) || isNaN(valor_credito)) {
+            alert('Por favor, preencha todos os campos corretamente.');
+            return;
+        }
+
+        // Enviar dados para o servidor
+        $.ajax({
+            url: '/api/registros_financeiros',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                representante_id,
+                data,
+                comprador,
+                valor_debito,
+                valor_credito,
+                observacoes
+            }),
+            success: function(response) {
+                alert('Registro financeiro salvo com sucesso!');
+                $('#form-registro')[0].reset();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Erro ao salvar o registro financeiro:', textStatus, errorThrown);
+                alert('Erro ao salvar o registro financeiro.');
+            }
+        });
+    });
+
     // Inicializar Cleave.js para os campos de valor
     new Cleave('#valor_debito', {
         numeral: true,
@@ -6,7 +48,7 @@ $(document).ready(function() {
         numeralDecimalMark: ',',
         delimiter: '.',
         prefix: 'R$ ',
-        numeralDecimalScale: 2 // Permite até duas casas decimais
+        numeralDecimalScale: 2
     });
 
     new Cleave('#valor_credito', {
@@ -15,98 +57,140 @@ $(document).ready(function() {
         numeralDecimalMark: ',',
         delimiter: '.',
         prefix: 'R$ ',
-        numeralDecimalScale: 2 // Permite até duas casas decimais
+        numeralDecimalScale: 2
     });
 
-    // Função para formatar valores como moeda brasileira (R$)
     function formatCurrency(value) {
         let number = parseFloat(value).toFixed(2);
         return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
     }
 
-    // Função para limpar a formatação de moeda e retornar um número decimal
     function unformatCurrency(value) {
         return parseFloat(value.replace(/R\$\s?/g, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
     }
 
-    // Função para carregar registros financeiros
     function loadRegistros(representanteId) {
         $.get('/api/registros_financeiros', { representante_id: representanteId }, function(data) {
-            $('#tabela-registros-modal tbody').empty(); // Limpar a tabela do modal
-
+            $('#tabela-registros-modal tbody').empty();
             let totalDebitos = 0;
             let totalCreditos = 0;
 
             data.forEach(reg => {
                 let rowClass = '';
                 if (parseFloat(unformatCurrency(reg.valor_debito)) > 0) {
-                    rowClass = 'bg-debito'; // Aplicar fundo vermelho clarinho se débito > 0
+                    rowClass = 'bg-debito';
                 } else if (parseFloat(unformatCurrency(reg.valor_credito)) > 0) {
-                    rowClass = 'bg-credito'; // Aplicar fundo azul clarinho se crédito > 0
+                    rowClass = 'bg-credito';
                 }
 
-                $('#tabela-registros-modal tbody').append(`
-                    <tr class="${rowClass}">
+                $('#tabela-registros-modal tbody').append(
+                    `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${reg.representante_id}">
                         <td>${reg.id}</td>
-                        <td>${reg.data}</td>
-                        <td>${reg.comprador}</td>
-                        <td>${formatCurrency(reg.valor_debito)}</td>
-                        <td>${formatCurrency(reg.valor_credito)}</td>
-                        <td>${reg.observacoes}</td>
-                    </tr>
-                `);
+                        <td class="editable">${reg.data}</td>
+                        <td class="editable">${reg.comprador}</td>
+                        <td class="editable">${formatCurrency(reg.valor_debito)}</td>
+                        <td class="editable">${formatCurrency(reg.valor_credito)}</td>
+                        <td class="editable">${reg.observacoes}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm edit-btn">Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">Excluir</button>
+                        </td>
+                    </tr>`
+                );
 
-                // Somar débitos e créditos
                 totalDebitos += unformatCurrency(reg.valor_debito);
                 totalCreditos += unformatCurrency(reg.valor_credito);
             });
 
-            // Atualizar o resumo
             $('#total-debitos').text(formatCurrency(totalDebitos));
             $('#total-creditos').text(formatCurrency(totalCreditos));
             $('#saldo').text(formatCurrency(totalCreditos - totalDebitos));
 
-            $('#modalRegistrosFinanceiros').modal('show'); // Mostrar o modal
+            $('#modalRegistrosFinanceiros').modal('show');
+
+            $('.edit-btn').click(function() {
+                const tr = $(this).closest('tr');
+                toggleEditMode(tr);
+            });
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.error('Erro ao carregar registros financeiros:', textStatus, errorThrown);
         });
     }
 
-    // Função para carregar representantes financeiros
+    function toggleEditMode(tr) {
+        const isEditing = tr.hasClass('editing');
+
+        if (isEditing) {
+            const id = tr.data('id');
+            const representanteIdOriginal = tr.data('representante-id'); // Manter o ID do representante original
+            const data = tr.find('td:eq(1) input').val();
+            const comprador = tr.find('td:eq(2) input').val();
+            const valor_debito = unformatCurrency(tr.find('td:eq(3) input').val());
+            const valor_credito = unformatCurrency(tr.find('td:eq(4) input').val());
+            const observacoes = tr.find('td:eq(5) input').val();
+
+            $.ajax({
+                url: `/api/registros_financeiros/${id}`,
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    representante_id: representanteIdOriginal, // Usar o ID do representante original
+                    data,
+                    comprador,
+                    valor_debito,
+                    valor_credito,
+                    observacoes
+                }),
+                success: function() {
+                    tr.find('td.editable').each(function(index) {
+                        const input = $(this).find('input');
+                        $(this).text(input.val());
+                    });
+                    tr.removeClass('editing');
+                    tr.find('.edit-btn').text('Editar');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Erro ao salvar registro financeiro:', textStatus, errorThrown);
+                }
+            });
+        } else {
+            tr.find('td.editable').each(function(index) {
+                const text = $(this).text();
+                $(this).html(`<input type="text" class="form-control form-control-sm" value="${text}">`);
+            });
+            tr.addClass('editing');
+            tr.find('.edit-btn').text('Salvar');
+        }
+    }
+
     function loadRepresentantes() {
         $.get('/api/representantes_financeiros', function(data) {
-            $('#representantes-container').empty(); // Limpar o container
-            $('#representante').empty(); // Limpar o dropdown
-            $('#tabela-representantes tbody').empty(); // Limpar a tabela
+            $('#representantes-container').empty();
+            $('#representante').empty();
+            $('#tabela-representantes tbody').empty();
 
-            var container = $('<div class="row"></div>'); // Container para linhas de botões
+            var container = $('<div class="row"></div>');
 
             data.forEach((rep, index) => {
-                // Adicionar representantes ao dropdown
                 $('#representante').append(`<option value="${rep.id}">${rep.nome}</option>`);
-
-                // Adicionar representantes à tabela
                 $('#tabela-representantes tbody').append(`<tr><td>${rep.id}</td><td>${rep.nome}</td></tr>`);
 
-                // Adicionar representantes ao container de botões
-                if (index % 4 === 0 && index !== 0) { // Ajustar para 4 botões por linha
-                    $('#representantes-container').append(container); // Adicionar linha ao container
-                    container = $('<div class="row"></div>'); // Criar nova linha
+                if (index % 4 === 0 && index !== 0) {
+                    $('#representantes-container').append(container);
+                    container = $('<div class="row"></div>');
                 }
 
-                container.append(`
-                    <div class="col-md-3 mb-2">
+                container.append(
+                    `<div class="col-md-3 mb-2">
                         <button class="btn btn-primary btn-lg btn-registros" data-id="${rep.id}" data-nome="${rep.nome}">${rep.nome}</button>
-                    </div>
-                `);
+                    </div>`
+                );
             });
 
-            // Adicionar a última linha se não estiver vazia
             if (container.children().length > 0) {
                 $('#representantes-container').append(container);
             }
 
-            // Adicionar evento de clique para os botões de registros
             $('.btn-registros').on('click', function() {
                 var representanteId = $(this).data('id');
                 var representanteNome = $(this).data('nome');
@@ -114,65 +198,66 @@ $(document).ready(function() {
                 loadRegistros(representanteId);
             });
 
-            // Atualizar a tabela de representantes no modal
-            $('#tabela-representantes-modal tbody').empty();
-            data.forEach(rep => {
-                $('#tabela-representantes-modal tbody').append(`
-                    <tr>
-                        <td>${rep.id}</td>
-                        <td>${rep.nome}</td>
-                    </tr>
-                `);
-            });
+            $('#tabela-representantes').DataTable();
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.error('Erro ao carregar representantes financeiros:', textStatus, errorThrown);
         });
     }
 
-    // Carregar representantes quando o modal é mostrado
-    $('#modalRepresentantes').on('show.bs.modal', function() {
-        loadRepresentantes();
-    });
 
     // Inicializar
     loadRepresentantes();
 
     // Adicionar representante financeiro
-    $('#form-representante').on('submit', function(e) {
-        e.preventDefault();
-        $.post('/api/representantes_financeiros', $(this).serialize(), function() {
-            $('#modalRepresentante').modal('hide'); // Fechar o modal
-            loadRepresentantes(); // Atualizar a lista de representantes
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error('Erro ao salvar representante:', textStatus, errorThrown);
-            alert('Erro ao salvar representante.');
-        });
-    });
+    $('#form-add-representante').on('submit', function(event) {
+        event.preventDefault();
+        const nome = $('#nome_representante').val();
 
-    // Função para adicionar registro financeiro
-    $('#form-registro').on('submit', function(e) {
-        e.preventDefault();
-        
-        // Obter e desformatar os valores dos campos de entrada
-        var valorDebito = unformatCurrency($('#valor_debito').val());
-        var valorCredito = unformatCurrency($('#valor_credito').val());
+        if (!nome) {
+            alert('Por favor, insira o nome do representante.');
+            return;
+        }
 
-        // Criar um objeto com os dados do formulário
-        var formData = $(this).serializeArray();
-        formData = formData.filter(field => field.name !== 'valor_debito' && field.name !== 'valor_credito'); // Remover campos antigos
-        formData.push({ name: 'valor_debito', value: valorDebito });
-        formData.push({ name: 'valor_credito', value: valorCredito });
-
-        // Enviar os dados para o servidor
-        $.post('/api/registros_financeiros', $.param(formData), function() {
-            // Atualizar a lista de registros financeiros para o representante selecionado
-            var representanteId = $('#representante').val();
-            if (representanteId) {
-                loadRegistros(representanteId);
+        $.ajax({
+            url: '/api/representantes_financeiros',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ nome }),
+            success: function() {
+                $('#nome_representante').val('');
+                loadRepresentantes();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Erro ao adicionar representante financeiro:', textStatus, errorThrown);
             }
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error('Erro ao salvar registro financeiro:', textStatus, errorThrown);
-            alert('Erro ao salvar registro financeiro.');
         });
     });
+    $(document).ready(function() {
+        // Função para excluir registro financeiro
+        function deleteRegistro(id) {
+            if (confirm('Tem certeza que deseja excluir este registro?')) {
+                $.ajax({
+                    url: `/api/registros_financeiros/${id}`,
+                    method: 'DELETE',
+                    success: function() {
+                        // Remover a linha da tabela
+                        $(`tr[data-id="${id}"]`).remove();
+                        alert('Registro excluído com sucesso.');
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('Erro ao excluir registro financeiro:', textStatus, errorThrown);
+                        alert('Erro ao excluir registro financeiro.');
+                    }
+                });
+            }
+        }
+    
+        // Adicionar evento de clique para os botões de exclusão
+        $('#tabela-registros-modal').on('click', '.btn-danger', function() {
+            const id = $(this).closest('tr').data('id');
+            deleteRegistro(id);
+        });
+    
+    });
+    
 });
