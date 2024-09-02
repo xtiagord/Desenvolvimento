@@ -62,78 +62,92 @@ $(document).ready(function() {
 
     function formatCurrency(value) {
         let number = parseFloat(value).toFixed(2);
-        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(number);
+        return new Intl.NumberFormat('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL' 
+        }).format(number);
     }
-
+    
     function unformatCurrency(value) {
         return parseFloat(value.replace(/R\$\s?/g, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
     }
+    
+   function loadRegistros(representanteId) {
+    // Mostrar a tela de carregamento
+    $('#loading-screen').show();
 
-    function loadRegistros(representanteId) {
-        $.get('/api/registros_financeiros', { representante_id: representanteId }, function(data) {
-            $('#tabela-registros-modal tbody').empty();
-            let totalDebitos = 0;
-            let totalCreditos = 0;
+    $.get('/api/registros_financeiros', { representante_id: representanteId }, function(data) {
+        $('#tabela-registros-modal tbody').empty();
+        let totalDebitos = 0;
+        let totalCreditos = 0;
 
-            data.forEach(reg => {
-                let rowClass = '';
-                if (parseFloat(unformatCurrency(reg.valor_debito)) > 0) {
-                    rowClass = 'bg-debito';
-                } else if (parseFloat(unformatCurrency(reg.valor_credito)) > 0) {
-                    rowClass = 'bg-credito';
-                }
+        data.forEach(reg => {
+            let rowClass = '';
+            if (parseFloat(unformatCurrency(reg.valor_debito)) > 0) {
+                rowClass = 'bg-debito';
+            } else if (parseFloat(unformatCurrency(reg.valor_credito)) > 0) {
+                rowClass = 'bg-credito';
+            }
 
-                $('#tabela-registros-modal tbody').append(
-                    `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${reg.representante_id}">
-                        <td class="editable">${formatDate(reg.data)}</td>
-                        <td class="editable">${reg.comprador}</td>
-                        <td class="editable">${formatCurrency(reg.valor_debito)}</td>
-                        <td class="editable">${formatCurrency(reg.valor_credito)}</td>
-                        <td class="editable">${reg.observacoes}</td>
-                        <td>
-                            <button class="btn btn-primary btn-sm edit-btn">Editar</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">Excluir</button>
-                        </td>
-                    </tr>`
-                );
+            $('#tabela-registros-modal tbody').append(
+                `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${reg.representante_id}">
+                    <td class="editable">${formatDate(reg.data)}</td>
+                    <td class="editable">${reg.comprador}</td>
+                    <td class="editable">${formatCurrency(unformatCurrency(reg.valor_debito) / 100)}</td>
+                    <td class="editable">${formatCurrency(unformatCurrency(reg.valor_credito) / 100)}</td>
+                    <td class="editable">${reg.observacoes}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm edit-btn">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">Excluir</button>
+                    </td>
+                </tr>`
+            );
 
-                totalDebitos += unformatCurrency(reg.valor_debito);
-                totalCreditos += unformatCurrency(reg.valor_credito);
-            });
-
-            $('#total-debitos').text(formatCurrency(totalDebitos));
-            $('#total-creditos').text(formatCurrency(totalCreditos));
-            $('#saldo').text(formatCurrency(totalCreditos - totalDebitos));
-
-            $('#modalRegistrosFinanceiros').modal('show');
-
-            $('.edit-btn').click(function() {
-                const tr = $(this).closest('tr');
-                toggleEditMode(tr);
-            });
-        }).fail(function(jqXHR, textStatus, errorThrown) {
-            console.error('Erro ao carregar registros financeiros:', textStatus, errorThrown);
+            totalDebitos += unformatCurrency(reg.valor_debito) / 100;
+            totalCreditos += unformatCurrency(reg.valor_credito) / 100;
         });
-    }
+
+        $('#total-debitos').text(formatCurrency(totalDebitos)).css('color', 'red');
+        $('#total-creditos').text(formatCurrency(totalCreditos)).css('color', 'blue');
+
+        let saldo = totalCreditos - totalDebitos;
+        if (saldo < 0) {
+            $('#saldo').text(formatCurrency(saldo)).css('color', 'red');
+        } else {
+            $('#saldo').text(formatCurrency(saldo)).css('color', 'blue');
+        }
+
+        // Ocultar a tela de carregamento e exibir o modal
+        $('#loading-screen').hide();
+        $('#modalRegistrosFinanceiros').modal('show');
+
+        $('.edit-btn').click(function() {
+            const tr = $(this).closest('tr');
+            toggleEditMode(tr);
+        });
+    }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Erro ao carregar registros financeiros:', textStatus, errorThrown);
+        $('#loading-screen').hide(); // Ocultar a tela de carregamento mesmo em caso de erro
+    });
+}
 
     function toggleEditMode(tr) {
         const isEditing = tr.hasClass('editing');
-
+    
         if (isEditing) {
-            const id = tr.data('id');
             const representanteIdOriginal = tr.data('representante-id'); // Manter o ID do representante original
-            const data = tr.find('td:eq(1) input').val();
-            const comprador = tr.find('td:eq(2) input').val();
-            const valor_debito = unformatCurrency(tr.find('td:eq(3) input').val());
-            const valor_credito = unformatCurrency(tr.find('td:eq(4) input').val());
-            const observacoes = tr.find('td:eq(5) input').val();
-
+            const data = tr.find('td:eq(0) input').val(); // Corrigido para pegar o campo de data
+            const comprador = tr.find('td:eq(1) input').val(); // Corrigido para pegar o campo de comprador
+            const valor_debito = unformatCurrency(tr.find('td:eq(2) input').val()); // Valor de débito
+            const valor_credito = unformatCurrency(tr.find('td:eq(3) input').val()); // Valor de crédito
+            const observacoes = tr.find('td:eq(4) input').val(); // Observações
+    
             $.ajax({
-                url: `/api/registros_financeiros/${id}`,
+                url: `/api/registros_financeiros/${tr.data('id')}`, // Use o ID do registro correto
                 method: 'PUT',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    representante_id: representanteIdOriginal, // Usar o ID do representante original
+                    representante_id: representanteIdOriginal,
                     data,
                     comprador,
                     valor_debito,
@@ -161,6 +175,7 @@ $(document).ready(function() {
             tr.find('.edit-btn').text('Salvar');
         }
     }
+    
 
     function loadRepresentantes() {
         $.get('/api/representantes_financeiros', function(data) {
@@ -260,11 +275,12 @@ $(document).ready(function() {
     });
     function formatDate(dateString) {
         const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
     }
+    
     $(document).ready(function() {
         $('#form-representante').on('submit', function(event) {
             event.preventDefault(); // Impede o comportamento padrão de envio do formulário

@@ -10,6 +10,7 @@ const session = require('express-session');
 const JSZip = require('jszip');
 const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
+const ExcelJS = require('exceljs');
 
 // Inicializar o Express
 const app = express();
@@ -17,7 +18,7 @@ const PORT = process.env.PORT || 3001;
 
 // Criação da conexão
 const db = mysql.createConnection({
-    host: '192.168.0.177',
+    host: '192.168.0.179',
     user: 'tiago',
     password: '1234',
     database: 'sys'
@@ -61,7 +62,14 @@ const query = (sql, values, callback) => {
     });
 };
 
-const storage = multer.memoryStorage();
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Pasta onde os arquivos serão armazenados
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Nome do arquivo com timestamp
+    }
+});
 const upload = multer({ storage });
 const extractUpload = multer().single('pdf');
 //const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
@@ -1805,6 +1813,8 @@ app.delete('/api/registros_financeiros/:id', (req, res) => {
         res.status(200).json({ message: 'Registro financeiro excluído com sucesso!' });
     });
 });
+
+
 
 
 // Middleware para tratamento de erros
