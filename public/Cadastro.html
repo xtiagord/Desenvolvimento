@@ -112,7 +112,6 @@
 
             
 
-<!-- Modal de Detalhes -->
 <div class="modal fade" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
         <div class="modal-content">
@@ -126,7 +125,7 @@
                 <table id="tableData" class="table table-hover table-dark modal-table">
                     <thead>
                         <tr>
-                            <th >Npdf</th>
+                            <th>Npdf</th>
                             <th>Kg</th>
                             <th>Pd</th>
                             <th>Pt</th>
@@ -138,6 +137,7 @@
                             <th>Hora</th>
                             <th>Fornecedor</th>
                             <th>SN</th>
+                            <th>Ações</th> 
                         </tr>
                     </thead>
                     <tbody id="modalDataBody">
@@ -146,7 +146,6 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-warning" id="editButton">Editar</button>
                 <button type="button" class="btn btn-primary" id="exportToXLS">Exportar Excel</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
             </div>
@@ -273,6 +272,37 @@
         </div>
     </div>
 </div>
+<!-- Modal de Edição -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Editar Linha</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Campos de edição -->
+                <div class="form-group">
+                    <label for="editNpdf">Npdf</label>
+                    <input type="text" class="form-control" id="editNpdf">
+                </div>
+                <div class="form-group">
+                    <label for="editKg">Kg</label>
+                    <input type="text" class="form-control" id="editKg">
+                </div>
+                <!-- Repita os campos para cada coluna que você deseja editar -->
+                <!-- ... -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveEdit">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>

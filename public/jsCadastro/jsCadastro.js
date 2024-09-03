@@ -251,6 +251,17 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
             return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
         };
 
+        // Função para formatar o nome do fornecedor
+        const formatFornecedor = (fornecedor) => {
+            const nomePartes = fornecedor.trim().split(' ');
+            if (nomePartes.length > 1) {
+                const primeiroNome = nomePartes[0];
+                const primeiraLetraSobrenome = nomePartes[1].charAt(0);
+                return `${primeiroNome} ${primeiraLetraSobrenome}c`;
+            }
+            return fornecedor; // Se não houver sobrenome, retornar o nome como está
+        };
+
         // Ordenar e formatar os dados para exportação
         const formattedData = Object.keys(groupedData)
             .sort()  // Ordenar os representantes em ordem alfabética
@@ -293,17 +304,17 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
 
                     return {
                         npdf: npdfValue,
-                        comprador: representante, // Manter o nome original do representante
-                        equipamento: formattedEquipamento, // Nome do representante ou "Cambe"/"Marcio" + últimos 3 dígitos do SN
-                        valor: formatCurrency(parseFloat(item.Valor)), // Formatando o valor
+                        fornecedor: formatFornecedor(item.fornecedor), // Formatando o fornecedor
+                        equipamento: formattedEquipamento, 
+                        valor: formatCurrency(parseFloat(item.Valor)), 
                         pgto: item.pgto,
                         plan: item.tipo,
                         hedge: item.hedge,
                         pag: item.pag,
-                        kg: item.kg.replace('.', ','), // Substituindo ponto por vírgula
-                        pd: item.pd.replace('.', ','), // Substituindo ponto por vírgula
-                        pt: item.pt.replace('.', ','), // Substituindo ponto por vírgula
-                        rh: item.rh.replace('.', ',')  // Substituindo ponto por vírgula
+                        kg: item.kg.replace('.', ','), 
+                        pd: item.pd.replace('.', ','), 
+                        pt: item.pt.replace('.', ','), 
+                        rh: item.rh.replace('.', ',') 
                     };
                 });
             });
@@ -325,6 +336,7 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
         alert('Erro ao exportar dados. Por favor, tente novamente.');
     });
 });
+
 
 
 // Event listener para o botão "Cliente: EDITAR/EXCLUIR"
@@ -480,22 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-document.getElementById('editButton').addEventListener('click', function() {
-    const table = document.getElementById('tableData');
-    const isEditing = table.classList.contains('editing');
-
-    if (!isEditing) {
-        enableEditing(table);
-        this.textContent = 'Salvar';
-        table.classList.add('editing');
-    } else {
-        disableEditing(table);
-        this.textContent = 'Editar';
-        table.classList.remove('editing');
-        saveTableData(table);
-    }
-});
-
 function enableEditing(table) {
     const rows = table.querySelectorAll('tbody tr');
     rows.forEach(row => {
@@ -523,56 +519,7 @@ function disableEditing(table) {
     });
 }
 
-function saveTableData(table) {
-    const rows = table.querySelectorAll('tbody tr');
-    const data = [];
-
-    rows.forEach(row => {
-        const rowData = {};
-        const cells = row.querySelectorAll('td');
-        cells.forEach(cell => {
-            const input = cell.querySelector('input');
-            if (input && input.value) {
-                const field = cell.getAttribute('data-field');
-                if (field) {
-                    rowData[field] = input.value;
-                }
-            }
-        });
-    
-        if (Object.keys(rowData).length > 0) {
-            data.push(rowData); // Adicione ao array somente se houver dados válidos
-        }
-    });
-    
-
-    console.log('Data to save:', data); // Log dos dados antes de enviar
-
-    fetch('/api/salvar-edicoes', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Erro ao salvar edições');
-        }
-        return response.json();
-    })
-    .then(result => {
-        console.log('Edições salvas com sucesso:', result);
-    })
-    .catch(error => {
-        console.error('Erro ao salvar edições:', error);
-    });
-    
-}
-
-
-
-$(document).ready(function() {
+/*$(document).ready(function() {
     $('.open-modal').on('click', function () {
         const nomeRepresentante = $(this).closest('.representante-card').data('representante');
 
@@ -618,7 +565,7 @@ $(document).ready(function() {
             }
         });
     });
-});
+});*/
 $(document).ready(function() {
     // Carregar a lista de representantes e lotes ao carregar a página
     loadRepresentantes();
@@ -682,64 +629,71 @@ function loadLotes() {
 // Função para exibir informações do representante no modal
 function showRepresentanteInfo(nomeRepresentante) {
     $('#detalhesModalLabel').text(`Detalhes do Representante: ${nomeRepresentante}`);
-    loadRepresentanteInfo(nomeRepresentante);function loadRepresentanteInfo(nomeRepresentante) {
-        const loteSelecionado = $('#loteSelect').val(); // Obtém o valor selecionado
-    
-        // Verifica se o lote foi selecionado
-        if (!loteSelecionado) {
-            // Exibe o alerta se o lote não estiver selecionado
-            $('#loteAlert').show();
-            return;
-        }
-    
-        // Se o lote estiver selecionado, esconder o alerta            
-        $('#loteAlert').hide();
-    
-        // Continue com o carregamento dos dados do representante
-        $.ajax({
-            url: `/dados/${encodeURIComponent(nomeRepresentante)}?lote=${encodeURIComponent(loteSelecionado)}`,
-            method: 'GET',
-            success: function(dados) {
-                console.log('Dados recebidos:', dados);
-    
-                // Limpar o conteúdo anterior do modal
-                $('#modalDataBody').empty();
-    
-                if (dados.length === 0) {
-                    $('#modalDataBody').append('<tr><td colspan="11">Nenhum dado encontrado para este representante.</td></tr>');
-                } else {
-                    // Preencher o modal com os dados obtidos
-                    dados.forEach(dado => {
-                        const row = `
-                            <tr>
-                                <td>${dado.Npdf}</td>
-                                <td>${dado.kg}</td>
-                                <td>${dado.pd}</td>
-                                <td>${dado.pt}</td>
-                                <td>${dado.rh}</td>
-                                <td>${dado.valorkg}</td>
-                                <td>${dado.Valor}</td>
-                                <td>${dado.tipo}</td>
-                                <td>${dado.data}</td>
-                                <td>${dado.hora}</td>
-                                <td>${dado.fornecedor}</td>
-                                <td>${dado.sn}</td>
-                            </tr>
-                        `;
-                        $('#modalDataBody').append(row);
-                    });
-                }
-    
-                // Abrir o modal após preencher os dados
-                $('#detalhesModal').modal('show');
-            },
-            error: function(err) {
-                console.error("Erro ao carregar dados do representante:", err);
-            }
-        });
-    }
-    
+    loadRepresentanteInfo(nomeRepresentante);
 }
+function loadRepresentanteInfo(nomeRepresentante) {
+    const loteSelecionado = $('#loteSelect').val();
+
+    if (!loteSelecionado) {
+        $('#loteAlert').show();
+        return;
+    }
+
+    $('#loteAlert').hide();
+
+    $.ajax({
+        url: `/dados/${encodeURIComponent(nomeRepresentante)}?lote=${encodeURIComponent(loteSelecionado)}`,
+        method: 'GET',
+        success: function(dados) {
+            console.log('Dados recebidos:', dados);
+
+            $('#modalDataBody').empty();
+
+            if (dados.length === 0) {
+                $('#modalDataBody').append('<tr><td colspan="13">Nenhum dado encontrado para este representante.</td></tr>');
+            } else {
+                dados.sort((a, b) => a.Npdf - b.Npdf);
+
+                dados.forEach(dado => {
+                    const row = `
+                        <tr data-id="${dado.id}"> <!-- Assumindo que cada dado tem um ID -->
+                            <td>${dado.Npdf}</td>
+                            <td>${dado.kg}</td>
+                            <td>${dado.pd}</td>
+                            <td>${dado.pt}</td>
+                            <td>${dado.rh}</td>
+                            <td>${dado.valorkg}</td>
+                            <td>${dado.Valor}</td>
+                            <td>${dado.tipo}</td>
+                            <td>${dado.data}</td>
+                            <td>${dado.hora}</td>
+                            <td>${formatarNomeFornecedor(dado.fornecedor)}</td>
+                            <td>${dado.sn}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning" onclick="editarLinha(${dado.id})">Editar</button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.id})">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                    $('#modalDataBody').append(row);
+                });
+            }
+
+            $('#detalhesModal').modal('show');
+        },
+        error: function(err) {
+            console.error("Erro ao carregar dados do representante:", err);
+        }
+    });
+}
+
+
+function formatarNomeFornecedor(nome) {
+    const [primeiroNome, segundoNome] = nome.split(" ");
+    const primeiraLetraSobrenome = segundoNome ? segundoNome.charAt(0) + 'c' : '';
+    return `${primeiroNome} ${primeiraLetraSobrenome}`;
+}
+
 
 // Função para carregar informações do representante baseado no nome e lote
 
@@ -785,4 +739,3 @@ $(document).ready(function() {
     // Inicializar todos os tooltips
     $('[data-toggle="tooltip"]').tooltip();
 });
-

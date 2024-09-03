@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.179',
     user: 'tiago',
     password: '1234',
-    database: 'sys'
+    database: 'sys_test'
 });
 
 // Conectar ao banco de dados
@@ -482,6 +482,29 @@ app.get('/api/dados', (req, res) => {
         });
 
         res.json(processedResults);
+    });
+});
+
+// Endpoint PUT para atualizar uma linha específica
+app.put('/dados/:iddados', (req, res) => {
+    const id = req.params.id;
+    const {
+        Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn
+    } = req.body;
+
+    const query = `
+        UPDATE dados
+        SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
+        WHERE id = ?
+    `;
+
+    connection.query(query, [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id], (err, result) => {
+        if (err) {
+            console.error('Erro ao atualizar os dados:', err);
+            return res.status(500).json({ message: 'Erro ao atualizar os dados.' });
+        }
+
+        res.json({ message: 'Dados atualizados com sucesso!' });
     });
 });
 
@@ -1050,42 +1073,6 @@ app.post('/api/lote', (req, res) => {
     });
 });
 
-app.post('/api/salvar-edicoes', (req, res) => {
-    const { dados } = req.body;
-
-    if (!dados || !Array.isArray(dados)) {
-        return res.status(400).json({ error: "Dados inválidos fornecidos" });
-    }
-
-    dados.forEach(item => {
-        const { iddados, kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf, tipo } = item;
-
-        if (!iddados) {
-            console.error('iddados não fornecido');
-            return;
-        }
-
-        console.log('Atualizando dados:', {
-            kg, pd, pt, rh, valorkg, Valor, data, hora, fornecedor, sn, Npdf, tipo
-        });
-
-        const queryStr = `
-            UPDATE dados SET
-            kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
-            WHERE iddados = ?
-        `;
-
-        db.query(queryStr, [kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, iddados], (err, results) => {
-            if (err) {
-                console.error('Erro ao salvar edições:', err);
-                return res.status(500).json({ error: "Erro ao salvar edições" });
-            }
-            console.log('Dados atualizados com sucesso');
-        });
-    });
-
-    res.status(200).json({ message: "Dados atualizados com sucesso" });
-});
 
 
 
@@ -1814,7 +1801,34 @@ app.delete('/api/registros_financeiros/:id', (req, res) => {
     });
 });
 
+// Atualizar um dado existente
+app.put('/dados/:id', (req, res) => {
+    const id = req.params.id;
+    const { Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn } = req.body;
+    
+    const query = 'UPDATE dados SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ? WHERE id = ?';
+    const values = [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id];
+    
+    connection.query(query, values, (err, results) => {
+        if (err) {
+            return res.status(500).send('Erro ao atualizar dados');
+        }
+        res.sendStatus(200);
+    });
+});
 
+// Excluir um dado existente
+app.delete('/dados/:id', (req, res) => {
+    const id = req.params.id;
+    const query = 'DELETE FROM dados WHERE id = ?';
+    
+    connection.query(query, [id], (err, results) => {
+        if (err) {
+            return res.status(500).send('Erro ao excluir dado');
+        }
+        res.sendStatus(200);
+    });
+});
 
 
 // Middleware para tratamento de erros
