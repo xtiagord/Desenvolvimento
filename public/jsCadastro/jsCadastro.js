@@ -655,8 +655,9 @@ function loadRepresentanteInfo(nomeRepresentante) {
                 dados.sort((a, b) => a.Npdf - b.Npdf);
 
                 dados.forEach(dado => {
+                    console.log('ID do dado:', dado.id);
                     const row = `
-                        <tr data-id="${dado.id}"> <!-- Assumindo que cada dado tem um ID -->
+                        <tr data-id="${dado.iddados}"> <!-- Assumindo que cada dado tem um ID -->
                             <td>${dado.Npdf}</td>
                             <td>${dado.kg}</td>
                             <td>${dado.pd}</td>
@@ -670,8 +671,8 @@ function loadRepresentanteInfo(nomeRepresentante) {
                             <td>${formatarNomeFornecedor(dado.fornecedor)}</td>
                             <td>${dado.sn}</td>
                             <td>
-                                <button class="btn btn-sm btn-warning" onclick="editarLinha(${dado.id})">Editar</button>
-                                <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.id})">Excluir</button>
+                               <button class="btn btn-sm btn-warning" onclick="editarLinha(${dado.iddados})">Editar</button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.iddados})">Excluir</button>
                             </td>
                         </tr>
                     `;
@@ -739,3 +740,112 @@ $(document).ready(function() {
     // Inicializar todos os tooltips
     $('[data-toggle="tooltip"]').tooltip();
 });
+
+function excluirLinha(id) {
+    console.log('ID recebido para exclusão:', id);
+
+    if (!id) {
+        console.error('ID não fornecido para exclusão');
+        return;
+    }
+
+    fetch(`/api/dados/${id}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.text())
+    .then(message => {
+        console.log(message);
+        // Atualizar a interface do usuário após a exclusão
+        document.querySelector(`tr[data-id="${id}"]`).remove();
+    })
+    .catch(error => console.error('Erro ao excluir item:', error));
+}
+
+let idToDelete = null; // Variável global para armazenar o ID do item a ser excluído
+
+function excluirLinha(id) {
+    idToDelete = id; // Armazenar o ID do item a ser excluído
+
+    // Abrir o modal de confirmação
+    $('#confirmDeleteModal').modal('show');
+}
+
+// Função chamada quando o usuário confirma a exclusão
+$('#confirmDeleteButton').click(function() {
+    if (idToDelete !== null) {
+        $.ajax({
+            url: `/api/dados/${idToDelete}`,
+            method: 'DELETE',
+            success: function(response) {
+                console.log('Item excluído com sucesso:', response);
+                // Atualizar a tabela ou exibir uma mensagem de sucesso
+                $('#modalDataBody').find(`tr[data-id="${idToDelete}"]`).remove();
+                $('#confirmDeleteModal').modal('hide');
+            },
+            error: function(err) {
+                console.error('Erro ao excluir item:', err);
+            }
+        });
+    }
+});
+
+function editarLinha(id) {
+    const row = $(`tr[data-id=${id}]`);
+    const cells = row.find('td');
+    
+    cells.each((index, cell) => {
+        if (index < cells.length - 1) { // Ignora a última célula (botões)
+            const text = $(cell).text();
+            $(cell).html(`<input type="text" value="${text}" class="form-control">`);
+        }
+    });
+
+    const btn = $(row).find('.btn-warning');
+    btn.text('Salvar');
+    btn.removeClass('btn-warning').addClass('btn-success').attr('onclick', `salvarLinha(${id})`);
+}
+
+function salvarLinha(id) {
+    const row = $(`tr[data-id='${id}']`);
+    const inputs = row.find('input');
+    
+    const updatedData = {
+        Npdf: inputs.eq(0).val(),
+        kg: inputs.eq(1).val(),
+        pd: inputs.eq(2).val(),
+        pt: inputs.eq(3).val(),
+        rh: inputs.eq(4).val(),
+        valorkg: inputs.eq(5).val(),
+        Valor: inputs.eq(6).val(),
+        tipo: inputs.eq(7).val(),
+        data: inputs.eq(8).val(),
+        hora: inputs.eq(9).val(),
+        fornecedor: inputs.eq(10).val(),
+        sn: inputs.eq(11).val()
+    };
+
+    $.ajax({
+        url: `/dados/${id}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(updatedData),
+        success: function() {
+            alert('Dado atualizado com sucesso');
+            // Atualizar a linha com os novos valores
+            row.find('td').each(function(index) {
+                const input = $(this).find('input');
+                if (input.length) {
+                    $(this).text(input.val());
+                }
+            });
+
+            // Mudar o botão de volta para "Editar"
+            row.find('button.btn-warning').text('Editar').attr('onclick', `editarLinha(${id})`);
+        },
+        error: function(err) {
+            console.error('Erro ao atualizar dado:', err);
+            alert('Erro ao atualizar dado');
+        }
+    });
+}
+

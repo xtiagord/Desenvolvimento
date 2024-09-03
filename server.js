@@ -43,7 +43,6 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
 });
 
-
 // Configurar o middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
@@ -186,8 +185,6 @@ function extractPDFData(text) {
 
     return tableData;
 }
-
-
 // Endpoint para extração de PDF
 app.post('/extract', extractUpload, async (req, res) => {
     if (!req.file) {
@@ -465,13 +462,13 @@ app.get('/api/dados', (req, res) => {
             return res.status(500).send("Erro ao buscar dados do banco de dados.");
         }
 
+        console.log("Dados recebidos do banco de dados:", results); // Adicione este log
+
         // Processar e formatar os resultados
         const processedResults = results.map(item => {
-            // Converter valores para decimal
             let valor = item.Valor;
 
             if (valor) {
-                // Remover pontos e substituir vírgula por ponto
                 valor = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
             }
 
@@ -485,26 +482,60 @@ app.get('/api/dados', (req, res) => {
     });
 });
 
-// Endpoint PUT para atualizar uma linha específica
-app.put('/dados/:iddados', (req, res) => {
+
+app.delete('/api/dados/:id', (req, res) => {
     const id = req.params.id;
-    const {
-        Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn
-    } = req.body;
+
+    if (!id) {
+        return res.status(400).send("ID não fornecido");
+    }
+
+    const sql = "DELETE FROM dados WHERE iddados = ?";
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error("Erro ao excluir dado:", err);
+            return res.status(500).send("Erro ao excluir dado do banco de dados.");
+        }
+
+        res.send("Dado excluído com sucesso.");
+    });
+});
+
+// Exemplo de rota PUT para atualizar dados
+app.put('/dados/:id', (req, res) => {
+    const id = req.params.id;
+
+    // Verificar se req.body está definido e contém os campos esperados
+    if (!req.body) {
+        return res.status(400).send('O corpo da solicitação está vazio.');
+    }
+
+    const { Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn } = req.body;
+
+    // Verificar se todos os campos necessários estão presentes
+    if (Npdf === undefined || kg === undefined || pd === undefined || pt === undefined || rh === undefined ||
+        valorkg === undefined || Valor === undefined || tipo === undefined || data === undefined || hora === undefined ||
+        fornecedor === undefined || sn === undefined) {
+        return res.status(400).send('Faltam campos no corpo da solicitação.');
+    }
 
     const query = `
         UPDATE dados
         SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
-        WHERE id = ?
+        WHERE iddados = ?
     `;
 
-    connection.query(query, [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id], (err, result) => {
+    db.query(query, [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id], (err, results) => {
         if (err) {
-            console.error('Erro ao atualizar os dados:', err);
-            return res.status(500).json({ message: 'Erro ao atualizar os dados.' });
+            console.error('Erro ao atualizar dado:', err);
+            return res.status(500).send('Erro ao atualizar dado');
         }
 
-        res.json({ message: 'Dados atualizados com sucesso!' });
+        if (results.affectedRows === 0) {
+            return res.status(404).send('Dado não encontrado');
+        }
+
+        res.send('Dado atualizado com sucesso');
     });
 });
 
@@ -535,7 +566,7 @@ app.get('/dados/:nomeRepresentante', (req, res) => {
             return;
         }
 
-        console.log('Resultados da consulta:', results);
+        console.log('Resultados da consulta lote:', results);
         res.json(results);
     });
 });
@@ -1805,32 +1836,22 @@ app.delete('/api/registros_financeiros/:id', (req, res) => {
 app.put('/dados/:id', (req, res) => {
     const id = req.params.id;
     const { Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn } = req.body;
-    
-    const query = 'UPDATE dados SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ? WHERE id = ?';
-    const values = [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id];
-    
-    connection.query(query, values, (err, results) => {
+
+    const query = `
+        UPDATE dados
+        SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
+        WHERE iddados = ?
+    `;
+
+    db.query(query, [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id], (err, results) => {
         if (err) {
-            return res.status(500).send('Erro ao atualizar dados');
+            console.error('Erro ao atualizar dado:', err);
+            return res.status(500).send('Erro ao atualizar dado');
         }
-        res.sendStatus(200);
+
+        res.send('Dado atualizado com sucesso');
     });
 });
-
-// Excluir um dado existente
-app.delete('/dados/:id', (req, res) => {
-    const id = req.params.id;
-    const query = 'DELETE FROM dados WHERE id = ?';
-    
-    connection.query(query, [id], (err, results) => {
-        if (err) {
-            return res.status(500).send('Erro ao excluir dado');
-        }
-        res.sendStatus(200);
-    });
-});
-
-
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error(err.stack);
