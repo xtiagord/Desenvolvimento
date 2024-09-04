@@ -75,17 +75,17 @@
             </div>
         </div>
     </div>
-    <div class="table-container ">
-      <div id="result"></div>
-  </div>
-    <div class="d-flex mt-2">
-      <button id="sendButton" class="btn btn-success mt-2 " style="display: none;">Enviar</button>
-      <button id="addRowButton" class="btn btn-primary mt-2 ml-3 " style="display: none;">Adicionar Linha</button>
-      <button id="resetButton" class="btn btn-danger mt-2 ml-3" style="display: none;"
-        onclick="mostrarConfirmacaoReset()">Resetar Contagem</button>
-      <button id="editButton" class="btn btn-warning mt-2 ml-3" style="display: none;"
-        onclick="abrirModalEdicao()">Editar Contagem de Representantes</button>
-
+    <div class="table-container">
+      <div id="result" class="table-bg-white"></div>
+    </div>
+    
+    <div class="buttons-container d-flex justify-content-center align-items-center mt-2">
+      <button id="sendButton" class="btn btn-success" style="display: none;">Enviar</button>
+      <button id="addRowButton" class="btn btn-primary ml-3" style="display: none;">Adicionar Linha</button>
+      <button id="resetButton" class="btn btn-danger ml-3" style="display: none;" onclick="mostrarConfirmacaoReset()">Resetar Contagem</button>
+      <button id="editButton" class="btn btn-warning ml-3" style="display: none;" onclick="abrirModalEdicao()">Editar Contagem de Representantes</button>
+    </div>
+    
     </div>
     <select id="representanteSelect" style="display: none;"></select>
     <select id="fornecedorSelect" style="display: none;"></select>

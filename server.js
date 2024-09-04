@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.179',
     user: 'tiago',
     password: '1234',
-    database: 'sys_test'
+    database: 'sys'
 });
 
 // Conectar ao banco de dados
@@ -212,8 +212,8 @@ app.post('/save', (req, res) => {
         return res.status(400).json({ message: 'Dados inválidos ou ausentes' });
     }
 
-    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote, tipo) VALUES ?';
-    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote, row.tipo]);
+    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote, tipo, hedge) VALUES ?';
+    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote, row.tipo, row.hedge]);
 
     db.query(insertQuery, [values], (err, result) => {
         if (err) {
@@ -1852,6 +1852,39 @@ app.put('/dados/:id', (req, res) => {
         res.send('Dado atualizado com sucesso');
     });
 });
+
+// Exemplo de rota usando Express.js
+app.post('/api/contagem', async (req, res) => {
+    const { representanteId, contagem } = req.body;
+  
+    try {
+      // Verificar se já existe uma entrada para esse representante
+      const [existingEntry] = db.query(
+          'SELECT contagem FROM contagem_representantes WHERE representante_id = ?',
+          [representanteId]
+      );
+  
+      if (existingEntry) {
+        // Atualizar a contagem existente
+        db.query(
+              'UPDATE contagem_representantes SET contagem = ? WHERE representante_id = ?',
+              [contagem, representanteId]
+          );
+      } else {
+        // Inserir nova entrada para o representante
+        db.query(
+              'INSERT INTO contagem_representantes (representante_id, contagem) VALUES (?, ?)',
+              [representanteId, contagem]
+          );
+      }
+  
+      res.status(200).send({ message: 'Contagem atualizada com sucesso.' });
+    } catch (error) {
+      res.status(500).send({ error: 'Erro ao salvar a contagem.' });
+    }
+  });
+  
+  
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error(err.stack);

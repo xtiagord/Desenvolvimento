@@ -28,21 +28,7 @@ function displayData(data) {
   const resultDiv = document.getElementById('result');
   resultDiv.innerHTML = '';
 
-  // Cria o elemento card
-  const card = document.createElement('div');
-  card.className = 'card mb-4 custom-card'; // Adiciona a classe de card do Bootstrap e uma margem inferior
-
-  // Cria o cabeçalho do card
-  const cardHeader = document.createElement('div');
-  cardHeader.className = 'card-header';
-  cardHeader.innerHTML = '<h5 class="mb-0">Dados Extraídos</h5>'; // Cabeçalho do card
-  card.appendChild(cardHeader);
-
-  // Cria o corpo do card
-  const cardBody = document.createElement('div');
-  cardBody.className = 'card-body p-0';
-
-  // Cria a tabela e adiciona ao corpo do card
+  // Cria a tabela e adiciona ao container de resultados
   const table = document.createElement('table');
   table.className = 'table table-striped w-100'; // Adiciona a classe w-100 para ocupar a largura total
   const thead = document.createElement('thead');
@@ -57,6 +43,7 @@ function displayData(data) {
           <th scope="col">Valor KG</th>
           <th scope="col">Valor</th>
           <th scope="col">Tipo</th>
+          <th scope="col">Hedge</th>
           <th scope="col">Data</th>
           <th scope="col">Hora</th>
           <th scope="col">Representante</th>
@@ -71,49 +58,46 @@ function displayData(data) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>
-          <select id="lote${index}" class="form-control custom-spacing custom-width lote-input large-input">
+          <select id="lote${index}" class="form-control custom-spacing lote-input large-input" style="width: 10px;">
               <!-- Options will be populated dynamically -->
           </select>
       </td>
-      <td><input type="text" id="Npdf${index}" class="form-control custom-spacing custom-width custom-n large-input" value="${row.Npdf || ''}" readonly></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.kg || ''}"></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.pd || ''}"></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.pt || ''}"></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.rh || ''}"></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.valorKg || ''}"></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.valor || ''}"></td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input tipo-input" value="${row.tipo || ''}"></td>
+      <td><input type="text" id="Npdf${index}" class="form-control custom-spacing custom-n large-input" style="width: 30px;" value="${row.Npdf || ''}" readonly></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 50px;" value="${row.kg || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 50px;" value="${row.pd || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 50px;" value="${row.pt || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 50px;" value="${row.rh || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 50px;" value="${row.valorKg || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 60px;" value="${row.valor || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input tipo-input" style="width: 50px;" value="${row.tipo || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input hedge-input" style="width: 50px;" value="${row.hedge || ''}"></td>
       <td>
           ${row.data === undefined ? 
-              `<input type="date" id="data${index}" class="form-control custom-spacing custom-width large-input" placeholder="dd/mm/yyyy">` :
-              `<input type="text" id="data${index}" class="form-control custom-spacing custom-width large-input" value="${row.data}">`
+              `<input type="date" id="data${index}" class="form-control custom-spacing large-input" style="width: 50px;" placeholder="dd/mm/yyyy">` :
+              `<input type="text" id="data${index}" class="form-control custom-spacing large-input" style="width: 80px;" value="${row.data}">`
           }
       </td>
-      <td><input type="text" class="form-control custom-spacing custom-width large-input" value="${row.hora || ''}"></td>
+      <td><input type="text" class="form-control custom-spacing large-input" style="width: 80px;" value="${row.hora || ''}"></td>
       <td>
-          <select id="representante${index}" class="form-control custom-spacing custom-width representante-select sync-input large-input">
+          <select id="representante${index}" class="form-control custom-spacing representante-select sync-input large-input" style="width: 90px;">
               <!-- Options will be populated dynamically -->
           </select>
       </td>
       <td>
-          <input list="fornecedores${index}" id="fornecedor${index}" class="form-control custom-spacing custom-width fornecedor-input sync-input large-input" value="${row.fornecedor || ''}">
-          <datalist id="fornecedores${index}" class="fornecedor-datalist large-input">
+          <input list="fornecedores${index}" id="fornecedor${index}" class="form-control custom-spacing fornecedor-input sync-input large-input" style="width: 100px;" value="${row.fornecedor || ''}">
+          <datalist id="fornecedores${index}" class="fornecedor-datalist large-input" style="width: 100px;">
               <!-- Options will be populated dinamicamente -->
           </datalist>
       </td>
-      <td><input type="text" id="SN${index}" class="form-control custom-spacing custom-width large-input sn-input" value="${row.sn || ''}"></td>
+      <td><input type="text" id="SN${index}" class="form-control custom-spacing large-input sn-input" style="width: 80px;" value="${row.sn || ''}"></td>
     `;
     
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
 
-  // Adiciona a tabela ao corpo do card
-  cardBody.appendChild(table);
-  card.appendChild(cardBody);
-
-  // Adiciona o card ao container de resultados
-  resultDiv.appendChild(card);
+  // Adiciona a tabela diretamente ao container de resultados
+  resultDiv.appendChild(table);
 
   // Preencher os selects de representante com os valores atuais
   const representanteSelects = resultDiv.querySelectorAll('.representante-select');
@@ -208,6 +192,19 @@ fetch('/api/lote')
       input.addEventListener('input', function() {
           const newValue = this.value;
           tipoInputs.forEach((syncInput, syncIndex) => {
+              if (syncIndex !== index) {
+                  syncInput.value = newValue;
+              }
+          });
+      });
+  });
+
+  //Evento de entrada para sincronizar os campos "Hedge"
+  const hedgeInputs = resultDiv.querySelectorAll('.hedge-input');
+  hedgeInputs.forEach((input, index) => {
+      input.addEventListener('input', function() {
+          const newValue = this.value;
+          hedgeInputs.forEach((syncInput, syncIndex) => {
               if (syncIndex !== index) {
                   syncInput.value = newValue;
               }
@@ -341,9 +338,9 @@ document.getElementById('sendButton').addEventListener('click', async () => {
       cells[8].style.borderColor = ''; // Remove destaque se preenchido
     }
 
-    const representante = cells[11].options[cells[11].selectedIndex].text;
+    const representante = cells[12].options[cells[12].selectedIndex].text;
     const lote = cells[0].value;
-    const fornecedor = cells[12].value;
+    const fornecedor = cells[13].value;
 
     if (!uniqueData.has(representante)) {
       uniqueData.set(representante, { lote, tipo, representante, fornecedor });
@@ -411,11 +408,12 @@ document.getElementById('sendButton').addEventListener('click', async () => {
         valorKg: cells[6].value,
         valor: cells[7].value,
         tipo: cells[8].value,
-        data: cells[9].value,
-        hora: cells[10].value,
-        representante: cells[11].options[cells[11].selectedIndex].text,
-        fornecedor: cells[12].value,
-        sn: cells[13].value
+        hedge: cells[9].value,
+        data: cells[10].value,
+        hora: cells[11].value,
+        representante: cells[12].options[cells[12].selectedIndex].text,
+        fornecedor: cells[13].value,
+        sn: cells[14].value
       };
     }));
 
@@ -440,8 +438,6 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   };
 
 });
-
-
 
 function formatDecimal(value) {
   if (value === null || value === undefined || value === '') return '';

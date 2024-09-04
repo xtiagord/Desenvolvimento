@@ -4,13 +4,11 @@
   .custom-width-n {
     width: 70px; 
   }
+  body {
+    background-color: #e2e2e2; /* Cor cinza clara para o fundo da página */
+  }
   #addRowButton {
     display: none; /* Inicialmente escondido */
-  }
-  .table-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
   }
   .navbar-nav .nav-link {
     font-size: 1rem; /* Aumenta o tamanho da fonte dos itens da navbar */
@@ -45,31 +43,30 @@
     display: flex;
     justify-content: center;
     width: 100%;
-    overflow-x: auto;
-    margin-top: 20px;
-  }
+}
 
-  .custom-card {
+.card {
+    margin: 20px auto; /* Centraliza o card na página */
+    max-width: 90%; /* Define um limite de largura para o card */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adiciona uma leve sombra ao card */
+    border-radius: 8px; /* Bordas arredondadas */
+}
+
+.card-body {
+    padding: 20px; /* Adiciona espaçamento interno ao card */
+}
+
+table {
     width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 20px;
-    margin: 0;
-  }
+    margin: 0 auto; /* Centraliza a tabela dentro do card */
+    border-collapse: collapse; /* Remove espaços entre as células da tabela */
+}
 
-  .table {
-    width: 100%;
-    table-layout: fixed;
-    overflow-x: auto;
-  }
+/* Estilo para a tabela com fundo branco */
+.table-bg-white {
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 0; /* Remove a margem inferior da tabela */
+}
 
-  .form-control.custom-width {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .form-control.custom-width {
-    min-width: 80px;
-  }
-
-  

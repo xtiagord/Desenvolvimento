@@ -666,6 +666,7 @@ function loadRepresentanteInfo(nomeRepresentante) {
                             <td>${dado.valorkg}</td>
                             <td>${dado.Valor}</td>
                             <td>${dado.tipo}</td>
+                            <td>${dado.hedge}</td>
                             <td>${dado.data}</td>
                             <td>${dado.hora}</td>
                             <td>${formatarNomeFornecedor(dado.fornecedor)}</td>
@@ -818,10 +819,11 @@ function salvarLinha(id) {
         valorkg: inputs.eq(5).val(),
         Valor: inputs.eq(6).val(),
         tipo: inputs.eq(7).val(),
-        data: inputs.eq(8).val(),
-        hora: inputs.eq(9).val(),
-        fornecedor: inputs.eq(10).val(),
-        sn: inputs.eq(11).val()
+        hedge:inputs.eq(8).val(),
+        data: inputs.eq(9).val(),
+        hora: inputs.eq(10).val(),
+        fornecedor: inputs.eq(11).val(),
+        sn: inputs.eq(12).val()
     };
 
     $.ajax({
