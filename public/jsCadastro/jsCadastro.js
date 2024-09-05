@@ -208,7 +208,38 @@ document.getElementById('exportAllToExcel').addEventListener('click', function()
 
         // Adicionar uma aba para cada representante
         Object.keys(groupedData).forEach(representante => {
-            const ws = XLSX.utils.json_to_sheet(groupedData[representante]);
+            // Ordenar os dados por Npdf numericamente
+            const sortedData = groupedData[representante].sort((a, b) => {
+                const numA = parseFloat(a.Npdf) || 0;
+                const numB = parseFloat(b.Npdf) || 0;
+                return numA - numB;
+            });
+
+            // Calcular o total dos valores
+            const totalValor = sortedData.reduce((total, item) => total + parseFloat(item.Valor) || 0, 0);
+            const totalKg = sortedData.reduce((total, item) => total + parseFloat(item.kg) || 0, 0);
+            const totalPd = sortedData.reduce((total, item) => total + parseFloat(item.pd) || 0, 0);
+            const totalPt = sortedData.reduce((total, item) => total + parseFloat(item.pt) || 0, 0);
+            const totalRh = sortedData.reduce((total, item) => total + parseFloat(item.rh) || 0, 0);
+
+            // Adicionar a linha de total no final dos dados
+            sortedData.push({
+                npdf: 'Total Geral',
+                fornecedor: '',
+                equipamento: '',
+                valor: totalValor, // Total dos valores
+                pgto: '',
+                plan: '',
+                hedge: '',
+                pag: '',
+                kg: totalKg,
+                pd: totalPd,
+                pt: totalPt,
+                rh: totalRh
+            });
+
+            // Criar a planilha para o representante
+            const ws = XLSX.utils.json_to_sheet(sortedData);
             XLSX.utils.book_append_sheet(wb, ws, representante);
         });
 
@@ -221,6 +252,7 @@ document.getElementById('exportAllToExcel').addEventListener('click', function()
     });
 });
 
+
 document.getElementById('exportaOnderExcell').addEventListener('click', function() {
     const loteSelecionado = document.getElementById('loteSelect').value.trim();
 
@@ -230,11 +262,10 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
     }
 
     document.getElementById('loteAlert').style.display = 'none';
-    
+
     fetch(`/api/exportarRepresentantes?lote=${encodeURIComponent(loteSelecionado)}`)
     .then(response => response.json())
     .then(data => {
-        // Agrupar os dados por representante
         const groupedData = data.reduce((acc, item) => {
             const representante = item.representante;
             if (!acc[representante]) {
@@ -244,14 +275,8 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
             return acc;
         }, {});
 
-        let globalCounter = 1; // Contador global inicializado
+        let globalCounter = 1;
 
-        // Função para formatar valores em formato monetário brasileiro
-        const formatCurrency = (value) => {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-        };
-
-        // Função para formatar o nome do fornecedor
         const formatFornecedor = (fornecedor) => {
             const nomePartes = fornecedor.trim().split(' ');
             if (nomePartes.length > 1) {
@@ -259,28 +284,38 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
                 const primeiraLetraSobrenome = nomePartes[1].charAt(0);
                 return `${primeiroNome} ${primeiraLetraSobrenome}c`;
             }
-            return fornecedor; // Se não houver sobrenome, retornar o nome como está
+            return fornecedor;
         };
 
-        // Ordenar e formatar os dados para exportação
+        let totalGlobalValor = 0;
+        let totalGlobalKg = 0;
+        let totalGlobalPd = 0;
+        let totalGlobalPt = 0;
+        let totalGlobalRh = 0;
+
         const formattedData = Object.keys(groupedData)
-            .sort()  // Ordenar os representantes em ordem alfabética
+            .sort()
             .flatMap(representante => {
+                const sortedItems = groupedData[representante].sort((a, b) => {
+                    const numA = parseFloat(a.Npdf) || 0;
+                    const numB = parseFloat(b.Npdf) || 0;
+                    return numA - numB;
+                });
+
                 let previousNpdf = null;
-                return groupedData[representante].map(item => {
+
+                const rows = sortedItems.map(item => {
                     let npdfValue;
                     if (item.Npdf === previousNpdf) {
-                        npdfValue = ''; // Deixar vazio se for repetido
+                        npdfValue = '';
                     } else {
-                        npdfValue = globalCounter++; // Atribuir e incrementar o contador global
+                        npdfValue = globalCounter++;
                     }
                     previousNpdf = item.Npdf;
 
                     const equipamento = item.sn;
-                    // Extrair os últimos 3 dígitos do número de série (sn)
                     const lastThreeDigits = item.sn.slice(-3);
                     
-                    // Combinar "Cambe" ou "Marcio" com os últimos 3 dígitos do SN dependendo do representante
                     let formattedEquipamento;
                     if (representante === "ANDERSON") {
                         formattedEquipamento = `CAMBE ${lastThreeDigits}`;
@@ -302,33 +337,69 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
                         formattedEquipamento = `${representante} ${lastThreeDigits}`;
                     }
 
+                    totalGlobalValor += parseFloat(item.Valor) || 0;
+                    totalGlobalKg += parseFloat(item.kg) || 0;
+                    totalGlobalPd += parseFloat(item.pd) || 0;
+                    totalGlobalPt += parseFloat(item.pt) || 0;
+                    totalGlobalRh += parseFloat(item.rh) || 0;
+
                     return {
                         npdf: npdfValue,
-                        fornecedor: formatFornecedor(item.fornecedor), // Formatando o fornecedor
-                        equipamento: formattedEquipamento, 
-                        valor: formatCurrency(parseFloat(item.Valor)), 
+                        fornecedor: formatFornecedor(item.fornecedor),
+                        equipamento: formattedEquipamento,
+                        valor: parseFloat(item.Valor) || 0,
                         pgto: item.pgto,
                         plan: item.tipo,
                         hedge: item.hedge,
                         pag: item.pag,
-                        kg: item.kg.replace('.', ','), 
-                        pd: item.pd.replace('.', ','), 
-                        pt: item.pt.replace('.', ','), 
-                        rh: item.rh.replace('.', ',') 
+                        kg: parseFloat(item.kg) || 0,
+                        pd: parseFloat(item.pd) || 0,
+                        pt: parseFloat(item.pt) || 0,
+                        rh: parseFloat(item.rh) || 0
                     };
                 });
+
+                return rows;
             });
 
-        // Criar uma nova planilha
-        const wb = XLSX.utils.book_new();
+        formattedData.push({
+            npdf: 'Total Geral',
+            fornecedor: '',
+            equipamento: '',
+            valor: totalGlobalValor,
+            pgto: '',
+            plan: '',
+            hedge: '',
+            pag: '',
+            kg: totalGlobalKg,
+            pd: totalGlobalPd,
+            pt: totalGlobalPt,
+            rh: totalGlobalRh
+        });
 
-        // Adicionar os dados formatados a uma única aba
+        const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.json_to_sheet(formattedData);
 
-        // Adicionar a aba à planilha
-        XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
+        // Aplicar formatação para valores e colunas com 4 casas decimais
+        Object.keys(ws).forEach(key => {
+            if (key[0] === 'D') { // Coluna "valor" é a quarta (D)
+                ws[key].z = 'R$ #,##0.00';
+            } else if (['I','J', 'K', 'L'].includes(key[0])) { // Colunas de quantidade (kg, pd, pt, rh)
+                ws[key].z = '#,##0.0000';
+            }
+        });
 
-        // Exportar o arquivo Excel
+        // Ajuste de largura automática de colunas
+        const maxLength = formattedData.reduce((acc, row) => {
+            Object.keys(row).forEach((key, index) => {
+                const value = row[key]?.toString() || '';
+                acc[index] = Math.max(acc[index] || 0, value.length);
+            });
+            return acc;
+        }, []);
+        ws['!cols'] = maxLength.map(len => ({ wch: len + 2 })); // Adicionando +2 para uma margem de segurança
+
+        XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
         XLSX.writeFile(wb, `representantes_${loteSelecionado}_formatados.xlsx`);
     })
     .catch(error => {
@@ -336,8 +407,6 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
         alert('Erro ao exportar dados. Por favor, tente novamente.');
     });
 });
-
-
 
 // Event listener para o botão "Cliente: EDITAR/EXCLUIR"
 document.querySelector('.btn-danger').addEventListener('click', function() {
