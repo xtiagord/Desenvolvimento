@@ -306,7 +306,167 @@ $(document).ready(function() {
                 }
             });
         });
-    });
-    
-    
+    });  
 });
+
+document.getElementById('search-input').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const tableRows = document.querySelectorAll('#tabela-registros-modal tbody tr');
+
+    tableRows.forEach(row => {
+        const rowText = row.textContent.toLowerCase();
+        if (rowText.includes(searchTerm)) {
+            row.style.display = ''; // Mostra a linha
+        } else {
+            row.style.display = 'none'; // Esconde a linha
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const startDateInput = document.getElementById('start-date');
+    const endDateInput = document.getElementById('end-date');
+
+    const filterTable = () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const startDate = startDateInput.value ? new Date(startDateInput.value) : null;
+        const endDate = endDateInput.value ? new Date(endDateInput.value) : null;
+        const tableRows = document.querySelectorAll('#tabela-registros-modal tbody tr');
+
+        tableRows.forEach(row => {
+            const rowText = row.textContent.toLowerCase();
+            const dateCell = row.querySelector('td:first-child'); // Assume que a data está na primeira coluna
+            const rowDate = new Date(dateCell.textContent);
+
+            const matchesSearch = rowText.includes(searchTerm);
+            const withinDateRange = (
+                (!startDate || rowDate >= startDate) &&
+                (!endDate || rowDate <= endDate)
+            );
+
+            if (matchesSearch && withinDateRange) {
+                row.style.display = ''; // Mostra a linha
+            } else {
+                row.style.display = 'none'; // Esconde a linha
+            }
+        });
+    };
+
+    searchInput.addEventListener('input', filterTable);
+    startDateInput.addEventListener('change', filterTable);
+    endDateInput.addEventListener('change', filterTable);
+});
+
+$(document).ready(function() {
+    // Função para gerar PDF
+    $('#form-gerar-pdf').on('submit', function(event) {
+        event.preventDefault(); // Impede o comportamento padrão de envio do formulário
+
+        const representanteId = $('#representante_pdf').val();
+        const dataInicio = $('#data_inicio').val();
+        const dataFim = $('#data_fim').val();
+
+        if (!representanteId || !dataInicio || !dataFim) {
+            alert('Por favor, preencha todos os campos.');
+            return;
+        }
+
+        // Chama o novo endpoint para obter os dados filtrados
+        $.get('/api/registros_financeiros_para_pdf', { representante_id: representanteId, data_inicio: dataInicio, data_fim: dataFim }, function(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape' }); // Horizontal
+
+            doc.setFontSize(12);
+            doc.text('Relatório Financeiro', 14, 16);
+
+            // Adicionar informações do representante e período
+            doc.setFontSize(10);
+            doc.text(`Representante: ${$('#representante_pdf option:selected').text()}`, 14, 24);
+            doc.text(`Período: ${dataInicio} a ${dataFim}`, 14, 32);
+
+            // Definir posições e largura para a tabela
+            let y = 50; // Y inicial para a tabela
+            const colWidths = [40, 60, 40, 40, 80]; // Largura das colunas
+            const columns = ['Data', 'Comprador', 'Débito', 'Crédito', 'Observações'];
+
+            // Adicionar cabeçalho da tabela
+            doc.setFillColor(200, 200, 200); // Cor de fundo cinza
+            const headerHeight = 10;
+            doc.rect(14, y - headerHeight, colWidths.reduce((a, b) => a + b, 0), headerHeight, 'F'); // Retângulo de fundo
+            doc.setFontSize(10);
+            columns.forEach((col, index) => {
+                doc.text(col, 14 + colWidths.slice(0, index).reduce((a, b) => a + b, 0), y - 2);
+            });
+
+            y += headerHeight; // Espaço abaixo do cabeçalho
+
+            // Adicionar linhas da tabela
+            data.forEach(reg => {
+                doc.setFontSize(10); // Tamanho padrão da fonte
+                doc.text(formatDate(reg.data), 14, y);
+                doc.text(reg.comprador, 14 + colWidths[0], y);
+                doc.text(formatCurrency(unformatCurrency(reg.valor_debito) / 100), 14 + colWidths[0] + colWidths[1], y);
+                doc.text(formatCurrency(unformatCurrency(reg.valor_credito) / 100), 14 + colWidths[0] + colWidths[1] + colWidths[2], y);
+                
+                // Ajustar texto da coluna de observações
+                if (reg.observacoes.length > 100) {
+                    doc.setFontSize(8); // Reduzir o tamanho da fonte
+                    const obsText = doc.splitTextToSize(reg.observacoes, colWidths[4]); // Quebra o texto
+                    obsText.forEach((line, lineIndex) => {
+                        doc.text(line, 14 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], y + (lineIndex * 8)); // Espaço entre linhas
+                    });
+                    y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
+                } else {
+                    doc.setFontSize(10); // Tamanho padrão da fonte
+                    doc.text(reg.observacoes, 14 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], y);
+                }
+                
+                y += 10; // Espaço entre linhas (ajustado para caber o texto de várias linhas, se necessário)
+            });
+
+            // Salvar o PDF
+            doc.save(`relatorio_financeiro_${representanteId}_${dataInicio}_a_${dataFim}.pdf`);
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Erro ao gerar PDF:', textStatus, errorThrown);
+            alert('Erro ao gerar PDF.');
+        });
+    });
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+    
+    function formatCurrency(value) {
+        let number = parseFloat(value).toFixed(2);
+        return new Intl.NumberFormat('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL' 
+        }).format(number);
+    }
+    
+    function unformatCurrency(value) {
+        return parseFloat(value.replace(/R\$\s?/g, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
+    }
+
+    // Função para carregar representantes no formulário PDF
+    function loadRepresentantesForPdf() {
+        $.get('/api/representantes_financeiros', function(data) {
+            $('#representante_pdf').empty();
+            data.forEach(rep => {
+                $('#representante_pdf').append(`<option value="${rep.id}">${rep.nome}</option>`);
+            });
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Erro ao carregar representantes para PDF:', textStatus, errorThrown);
+        });
+    }
+
+    // Inicializar representantes no formulário PDF
+    loadRepresentantesForPdf();
+});
+
+

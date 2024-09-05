@@ -9,6 +9,9 @@
       <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
       <link rel="stylesheet" href="/landing.css">
       <link rel="stylesheet" href="/Financeiro/financeiroStyle.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.5.3/jspdf.plugin.autotable.min.js"></script>
    </head>
    <body>
       <header>
@@ -98,11 +101,28 @@
        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRepresentante">
          Cadastrar Representante
       </button>     
-      <!-- Botão Gerar PDF -->
-      <button id="btn-gerar-pdf" class="btn btn-primary">Gerar PDF</button>
 
    </form>
 </div>
+
+<form id="form-gerar-pdf">
+   <div class="form-group">
+       <label for="representante_pdf">Representante:</label>
+       <select id="representante_pdf" class="form-control">
+           <!-- Options will be populated dynamically -->
+       </select>
+   </div>
+   <div class="form-group">
+       <label for="data_inicio">Data de Início:</label>
+       <input type="date" id="data_inicio" class="form-control">
+   </div>
+   <div class="form-group">
+       <label for="data_fim">Data de Fim:</label>
+       <input type="date" id="data_fim" class="form-control">
+   </div>
+   <button type="submit" class="btn btn-primary">Gerar PDF</button>
+</form>
+
 <!-- Tela de Carregamento -->
 <div id="loading-screen">
    <div class="spinner-border text-primary" role="status">
@@ -150,7 +170,11 @@
                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
            </div>
            <div class="modal-body">
-               <input type="text" id="search-input" class="form-control mb-3" placeholder="Pesquisar por data, observação ou valor...">
+            <div class="d-flex align-items-center mb-3">
+                <input type="date" id="start-date" class="form-control me-2" placeholder="Data de Início">
+                <input type="date" id="end-date" class="form-control me-2" placeholder="Data de Fim">
+                <input type="text" id="search-input" class="form-control" placeholder="Pesquisar por data, observação ou valor...">
+            </div>
                <div class="table-container">
                    <table class="table" id="tabela-registros-modal">
                        <thead>
@@ -203,8 +227,6 @@
   </div>
 </div>
 
-
- <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.6.0/jspdf.umd.min.js"></script>
       <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
       <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
@@ -213,6 +235,10 @@
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
       <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.5.3/jspdf.plugin.autotable.min.js"></script>
+
+      
       <script src="/Financeiro/financeiroScript.js"></script>
    </body>
 </html>

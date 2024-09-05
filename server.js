@@ -1819,6 +1819,32 @@ app.put('/api/registros_financeiros/:id', (req, res) => {
     });
 });
 
+app.get('/api/registros_financeiros_para_pdf', (req, res) => {
+    const representanteId = req.query.representante_id;
+    const dataInicio = req.query.data_inicio; // no formato aaaa-mm-dd
+    const dataFim = req.query.data_fim; // no formato aaaa-mm-dd
+
+    if (!representanteId || !dataInicio || !dataFim) {
+        return res.status(400).json({ error: 'Faltando parâmetros' });
+    }
+
+    // Consulta SQL para filtrar registros por intervalo de datas
+    const query = `
+        SELECT * FROM registros_financeiros
+        WHERE representante_id = ? 
+        AND data BETWEEN ? AND ?
+    `;
+
+    db.query(query, [representanteId, dataInicio, dataFim], (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar registros financeiros para PDF:', error);
+            return res.status(500).json({ error: 'Erro ao buscar registros financeiros para PDF' });
+        }
+        res.json(results);
+    });
+});
+
+
 app.delete('/api/registros_financeiros/:id', (req, res) => {
     const id = req.params.id;
 
