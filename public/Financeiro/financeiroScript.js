@@ -1,5 +1,8 @@
 $(document).ready(function() {
     let representanteIdSelecionado = null;
+
+        $('#representante').append('<option value="" disabled selected>Selecione um representante</option>');
+
         // Evento para selecionar um representante
         $('#representante').on('change', function() {
             representanteIdSelecionado = $(this).val();
@@ -18,6 +21,7 @@ $(document).ready(function() {
         // Coletar os valores dos campos
         const representante_id = $('#representante').val();
         const data = $('#data').val();
+        const hora = $('#hora').val();
         const comprador = $('#comprador').val();
         const valor_debito = unformatCurrency($('#valor_debito').val());
         const valor_credito = unformatCurrency($('#valor_credito').val());
@@ -37,6 +41,7 @@ $(document).ready(function() {
             data: JSON.stringify({
                 representante_id: representanteIdSelecionado,
                 data,
+                hora,
                 comprador,
                 valor_debito,
                 valor_credito,
@@ -73,16 +78,21 @@ $(document).ready(function() {
     });
 
     function formatCurrency(value) {
-        let number = parseFloat(value).toFixed(2);
         return new Intl.NumberFormat('pt-BR', { 
             style: 'currency', 
-            currency: 'BRL' 
-        }).format(number);
+            currency: 'BRL',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(value);
     }
     
+    
     function unformatCurrency(value) {
-        return parseFloat(value.replace(/R\$\s?/g, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
+        // Remove R$ e separadores de milhar, e substitui a vírgula por ponto para a conversão correta
+        return parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')).toFixed(4) || '0.0000';
     }
+    
+    
     
     function loadRegistros(representanteId) {
         $('#loading-screen').show();
@@ -99,10 +109,13 @@ $(document).ready(function() {
                 } else if (parseFloat(unformatCurrency(reg.valor_credito)) > 0) {
                     rowClass = 'bg-credito';
                 }
+
+                const horaFormatada = reg.hora ? reg.hora : '';
     
                 $('#tabela-registros-modal tbody').append(
                     `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${representanteId}">
                         <td class="editable">${formatDate(reg.data)}</td>
+                        <td class="editable">${horaFormatada}</td>
                         <td class="editable">${reg.comprador}</td>
                         <td class="editable">${formatCurrency(unformatCurrency(reg.valor_debito) / 100)}</td>
                         <td class="editable">${formatCurrency(unformatCurrency(reg.valor_credito) / 100)}</td>
@@ -195,6 +208,7 @@ $(document).ready(function() {
             $('#representantes-container').empty();
             $('#representante').empty();
             $('#tabela-representantes tbody').empty();
+            $('#representante').append('<option value="" disabled selected>Selecione um representante</option>'); // Re-adiciona a opção padrão
 
             var container = $('<div class="row"></div>');
 
@@ -416,8 +430,8 @@ $(document).ready(function() {
 
             // Definir posições e largura para a tabela
             let y = 40; // Y inicial para a tabela
-            const colWidths = [40, 80, 40, 40, 70]; // Largura das colunas
-            const columns = ['Data', 'Comprador', 'Débito', 'Crédito', 'Observações'];
+            const colWidths = [20, 20, 80, 40, 40, 70]; // Largura das colunas
+            const columns = ['Data', 'Hora', 'Comprador', 'Débito', 'Crédito', 'Observações'];
 
             // Adicionar cabeçalho da tabela
             doc.setFillColor(255, 255, 255); // Cor de fundo cinza
@@ -484,6 +498,7 @@ data.forEach((reg, index) => {
 
     doc.text(formatDate(reg.data), 14, textY);
     doc.text(reg.comprador, 14 + colWidths[0], textY);
+    doc.text(reg.hora, 14 + colWidths[0], textY);
     const valorDebito = unformatCurrency(reg.valor_debito) / 100;
     const valorCredito = unformatCurrency(reg.valor_credito) / 100;
     doc.text(formatCurrency(valorDebito), 14 + colWidths[0] + colWidths[1], textY);
@@ -683,6 +698,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Erro ao carregar compradores:', error);
             });
     }
+    
 
     // Preencher o campo de representantes (se necessário)
     fetch('/api/representantes_financeiros')

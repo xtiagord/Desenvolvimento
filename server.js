@@ -1763,7 +1763,7 @@ app.get('/api/representantes_financeiros', (req, res) => {
 
 // Rota para adicionar um novo registro financeiro
 app.post('/api/registros_financeiros', (req, res) => {
-    const { representante_id, data, comprador, valor_debito, valor_credito, observacoes } = req.body;
+    const { representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes } = req.body;
 
     // Validar se o representante_id não é nulo
     if (!representante_id) {
@@ -1771,8 +1771,8 @@ app.post('/api/registros_financeiros', (req, res) => {
     }
 
     // Inserir o registro financeiro no banco de dados
-    const query = `INSERT INTO registros_financeiros (representante_id, data, comprador, valor_debito, valor_credito, observacoes) VALUES (?, ?, ?, ?, ?, ?)`;
-    db.query(query, [representante_id, data, comprador, valor_debito, valor_credito, observacoes], (error, results) => {
+    const query = `INSERT INTO registros_financeiros (representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes], (error, results) => {
         if (error) {
             console.error('Erro ao inserir registro financeiro:', error);
             return res.status(500).json({ error: 'Erro ao salvar o registro financeiro' });
@@ -1787,7 +1787,7 @@ app.get('/api/registros_financeiros', (req, res) => {
     
     // Consulta SQL para obter registros financeiros com o nome do comprador
     const query = `
-        SELECT rf.id, rf.data, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.observacoes
+        SELECT rf.id, rf.data, rf.hora, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.observacoes
         FROM registros_financeiros rf
         LEFT JOIN compradores c ON rf.comprador = c.id
         WHERE rf.representante_id = ?
@@ -1808,11 +1808,11 @@ app.put('/api/registros_financeiros/:id', (req, res) => {
 
     const query = `
         UPDATE registros_financeiros
-        SET representante_id = ?, data = ?, comprador = ?, valor_debito = ?, valor_credito = ?, observacoes = ?
+        SET representante_id = ?, data = ?, hora = ?, comprador = ?, valor_debito = ?, valor_credito = ?, observacoes = ?
         WHERE id = ?
     `;
 
-    db.query(query, [representante_id, data, comprador, valor_debito, valor_credito, observacoes, id], (err, results) => {
+    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes, id], (err, results) => {
         if (err) {
             console.error('Erro ao atualizar registro financeiro:', err);
             return res.status(500).send(err);
