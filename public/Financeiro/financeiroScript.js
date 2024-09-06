@@ -377,23 +377,28 @@ $(document).ready(function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'landscape' }); // Horizontal
 
-            doc.setFontSize(12);
-            doc.text('Relatório Financeiro', 14, 16);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold"); // Define a fonte como Helvetica em negrito
+            doc.text('Relatório de Movimentação', 14, 16);
+
 
             // Adicionar informações do representante e período
-            doc.setFontSize(10);
-            doc.text(`Representante: ${$('#representante_pdf option:selected').text()}`, 14, 24);
-            doc.text(`Período: ${dataInicio} a ${dataFim}`, 14, 32);
+            doc.setFontSize(12);
+            doc.text(`Representante: ${$('#representante_pdf option:selected').text()}`, 110, 16);
+            doc.text(`Período: ${formatDateToBR(dataInicio)} - ${formatDateToBR(dataFim)}`, 14, 24);
+
 
             // Definir posições e largura para a tabela
-            let y = 50; // Y inicial para a tabela
-            const colWidths = [40, 60, 40, 40, 80]; // Largura das colunas
+            let y = 40; // Y inicial para a tabela
+            const colWidths = [40, 80, 40, 40, 70]; // Largura das colunas
             const columns = ['Data', 'Comprador', 'Débito', 'Crédito', 'Observações'];
 
             // Adicionar cabeçalho da tabela
-            doc.setFillColor(200, 200, 200); // Cor de fundo cinza
+            doc.setFillColor(255, 255, 255); // Cor de fundo cinza
             const headerHeight = 10;
-            doc.rect(14, y - headerHeight, colWidths.reduce((a, b) => a + b, 0), headerHeight, 'F'); // Retângulo de fundo
+            const headerX = 14; 
+            const headerWidth = colWidths.reduce((a, b) => a + b, 0); // Largura do cabeçalho igual à soma das larguras das colunas
+            doc.rect(headerX, y - headerHeight, headerWidth, headerHeight, 'F'); 
             doc.setFontSize(10);
             columns.forEach((col, index) => {
                 doc.text(col, 14 + colWidths.slice(0, index).reduce((a, b) => a + b, 0), y - 2);
@@ -401,29 +406,134 @@ $(document).ready(function() {
 
             y += headerHeight; // Espaço abaixo do cabeçalho
 
+            // Variáveis para totais
+            let totalDebitos = 0;
+            let totalCreditos = 0;
+
             // Adicionar linhas da tabela
-            data.forEach(reg => {
-                doc.setFontSize(10); // Tamanho padrão da fonte
-                doc.text(formatDate(reg.data), 14, y);
-                doc.text(reg.comprador, 14 + colWidths[0], y);
-                doc.text(formatCurrency(unformatCurrency(reg.valor_debito) / 100), 14 + colWidths[0] + colWidths[1], y);
-                doc.text(formatCurrency(unformatCurrency(reg.valor_credito) / 100), 14 + colWidths[0] + colWidths[1] + colWidths[2], y);
-                
-                // Ajustar texto da coluna de observações
-                if (reg.observacoes.length > 100) {
-                    doc.setFontSize(8); // Reduzir o tamanho da fonte
-                    const obsText = doc.splitTextToSize(reg.observacoes, colWidths[4]); // Quebra o texto
-                    obsText.forEach((line, lineIndex) => {
-                        doc.text(line, 14 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], y + (lineIndex * 8)); // Espaço entre linhas
-                    });
-                    y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
-                } else {
-                    doc.setFontSize(10); // Tamanho padrão da fonte
-                    doc.text(reg.observacoes, 14 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], y);
+            const linesPerPage = 30; // Número de linhas por página
+            const lineHeight = 10; // Altura de cada linha
+            function checkAddPage(doc, y, currentPageLines) {
+                if (currentPageLines >= linesPerPage) {
+                    doc.addPage();
+                    y = 20; // Margem superior da nova página
+                    currentPageLines = 0; // Reiniciar contagem de linhas
                 }
-                
-                y += 10; // Espaço entre linhas (ajustado para caber o texto de várias linhas, se necessário)
-            });
+                return { y, currentPageLines };
+            }
+
+            // Inicializar contadores
+let currentPageLines = 0;
+const rectHeight = 8; // Altura do retângulo menor
+const rectPadding = 2; // Padding para reduzir a largura
+const textOffset = 2; // Ajuste a posição do texto para cima
+const extraLeftSpace = 10; // Espaço extra à esquerda do retângulo
+
+data.forEach((reg, index) => {
+    // Verificar e adicionar uma nova página se necessário
+    const result = checkAddPage(doc, y, currentPageLines);
+    y = result.y;
+    currentPageLines = result.currentPageLines;
+
+    // Definir a cor de fundo da linha
+    if (index % 2 === 0) {
+        doc.setFillColor(220, 220, 220); // Cinza claro
+    } else {
+        doc.setFillColor(255, 255, 255); // Branco
+    }
+    
+    // Desenhar o retângulo de fundo para a linha com largura e altura ajustadas
+    const x = 14 - extraLeftSpace; // Ajuste a posição X para mais espaço à esquerda
+    const rectWidth = colWidths.reduce((a, b) => a + b, 0) + extraLeftSpace - rectPadding;
+    doc.rect(x, y - rectHeight, rectWidth, rectHeight, 'F');
+
+
+    // Adicionar o texto para cada coluna
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8); // Tamanho padrão da fonte
+    doc.setTextColor(0, 0, 0); // Cor do texto preta
+
+    // Ajustar a posição do texto para cima
+    const textY = y - textOffset;
+
+    doc.text(formatDate(reg.data), 14, textY);
+    doc.text(reg.comprador, 14 + colWidths[0], textY);
+    const valorDebito = unformatCurrency(reg.valor_debito) / 100;
+    const valorCredito = unformatCurrency(reg.valor_credito) / 100;
+    doc.text(formatCurrency(valorDebito), 14 + colWidths[0] + colWidths[1], textY);
+    doc.text(formatCurrency(valorCredito), 14 + colWidths[0] + colWidths[1] + colWidths[2], textY);
+    
+    // Ajustar texto da coluna de observações
+    if (reg.observacoes.length > 100) {
+        doc.setFontSize(8); // Reduzir o tamanho da fonte
+        const obsText = doc.splitTextToSize(reg.observacoes, colWidths[4]); // Quebra o texto
+        obsText.forEach((line, lineIndex) => {
+            doc.text(line, 14 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], textY + (lineIndex * 8)); // Espaço entre linhas
+        });
+        y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
+    } else {
+        doc.setFontSize(10); // Tamanho padrão da fonte
+        doc.text(reg.observacoes, 14 + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], textY);
+    }
+
+    // Atualizar totais
+    totalDebitos += valorDebito;
+    totalCreditos += valorCredito;
+
+    // Incrementar o contador de linhas e a posição Y
+    currentPageLines++;
+    y += lineHeight; // Espaço entre linhas (ajustado para caber o texto de várias linhas, se necessário)
+});
+           // Adicionar linha de totais
+           doc.setFontSize(10);
+           const totalsRowY = y;
+           
+           // Largura total da página e margem
+           const pageWidth = doc.internal.pageSize.getWidth();
+           const marginRight = 14; // Margem direita (ajuste conforme necessário)
+           
+           // Definir cor do saldo com base no valor
+           const saldo = totalCreditos - totalDebitos; // Inicializa a variável saldo
+           
+           // Calculando a posição X para alinhar à direita
+           const textDebitos = 'Débitos:';
+           const textCreditos = 'Créditos:';
+           const textSaldo = 'Saldo:';
+           
+           // Estimando a largura dos textos
+           const widthDebitos = doc.getTextWidth(textDebitos + formatCurrency(totalDebitos));
+           const widthCreditos = doc.getTextWidth(textCreditos + formatCurrency(totalCreditos));
+           const widthSaldo = doc.getTextWidth(textSaldo + formatCurrency(saldo));
+           
+           // Posição X para alinhar à direita
+           const xRightDebitos = pageWidth - widthDebitos - marginRight;
+           const xRightCreditos = pageWidth - widthCreditos - marginRight;
+           const xRightSaldo = pageWidth - widthSaldo - marginRight;
+           
+           // Adicionar totais de débitos em vermelho
+           doc.setTextColor(255, 0, 0); // Cor vermelha para débitos
+           doc.text(textDebitos, xRightDebitos, totalsRowY + 8);
+           doc.text(formatCurrency(totalDebitos), xRightDebitos + doc.getTextWidth(textDebitos), totalsRowY + 8);
+           
+           // Adicionar totais de créditos em azul
+           doc.setTextColor(0, 0, 255); // Cor azul para créditos
+           doc.text(textCreditos, xRightCreditos, totalsRowY + 16);
+           doc.text(formatCurrency(totalCreditos), xRightCreditos + doc.getTextWidth(textCreditos), totalsRowY + 16);
+           
+           // Definir a cor para o saldo após calcular
+           if (saldo >= 0) {
+               doc.setTextColor(0, 0, 255); // Azul para saldo positivo
+           } else {
+               doc.setTextColor(255, 0, 0); // Vermelho para saldo negativo
+           }
+           
+           // Adicionar o saldo final
+           doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
+           doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), totalsRowY + 24);
+           
+           // Resetar a cor para o padrão após adicionar o saldo
+           doc.setTextColor(0, 0, 0);
+           
 
             // Salvar o PDF
             doc.save(`relatorio_financeiro_${representanteId}_${dataInicio}_a_${dataFim}.pdf`);
@@ -432,6 +542,7 @@ $(document).ready(function() {
             alert('Erro ao gerar PDF.');
         });
     });
+    
 
     function formatDate(dateString) {
         const date = new Date(dateString);
@@ -465,8 +576,18 @@ $(document).ready(function() {
         });
     }
 
+    function formatDateToBR(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+    
+
     // Inicializar representantes no formulário PDF
     loadRepresentantesForPdf();
 });
+
 
 
