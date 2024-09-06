@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.179',
     user: 'tiago',
     password: '1234',
-    database: 'sys'
+    database: 'sys_test'
 });
 
 // Conectar ao banco de dados
@@ -1781,13 +1781,18 @@ app.post('/api/registros_financeiros', (req, res) => {
     });
 });
 
-
 // Rota para obter todos os registros financeiros
 app.get('/api/registros_financeiros', (req, res) => {
     const representanteId = req.query.representante_id;
     
-    // Substitua por sua lógica de consulta no banco de dados
-    const query = 'SELECT * FROM registros_financeiros WHERE representante_id = ?';
+    // Consulta SQL para obter registros financeiros com o nome do comprador
+    const query = `
+        SELECT rf.id, rf.data, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.observacoes
+        FROM registros_financeiros rf
+        LEFT JOIN compradores c ON rf.comprador = c.id
+        WHERE rf.representante_id = ?
+    `;
+    
     db.query(query, [representanteId], (error, results) => {
         if (error) {
             console.error('Erro ao buscar registros financeiros:', error);
@@ -1908,8 +1913,30 @@ app.post('/api/contagem', async (req, res) => {
     } catch (error) {
       res.status(500).send({ error: 'Erro ao salvar a contagem.' });
     }
-  });
-  
+});
+
+// Endpoint para criar um comprador
+app.post('/api/compradores', (req, res) => {
+    const { nome, representante_id } = req.body;
+    const query = 'INSERT INTO compradores (nome, representante_id) VALUES (?, ?)';
+    db.query(query, [nome, representante_id], (err, result) => {
+        if (err) return res.status(500).send(err);
+        res.status(201).send({ id: result.insertId, nome, representante_id });
+    });
+});
+
+// Endpoint para listar compradores associados a um representante
+app.get('/api/compradores', (req, res) => {
+    const representanteId = req.query.representante_id;
+    const query = 'SELECT * FROM compradores WHERE representante_id = ?';
+    db.query(query, [representanteId], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
+
+
   
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {

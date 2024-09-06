@@ -1,7 +1,19 @@
 $(document).ready(function() {
+    let representanteIdSelecionado = null;
+        // Evento para selecionar um representante
+        $('#representante').on('change', function() {
+            representanteIdSelecionado = $(this).val();
+        });
+
+    
     // Inicialização de eventos
     $('#form-registro').on('submit', function(event) {
         event.preventDefault(); // Evita a submissão padrão do formulário
+
+        if (!representanteIdSelecionado) {
+            alert('Por favor, selecione um representante.');
+            return;
+        }
 
         // Coletar os valores dos campos
         const representante_id = $('#representante').val();
@@ -23,7 +35,7 @@ $(document).ready(function() {
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
-                representante_id,
+                representante_id: representanteIdSelecionado,
                 data,
                 comprador,
                 valor_debito,
@@ -72,82 +84,83 @@ $(document).ready(function() {
         return parseFloat(value.replace(/R\$\s?/g, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
     }
     
-   function loadRegistros(representanteId) {
-    // Mostrar a tela de carregamento
-    $('#loading-screen').show();
-
-    $.get('/api/registros_financeiros', { representante_id: representanteId }, function(data) {
-        $('#tabela-registros-modal tbody').empty();
-        let totalDebitos = 0;
-        let totalCreditos = 0;
-
-        data.forEach(reg => {
-            let rowClass = '';
-            if (parseFloat(unformatCurrency(reg.valor_debito)) > 0) {
-                rowClass = 'bg-debito';
-            } else if (parseFloat(unformatCurrency(reg.valor_credito)) > 0) {
-                rowClass = 'bg-credito';
-            }
-
-            $('#tabela-registros-modal tbody').append(
-                `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${reg.representante_id}">
-                    <td class="editable">${formatDate(reg.data)}</td>
-                    <td class="editable">${reg.comprador}</td>
-                    <td class="editable">${formatCurrency(unformatCurrency(reg.valor_debito) / 100)}</td>
-                    <td class="editable">${formatCurrency(unformatCurrency(reg.valor_credito) / 100)}</td>
-                    <td class="editable">${reg.observacoes}</td>
-                    <td>
-                        <button class="btn btn-primary btn-sm edit-btn">Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">Excluir</button>
-                    </td>
-                </tr>`
-            );
-
-            totalDebitos += unformatCurrency(reg.valor_debito) / 100;
-            totalCreditos += unformatCurrency(reg.valor_credito) / 100;
+    function loadRegistros(representanteId) {
+        $('#loading-screen').show();
+    
+        $.get('/api/registros_financeiros', { representante_id: representanteId }, function(data) {
+            $('#tabela-registros-modal tbody').empty();
+            let totalDebitos = 0;
+            let totalCreditos = 0;
+    
+            data.forEach(reg => {
+                let rowClass = '';
+                if (parseFloat(unformatCurrency(reg.valor_debito)) > 0) {
+                    rowClass = 'bg-debito';
+                } else if (parseFloat(unformatCurrency(reg.valor_credito)) > 0) {
+                    rowClass = 'bg-credito';
+                }
+    
+                $('#tabela-registros-modal tbody').append(
+                    `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${representanteId}">
+                        <td class="editable">${formatDate(reg.data)}</td>
+                        <td class="editable">${reg.comprador}</td>
+                        <td class="editable">${formatCurrency(unformatCurrency(reg.valor_debito) / 100)}</td>
+                        <td class="editable">${formatCurrency(unformatCurrency(reg.valor_credito) / 100)}</td>
+                        <td class="editable">${reg.observacoes}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm edit-btn">Editar</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">Excluir</button>
+                        </td>
+                    </tr>`
+                );
+    
+                totalDebitos += unformatCurrency(reg.valor_debito) / 100;
+                totalCreditos += unformatCurrency(reg.valor_credito) / 100;
+            });
+    
+            $('#total-debitos').text(formatCurrency(totalDebitos)).css('color', 'red');
+            $('#total-creditos').text(formatCurrency(totalCreditos)).css('color', 'blue');
+    
+            let saldo = totalCreditos - totalDebitos;
+            $('#saldo').text(formatCurrency(saldo)).css('color', saldo < 0 ? 'red' : 'blue');
+    
+            $('#loading-screen').hide();
+            $('#modalRegistrosFinanceiros').modal('show');
+    
+            $('.edit-btn').click(function() {
+                const tr = $(this).closest('tr');
+                toggleEditMode(tr);
+            });
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.error('Erro ao carregar registros financeiros:', textStatus, errorThrown);
+            $('#loading-screen').hide();
         });
-
-        $('#total-debitos').text(formatCurrency(totalDebitos)).css('color', 'red');
-        $('#total-creditos').text(formatCurrency(totalCreditos)).css('color', 'blue');
-
-        let saldo = totalCreditos - totalDebitos;
-        if (saldo < 0) {
-            $('#saldo').text(formatCurrency(saldo)).css('color', 'red');
-        } else {
-            $('#saldo').text(formatCurrency(saldo)).css('color', 'blue');
-        }
-
-        // Ocultar a tela de carregamento e exibir o modal
-        $('#loading-screen').hide();
-        $('#modalRegistrosFinanceiros').modal('show');
-
-        $('.edit-btn').click(function() {
-            const tr = $(this).closest('tr');
-            toggleEditMode(tr);
-        });
-    }).fail(function(jqXHR, textStatus, errorThrown) {
-        console.error('Erro ao carregar registros financeiros:', textStatus, errorThrown);
-        $('#loading-screen').hide(); // Ocultar a tela de carregamento mesmo em caso de erro
-    });
-}
+    }
+    
 
     function toggleEditMode(tr) {
         const isEditing = tr.hasClass('editing');
     
         if (isEditing) {
-            const representanteIdOriginal = tr.data('representante-id'); // Manter o ID do representante original
-            const data = tr.find('td:eq(0) input').val(); // Corrigido para pegar o campo de data
-            const comprador = tr.find('td:eq(1) input').val(); // Corrigido para pegar o campo de comprador
-            const valor_debito = unformatCurrency(tr.find('td:eq(2) input').val()); // Valor de débito
-            const valor_credito = unformatCurrency(tr.find('td:eq(3) input').val()); // Valor de crédito
-            const observacoes = tr.find('td:eq(4) input').val(); // Observações
+            const representanteIdOriginal = tr.data('representante-id'); // Verifique se este valor é correto
+            const data = formatDateToSQL(tr.find('td:eq(0) input').val());
+            const comprador = tr.find('td:eq(1) input').val();
+            const valor_debito = unformatCurrency(tr.find('td:eq(2) input').val());
+            const valor_credito = unformatCurrency(tr.find('td:eq(3) input').val());
+            const observacoes = tr.find('td:eq(4) input').val();
+    
+            // Verificar se os valores são válidos e não são undefined
+            if (!representanteIdOriginal || !data || !comprador || isNaN(valor_debito) || isNaN(valor_credito)) {
+                alert('Por favor, preencha todos os campos corretamente.');
+                return;
+            }
     
             $.ajax({
-                url: `/api/registros_financeiros/${tr.data('id')}`, // Use o ID do registro correto
+                url: `/api/registros_financeiros/${tr.data('id')}`,
                 method: 'PUT',
                 contentType: 'application/json',
                 data: JSON.stringify({
-                    representante_id: representanteIdOriginal,
+                    representante_id: representanteIdSelecionado,// Certifique-se de que esse valor é válido
                     data,
                     comprador,
                     valor_debito,
@@ -155,7 +168,7 @@ $(document).ready(function() {
                     observacoes
                 }),
                 success: function() {
-                    tr.find('td.editable').each(function(index) {
+                    tr.find('td.editable').each(function() {
                         const input = $(this).find('input');
                         $(this).text(input.val());
                     });
@@ -164,10 +177,11 @@ $(document).ready(function() {
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error('Erro ao salvar registro financeiro:', textStatus, errorThrown);
+                    alert('Erro ao salvar o registro financeiro.');
                 }
             });
         } else {
-            tr.find('td.editable').each(function(index) {
+            tr.find('td.editable').each(function() {
                 const text = $(this).text();
                 $(this).html(`<input type="text" class="form-control form-control-sm" value="${text}">`);
             });
@@ -176,7 +190,6 @@ $(document).ready(function() {
         }
     }
     
-
     function loadRepresentantes() {
         $.get('/api/representantes_financeiros', function(data) {
             $('#representantes-container').empty();
@@ -206,10 +219,10 @@ $(document).ready(function() {
             }
 
             $('.btn-registros').on('click', function() {
-                var representanteId = $(this).data('id');
+                representanteIdSelecionado = $(this).data('id');
                 var representanteNome = $(this).data('nome');
                 $('#modal-representante-nome').text(representanteNome);
-                loadRegistros(representanteId);
+                loadRegistros(representanteIdSelecionado);
             });
 
             $('#tabela-representantes').DataTable();
@@ -280,6 +293,18 @@ $(document).ready(function() {
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     }
+    function formatDateToSQL(dateStr) {
+        // Assume que dateStr está no formato DD/MM/YYYY
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+            const day = parts[0];
+            const month = parts[1];
+            const year = parts[2];
+            return `${year}-${month}-${day}`;
+        }
+        return null;
+    }
+    
     
     $(document).ready(function() {
         $('#form-representante').on('submit', function(event) {
@@ -352,6 +377,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     };
+    
 
     searchInput.addEventListener('input', filterTable);
     startDateInput.addEventListener('change', filterTable);
@@ -588,6 +614,99 @@ data.forEach((reg, index) => {
     // Inicializar representantes no formulário PDF
     loadRepresentantesForPdf();
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Preencher o select com representantes financeiros
+    fetch('/api/representantes_financeiros')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('representante_select');
+            data.forEach(representante => {
+                const option = document.createElement('option');
+                option.value = representante.id;
+                option.textContent = representante.nome;
+                select.appendChild(option);
+            });
+        });
+
+    // Enviar o formulário ao servidor
+    document.getElementById('formCadastroComprador').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
+        });
+
+        fetch('/api/compradores', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Comprador cadastrado com sucesso!');
+                $('#modalCadastroComprador').modal('hide');
+            } else {
+                alert('Erro ao cadastrar comprador');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+        });
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const representanteSelect = document.getElementById('representante');
+    const compradorSelect = document.getElementById('comprador');
+
+    // Função para carregar compradores associados ao representante selecionado
+    function carregarCompradores(representanteId) {
+        fetch(`/api/compradores?representante_id=${representanteId}`)
+            .then(response => response.json())
+            .then(data => {
+                // Limpar o campo de compradores
+                compradorSelect.innerHTML = '<option value="">Selecione um comprador</option>';
+                // Preencher o campo de compradores
+                data.forEach(comprador => {
+                    const option = document.createElement('option');
+                    option.value = comprador.id;
+                    option.textContent = comprador.nome;
+                    compradorSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao carregar compradores:', error);
+            });
+    }
+
+    // Preencher o campo de representantes (se necessário)
+    fetch('/api/representantes_financeiros')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(representante => {
+                const option = document.createElement('option');
+                option.value = representante.id;
+                option.textContent = representante.nome;
+                representanteSelect.appendChild(option);
+            });
+        });
+
+    // Adicionar evento de mudança ao select de representantes
+    representanteSelect.addEventListener('change', function () {
+        const representanteId = this.value;
+        if (representanteId) {
+            carregarCompradores(representanteId);
+        } else {
+            compradorSelect.innerHTML = '<option value="">Selecione um comprador</option>';
+        }
+    });
+});
+
 
 
 
