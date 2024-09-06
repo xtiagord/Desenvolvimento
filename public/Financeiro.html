@@ -67,61 +67,110 @@
             </div>
          </nav>
       </header>
-      <div class="container mt-5">
-      <h1>Registro Financeiro</h1>
-      <!-- Formulário para registrar registros financeiros -->
-<div class="mb-4">
-   <form id="form-registro">
-       <div class="form-group">
-           <label for="representante">Representante</label>
-           <select class="form-control" id="representante" name="representante_id" required></select>
-       </div>
-       <div class="form-group">
-           <label for="data">Data</label>
-           <input type="date" class="form-control" id="data" name="data" required>
-       </div>
-       <div class="form-group">
-           <label for="comprador">Comprador</label>
-           <input type="text" class="form-control" id="comprador" name="comprador" required>
-       </div>
-       <div class="form-group">
-           <label for="valor_debito">Valor Débito</label>
-           <input type="text" class="form-control" id="valor_debito" name="valor_debito" placeholder="R$ 0,00" required>
-       </div>
-       <div class="form-group">
-           <label for="valor_credito">Valor Crédito</label>
-           <input type="text" class="form-control" id="valor_credito" name="valor_credito" placeholder="R$ 0,00" required>
-       </div>
-       <div class="form-group">
-           <label for="observacoes">Observações</label>
-           <textarea class="form-control" id="observacoes" name="observacoes"></textarea>
-       </div>
-       <button type="submit" class="btn btn-success">Salvar Registro</button>
-       <!-- Botão para abrir o modal -->
-       <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalRepresentante">
-         Cadastrar Representante
-      </button>     
+      <div class="container mt-1">
 
-   </form>
-</div>
-
-<form id="form-gerar-pdf">
-   <div class="form-group">
-       <label for="representante_pdf">Representante:</label>
-       <select id="representante_pdf" class="form-control">
-           <!-- Options will be populated dynamically -->
-       </select>
+      <div class="container mt-4">
+         <!-- Card -->
+         <div class="card">
+             <div class="card-header">
+                 <h4 class="card-title">Registro de Dados</h4>
+             </div>
+             <div class="card-body">
+                 <form id="form-registro">
+                     <div class="container">
+                         <div class="row">
+                             <!-- Primeira Linha: 3 Inputs -->
+                             <div class="col-md-4 mb-3">
+                                 <div class="form-group">
+                                     <label for="representante">Representante</label>
+                                     <select class="form-control" id="representante" name="representante_id" required></select>
+                                 </div>
+                             </div>
+                             <div class="col-md-4 mb-3">
+                                 <div class="form-group">
+                                     <label for="comprador">Comprador</label>
+                                     <input type="text" class="form-control" id="comprador" name="comprador" required>
+                                 </div>
+                             </div>
+                             <div class="col-md-4 mb-3">
+                                 <div class="form-group">
+                                     <label for="data">Data</label>
+                                     <input type="date" class="form-control" id="data" name="data" required>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="row">
+                             <!-- Segunda Linha: 2 Inputs -->
+                             <div class="col-md-6 mb-3">
+                                 <div class="form-group">
+                                     <label for="valor_debito">Valor Débito</label>
+                                     <input type="text" class="form-control" id="valor_debito" name="valor_debito" placeholder="R$ 0,00" required>
+                                 </div>
+                             </div>
+                             <div class="col-md-6 mb-3">
+                                 <div class="form-group">
+                                     <label for="valor_credito">Valor Crédito</label>
+                                     <input type="text" class="form-control" id="valor_credito" name="valor_credito" placeholder="R$ 0,00" required>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="row">
+                             <!-- Terceira Linha: 1 Input -->
+                             <div class="col-md-12 mb-3">
+                                 <div class="form-group">
+                                     <label for="observacoes">Observações</label>
+                                     <textarea class="form-control" id="observacoes" name="observacoes"></textarea>
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="form-group">
+                             <button type="submit" class="btn btn-success">Salvar Registro</button>
+                             <!-- Botão para abrir o modal -->
+                             <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#modalRepresentante">
+                                 Cadastrar Representante
+                             </button>     
+                             <!-- Botão para abrir o modal -->
+                             <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalForm">
+                                 Gerar Pdf
+                             </button>
+                         </div>
+                     </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+ <!-- Modal -->
+ <div class="modal fade" id="modalForm" tabindex="-1" role="dialog" aria-labelledby="modalFormLabel" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+     <div class="modal-content">
+       <div class="modal-header">
+         <h5 class="modal-title" id="modalFormLabel">Gerar PDF</h5>
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+       </div>
+       <div class="modal-body">
+         <form id="form-gerar-pdf">
+           <div class="form-group">
+             <label for="representante_pdf">Representante:</label>
+             <select id="representante_pdf" class="form-control">
+               <!-- Options will be populated dynamically -->
+             </select>
+           </div>
+           <div class="form-group">
+             <label for="data_inicio">Data de Início:</label>
+             <input type="date" id="data_inicio" class="form-control">
+           </div>
+           <div class="form-group">
+             <label for="data_fim">Data de Fim:</label>
+             <input type="date" id="data_fim" class="form-control">
+           </div>
+           <button type="submit" class="btn btn-primary">Gerar PDF</button>
+         </form>
+       </div>
+     </div>
    </div>
-   <div class="form-group">
-       <label for="data_inicio">Data de Início:</label>
-       <input type="date" id="data_inicio" class="form-control">
-   </div>
-   <div class="form-group">
-       <label for="data_fim">Data de Fim:</label>
-       <input type="date" id="data_fim" class="form-control">
-   </div>
-   <button type="submit" class="btn btn-primary">Gerar PDF</button>
-</form>
+ </div>
 
 <!-- Tela de Carregamento -->
 <div id="loading-screen">
@@ -155,10 +204,19 @@
       </div>
       <!-- Tabelas para listar representantes e registros financeiros -->
       <!-- Tabela de Representantes -->
-      <div class="mb-4">
-         <h3>Representantes Financeiros</h3>
-         <div id="representantes-container"></div>
-      </div>
+      <div class="container mt-4">
+         <!-- Card para Representantes Financeiros -->
+         <div class="card">
+             <div class="card-header">
+                 <h4 class="card-title">Representantes Financeiros</h4>
+             </div>
+             <div class="card-body">
+                 <div id="representantes-container">
+                     <!-- Conteúdo será populado dinamicamente -->
+                 </div>
+             </div>
+         </div>
+     </div>
   <!-- Modal para exibir registros financeiros -->
   <div class="modal fade modal-fullscreen" id="modalRegistrosFinanceiros" tabindex="-1" aria-labelledby="modalRegistrosFinanceirosLabel" aria-hidden="true">
    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen">
@@ -201,31 +259,6 @@
        </div>
    </div>
 </div> 
-<!-- Modal -->
-<div class="modal fade" id="modalEscolhaRepresentante" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalLabel">Escolha o Representante</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <!-- Dropdown para escolher o representante -->
-        <div class="mb-3">
-          <label for="select-representante" class="form-label">Representante</label>
-          <select id="select-representante" class="form-select">
-            <option value="" selected>Selecione um representante</option>
-            <!-- Adicione opções aqui dinamicamente -->
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        <button id="btn-baixar-pdf" type="button" class="btn btn-primary">Baixar PDF</button>
-      </div>
-    </div>
-  </div>
-</div>
 
       <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
       <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>

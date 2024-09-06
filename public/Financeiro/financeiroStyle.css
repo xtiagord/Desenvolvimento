@@ -14,6 +14,7 @@
 .modal-fullscreen .modal-footer {
     padding: 1.5rem;
 }
+
 /* CSS personalizado para botões maiores */
 .btn-registros {
     width: 100%; /* Largura total para botões na coluna */
@@ -84,4 +85,11 @@
 
     .text-primary {
         color: #007bff !important; /* Azul padrão do Bootstrap. Ajuste conforme necessário */
+    }
+    body {
+        background-color: #e2e2e2; /* Cor cinza clara para o fundo da página */
+      }
+
+      .card {
+        border-radius: 0.75rem; /* Ajuste o valor conforme necessário */
     }
