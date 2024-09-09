@@ -12,11 +12,9 @@ const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
 const ExcelJS = require('exceljs');
 
- const port = process.env.PORT || 3002;
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
-});
-
+// Inicializar o Express
+const app = express();
+const PORT = process.env.PORT || 3002;
 
 // Criação da conexão
 const db = mysql.createConnection({
@@ -38,11 +36,6 @@ db.connect(err => {
 // Definir uma rota simples
 app.get('/index.html', (req, res) => {
     res.send(__dirname + '/public/index.html');
-});
-
-// Iniciar o servidor
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Servidor rodando em http://0.0.0.0:${PORT}`);
 });
 
 // Configurar o middleware
