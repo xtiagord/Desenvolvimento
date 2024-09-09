@@ -72,7 +72,6 @@
       </nav>
    </header>
    <div class="container mt-1">
-
       <div class="container mt-4">
          <!-- Card -->
          <div class="card">
@@ -84,7 +83,7 @@
                   <div class="container">
                      <!-- Primeira Linha: 4 Inputs -->
                      <div class="row">
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-2">
                            <div class="form-group">
                               <label for="representante">Representante</label>
                               <select class="form-control" id="representante" name="representante_id" required>
@@ -92,7 +91,7 @@
                               </select>
                            </div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-2">
                            <div class="form-group">
                               <label for="comprador">Comprador</label>
                               <select class="form-control" id="comprador" name="comprador" required>
@@ -101,14 +100,14 @@
                               </select>
                            </div>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-2">
                            <div class="form-group">
                               <label for="data">Data</label>
                               <input type="date" class="form-control" id="data" name="data" required>
                            </div>
                         </div>
                         <!-- Novo input adicionado -->
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-2">
                            <div class="form-group">
                               <label for="hora">Hora</label>
                               <input type="time" class="form-control" id="hora" name="hora" required>
@@ -118,24 +117,33 @@
 
                      <div class="row">
                         <!-- Segunda Linha: 2 Inputs -->
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-2">
                            <div class="form-group">
                               <label for="valor_debito">Valor Débito</label>
                               <input type="text" class="form-control" id="valor_debito" name="valor_debito"
-                                 placeholder="R$ 0,00" required>
+                                 placeholder="R$ 0,00">
                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-2">
                            <div class="form-group">
                               <label for="valor_credito">Valor Crédito</label>
                               <input type="text" class="form-control" id="valor_credito" name="valor_credito"
-                                 placeholder="R$ 0,00" required>
+                                 placeholder="R$ 0,00">
+                           </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                           <div class="form-group">
+                              <label for="pagamento">Forma de Pagamento</label>
+                              <select class="form-control" id="pagamento" name="pagamento" required>
+                                 <option value="">Escolha o Pagamento</option>
+                                 <!-- Options serão preenchidas dinamicamente -->
+                              </select>
                            </div>
                         </div>
                      </div>
                      <div class="row">
                         <!-- Terceira Linha: 1 Input -->
-                        <div class="col-md-12 mb-3">
+                        <div class="col-md-12 mb-2">
                            <div class="form-group">
                               <label for="observacoes">Observações</label>
                               <textarea class="form-control" id="observacoes" name="observacoes"></textarea>
@@ -271,6 +279,7 @@
                               <th>Comprador</th>
                               <th>Débito</th>
                               <th>Crédito</th>
+                              <th>Pagamento</th>
                               <th>Observações</th>
                               <th>Ações</th>
                            </tr>

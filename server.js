@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3001;
 
 // Criação da conexão
 const db = mysql.createConnection({
-    host: '192.168.0.179',
+    host: '192.168.15.45',
     user: 'tiago',
     password: '1234',
     database: 'sys_test'
@@ -1763,7 +1763,7 @@ app.get('/api/representantes_financeiros', (req, res) => {
 
 // Rota para adicionar um novo registro financeiro
 app.post('/api/registros_financeiros', (req, res) => {
-    const { representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes } = req.body;
+    const { representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes } = req.body;
 
     // Validar se o representante_id não é nulo
     if (!representante_id) {
@@ -1771,8 +1771,8 @@ app.post('/api/registros_financeiros', (req, res) => {
     }
 
     // Inserir o registro financeiro no banco de dados
-    const query = `INSERT INTO registros_financeiros (representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes], (error, results) => {
+    const query = `INSERT INTO registros_financeiros (representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ? )`;
+    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes], (error, results) => {
         if (error) {
             console.error('Erro ao inserir registro financeiro:', error);
             return res.status(500).json({ error: 'Erro ao salvar o registro financeiro' });
@@ -1787,7 +1787,7 @@ app.get('/api/registros_financeiros', (req, res) => {
     
     // Consulta SQL para obter registros financeiros com o nome do comprador
     const query = `
-        SELECT rf.id, rf.data, rf.hora, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.observacoes
+        SELECT rf.id, rf.data, rf.hora, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.pagamento, rf.observacoes
         FROM registros_financeiros rf
         LEFT JOIN compradores c ON rf.comprador = c.id
         WHERE rf.representante_id = ?
@@ -1804,15 +1804,15 @@ app.get('/api/registros_financeiros', (req, res) => {
 
 app.put('/api/registros_financeiros/:id', (req, res) => {
     const { id } = req.params; // O ID do registro a ser atualizado
-    const { representante_id, data, comprador, valor_debito, valor_credito, observacoes } = req.body;
+    const { representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes } = req.body;
 
     const query = `
         UPDATE registros_financeiros
-        SET representante_id = ?, data = ?, hora = ?, comprador = ?, valor_debito = ?, valor_credito = ?, observacoes = ?
+        SET representante_id = ?, data = ?, hora = ?, comprador = ?, valor_debito = ?, valor_credito = ?, pagamento = ? , observacoes = ?
         WHERE id = ?
     `;
 
-    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, observacoes, id], (err, results) => {
+    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, id], (err, results) => {
         if (err) {
             console.error('Erro ao atualizar registro financeiro:', err);
             return res.status(500).send(err);
@@ -1935,9 +1935,16 @@ app.get('/api/compradores', (req, res) => {
     });
 });
 
+// Endpoint para retornar todos os tipos de pagamento
+app.get('/api/tipo_pagamento', (req, res) => {
+    const query = 'SELECT * FROM pagamento'; 
+    db.query(query, (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.json(results); // Retorna os resultados como JSON
+    });
+});
 
-
-  
+ 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error(err.stack);
