@@ -18,12 +18,11 @@ const PORT = process.env.PORT || 3002;
 
 // Criação da conexão
 const db = mysql.createConnection({
-    host: '177.220.172.222',
+    host: '127.0.0.1',
     user: 'tiago',
     password: '1234',
     database: 'sys'
 });
-
 
 // Conectar ao banco de dados
 db.connect(err => {
