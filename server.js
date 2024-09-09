@@ -12,9 +12,11 @@ const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
 const ExcelJS = require('exceljs');
 
-// Inicializar o Express
-const app = express();
-const PORT = process.env.PORT || 3002;
+ const port = process.env.PORT || 3002;
+server.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
+
 
 // Criação da conexão
 const db = mysql.createConnection({
