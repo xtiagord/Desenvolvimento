@@ -95,27 +95,27 @@ $(document).ready(function () {
 
     function loadRegistros(representanteId) {
         $('#loading-screen').show();
-    
-        $.get('/api/registros_financeiros', { representante_id: representanteId }, function(data) {
+
+        $.get('/api/registros_financeiros', { representante_id: representanteId }, function (data) {
             $('#tabela-registros-modal tbody').empty();
             let totalDebitos = 0;
             let totalCreditos = 0;
-    
+
             data.forEach(reg => {
                 let rowClass = '';
                 const valorDebito = unformatCurrency(reg.valor_debito) / 100;
                 const valorCredito = unformatCurrency(reg.valor_credito) / 100;
-    
+
                 if (valorDebito > 0) {
                     rowClass = 'bg-debito';
                 } else if (valorCredito > 0) {
                     rowClass = 'bg-credito';
                 }
-    
+
                 const horaFormatada = reg.hora ? reg.hora : '';
                 const pagamentoNome = reg.pagamento ? reg.pagamento : ''; // Exibindo diretamente o nome do pagamento
                 const observacoesFormatadas = reg.observacoes ? reg.observacoes : '';
-    
+
                 $('#tabela-registros-modal tbody').append(
                     `<tr class="${rowClass}" data-id="${reg.id}" data-representante-id="${representanteId}">
                         <td class="editable">${formatDate(reg.data)}</td>
@@ -131,20 +131,20 @@ $(document).ready(function () {
                         </td>
                     </tr>`
                 );
-    
+
                 totalDebitos += valorDebito;
                 totalCreditos += valorCredito;
             });
-    
+
             $('#total-debitos').text(formatCurrency(totalDebitos)).css('color', 'red');
             $('#total-creditos').text(formatCurrency(totalCreditos)).css('color', 'blue');
-    
+
             let saldo = totalCreditos - totalDebitos;
             $('#saldo').text(formatCurrency(saldo)).css('color', saldo < 0 ? 'red' : 'blue');
-    
+
             $('#loading-screen').hide();
             $('#modalRegistrosFinanceiros').modal('show');
-    
+
             $('.edit-btn').click(function () {
                 const tr = $(this).closest('tr');
                 toggleEditMode(tr);
@@ -154,14 +154,14 @@ $(document).ready(function () {
             $('#loading-screen').hide();
         });
     }
-    
-    
-    
+
+
+
 
 
     function toggleEditMode(tr) {
         const isEditing = tr.hasClass('editing');
-    
+
         if (isEditing) {
             const representanteIdOriginal = tr.data('representante-id');
             const data = formatDateToSQL(tr.find('td:eq(0) input').val());
@@ -169,24 +169,24 @@ $(document).ready(function () {
             const comprador = tr.find('td:eq(2) input').val();
             const valor_debito = unformatCurrency(tr.find('td:eq(3) input').val());
             const valor_credito = unformatCurrency(tr.find('td:eq(4) input').val());
-            const pagamentoId = tr.find('td:eq(5) select').val(); 
+            const pagamentoId = tr.find('td:eq(5) select').val();
             const observacoes = tr.find('td:eq(6) input').val();
-    
+
             // Verificar se os valores são válidos e não são undefined
             if (!representanteIdOriginal || !data || !hora || !comprador || isNaN(valor_debito) || isNaN(valor_credito) || !pagamentoId) {
                 alert('Por favor, preencha todos os campos corretamente.');
                 return;
             }
-    
+
             // Mapear ID para Nome do Tipo de Pagamento
             let pagamentoNome = "";
             const options = tr.find('td:eq(5) select option');
-            options.each(function() {
+            options.each(function () {
                 if ($(this).val() === pagamentoId) {
                     pagamentoNome = $(this).text();
                 }
             });
-    
+
             $.ajax({
                 url: `/api/registros_financeiros/${tr.data('id')}`,
                 method: 'PUT',
@@ -204,7 +204,7 @@ $(document).ready(function () {
                 success: function () {
                     // Atualizar a célula com o nome do tipo de pagamento
                     tr.find('td:eq(5)').text(pagamentoNome); // Definir o texto da célula como o nome do pagamento
-    
+
                     tr.find('td.editable').each(function () {
                         const input = $(this).find('input');
                         $(this).text(input.val());
@@ -225,14 +225,14 @@ $(document).ready(function () {
                 success: function (data) {
                     const select = tr.find('td:eq(5)'); // Ajuste o índice conforme necessário
                     const currentValue = select.text().trim(); // Obtenha o valor atual e remova espaços em branco
-        
+
                     // Cria o select com as opções
                     let options = '<select class="form-control form-control-sm">';
                     data.forEach(item => {
                         options += `<option value="${item.id}" ${item.tipo_pagamento === currentValue ? 'selected' : ''}>${item.tipo_pagamento}</option>`;
                     });
                     options += '</select>';
-        
+
                     // Substitua o conteúdo da célula pelo select
                     select.html(options);
                 },
@@ -241,7 +241,7 @@ $(document).ready(function () {
                     alert('Erro ao carregar tipos de pagamento.');
                 }
             });
-    
+
             // Atualiza outros campos como inputs
             tr.find('td.editable').each(function (index) {
                 const text = $(this).text();
@@ -253,10 +253,10 @@ $(document).ready(function () {
             tr.find('.edit-btn').text('Salvar');
         }
     }
-    
-    
-    
-    
+
+
+
+
 
     function loadRepresentantes() {
         $.get('/api/representantes_financeiros', function (data) {
@@ -484,175 +484,183 @@ $(document).ready(function () {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'landscape' }); // Horizontal
 
+            // Adicionar a imagem ao PDF
+            const imageUrl = '/login/photo/untitled (1).png';
+            const image = new Image();
+            image.src = imageUrl;
+            image.onload = function () {
+                // Adicionar a imagem no canto esquerdo
+                doc.addImage(image, 'PNG', 10, 10, 30, 20); // x, y, largura, altura
+
             doc.setFontSize(14);
             doc.setFont("helvetica", "bold"); // Define a fonte como Helvetica em negrito
-            doc.text('Relatório de Movimentação', 14, 16);
+            doc.text('Relatório de Movimentação', 44, 16);
 
 
-           // Adicionar informações do representante e período
-doc.setFontSize(12);
-const representanteNome = $('#representante_pdf option:selected').text();
-const formattedDataInicio = formatDateToBR(dataInicio);
-const formattedDataFim = formatDateToBR(dataFim);
+            // Adicionar informações do representante e período
+            doc.setFontSize(12);
+            const representanteNome = $('#representante_pdf option:selected').text();
+            const formattedDataInicio = formatDateToBR(dataInicio);
+            const formattedDataFim = formatDateToBR(dataFim);
 
-console.log('Representante:', representanteNome);
-console.log('Período:', formattedDataInicio, '-', formattedDataFim);
+            console.log('Representante:', representanteNome);
+            console.log('Período:', formattedDataInicio, '-', formattedDataFim);
 
-doc.text(`Representante: ${representanteNome}`, 110, 16);
-doc.text(`Período: ${formattedDataInicio} - ${formattedDataFim}`, 14, 24);
+            doc.text(`Representante: ${representanteNome}`, 130, 16);
+            doc.text(`Período: ${formattedDataInicio} - ${formattedDataFim}`, 44, 24);
 
 
             // Definir posições e largura para a tabela
-let y = 40; // Y inicial para a tabela
-const colWidths = [20, 30, 50, 40, 40, 40, 70]; // Largura das colunas
-const columns = ['Data', 'Hora', 'Comprador', 'Débito', 'Crédito', 'Pagamento', 'Observações'];
+            let y = 40; // Y inicial para a tabela
+            const colWidths = [20, 30, 50, 40, 40, 40, 70]; // Largura das colunas
+            const columns = ['Data', 'Hora', 'Comprador', 'Débito', 'Crédito', 'Pagamento', 'Observações'];
 
-// Adicionar cabeçalho da tabela
-doc.setFillColor(255, 255, 255); // Cor de fundo branca
-const headerHeight = 10;
-const headerX = 14;
-const headerWidth = colWidths.reduce((a, b) => a + b, 0); // Largura do cabeçalho igual à soma das larguras das colunas
-doc.rect(headerX, y - headerHeight, headerWidth, headerHeight, 'F');
-doc.setFontSize(10);
-columns.forEach((col, index) => {
-    doc.text(col, headerX + colWidths.slice(0, index).reduce((a, b) => a + b, 0) + 2, y - 2); // Adiciona um ajuste de 2 unidades para espaçamento
-});
+            // Adicionar cabeçalho da tabela
+            doc.setFillColor(255, 255, 255); // Cor de fundo branca
+            const headerHeight = 10;
+            const headerX = 14;
+            const headerWidth = colWidths.reduce((a, b) => a + b, 0); // Largura do cabeçalho igual à soma das larguras das colunas
+            doc.rect(headerX, y - headerHeight, headerWidth, headerHeight, 'F');
+            doc.setFontSize(10);
+            columns.forEach((col, index) => {
+                doc.text(col, headerX + colWidths.slice(0, index).reduce((a, b) => a + b, 0) + 2, y - 2); // Adiciona um ajuste de 2 unidades para espaçamento
+            });
 
-y += headerHeight; // Espaço abaixo do cabeçalho
+            y += headerHeight; // Espaço abaixo do cabeçalho
 
-// Variáveis para totais
-let totalDebitos = 0;
-let totalCreditos = 0;
+            // Variáveis para totais
+            let totalDebitos = 0;
+            let totalCreditos = 0;
 
-// Adicionar linhas da tabela
-const linesPerPage = 30; // Número de linhas por página
-const lineHeight = 10; // Altura de cada linha
-function checkAddPage(doc, y, currentPageLines) {
-    if (currentPageLines >= linesPerPage) {
-        doc.addPage();
-        y = 20; // Margem superior da nova página
-        currentPageLines = 0; // Reiniciar contagem de linhas
-    }
-    return { y, currentPageLines };
-}
+            // Adicionar linhas da tabela
+            const linesPerPage = 30; // Número de linhas por página
+            const lineHeight = 10; // Altura de cada linha
+            function checkAddPage(doc, y, currentPageLines) {
+                if (currentPageLines >= linesPerPage) {
+                    doc.addPage();
+                    y = 20; // Margem superior da nova página
+                    currentPageLines = 0; // Reiniciar contagem de linhas
+                }
+                return { y, currentPageLines };
+            }
 
-// Inicializar contadores
-let currentPageLines = 0;
-const rectHeight = 8; // Altura do retângulo menor
-const rectPadding = 2; // Padding para reduzir a largura
-const textOffset = 2; // Ajuste a posição do texto para cima
-const extraLeftSpace = 10; // Espaço extra à esquerda do retângulo
+            // Inicializar contadores
+            let currentPageLines = 0;
+            const rectHeight = 8; // Altura do retângulo menor
+            const rectPadding = 2; // Padding para reduzir a largura
+            const textOffset = 2; // Ajuste a posição do texto para cima
+            const extraLeftSpace = 10; // Espaço extra à esquerda do retângulo
 
-data.forEach((reg, index) => {
-    // Verificar e adicionar uma nova página se necessário
-    const result = checkAddPage(doc, y, currentPageLines);
-    y = result.y;
-    currentPageLines = result.currentPageLines;
+            data.forEach((reg, index) => {
+                // Verificar e adicionar uma nova página se necessário
+                const result = checkAddPage(doc, y, currentPageLines);
+                y = result.y;
+                currentPageLines = result.currentPageLines;
 
-    // Definir a cor de fundo da linha
-    if (index % 2 === 0) {
-        doc.setFillColor(220, 220, 220); // Cinza claro
-    } else {
-        doc.setFillColor(255, 255, 255); // Branco
-    }
+                // Definir a cor de fundo da linha
+                if (index % 2 === 0) {
+                    doc.setFillColor(220, 220, 220); // Cinza claro
+                } else {
+                    doc.setFillColor(255, 255, 255); // Branco
+                }
 
-    // Desenhar o retângulo de fundo para a linha com largura e altura ajustadas
-    const x = headerX - extraLeftSpace; // Ajuste a posição X para mais espaço à esquerda
-    const rectWidth = headerWidth + extraLeftSpace - rectPadding;
-    doc.rect(x, y - rectHeight, rectWidth, rectHeight, 'F');
+                // Desenhar o retângulo de fundo para a linha com largura e altura ajustadas
+                const x = headerX - extraLeftSpace; // Ajuste a posição X para mais espaço à esquerda
+                const rectWidth = headerWidth + extraLeftSpace - rectPadding;
+                doc.rect(x, y - rectHeight, rectWidth, rectHeight, 'F');
 
-    // Adicionar o texto para cada coluna
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8); // Tamanho padrão da fonte
-    doc.setTextColor(0, 0, 0); // Cor do texto preta
+                // Adicionar o texto para cada coluna
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8); // Tamanho padrão da fonte
+                doc.setTextColor(0, 0, 0); // Cor do texto preta
 
-    // Ajustar a posição do texto para cima
-    const textY = y - textOffset;
-    const compradorTexto = reg.comprador ? reg.comprador.toString() : '';
-    const safeText = (value) => (value !== undefined && value !== null) ? value.toString() : '';
+                // Ajustar a posição do texto para cima
+                const textY = y - textOffset;
+                const compradorTexto = reg.comprador ? reg.comprador.toString() : '';
+                const safeText = (value) => (value !== undefined && value !== null) ? value.toString() : '';
 
-   // Adicionar textos de forma ajustada
-doc.text(formatDate(reg.data), headerX, textY);
-doc.text(safeText(reg.hora || ''), headerX + colWidths[0], textY); // Verificar se "hora" está vazio
-doc.text(compradorTexto, headerX + colWidths[0] + colWidths[1], textY);
+                // Adicionar textos de forma ajustada
+                doc.text(formatDate(reg.data), headerX, textY);
+                doc.text(safeText(reg.hora || ''), headerX + colWidths[0], textY); // Verificar se "hora" está vazio
+                doc.text(compradorTexto, headerX + colWidths[0] + colWidths[1], textY);
 
-const valorDebito = unformatCurrency(reg.valor_debito) / 100;
-const valorCredito = unformatCurrency(reg.valor_credito) / 100;
+                const valorDebito = unformatCurrency(reg.valor_debito) / 100;
+                const valorCredito = unformatCurrency(reg.valor_credito) / 100;
 
-doc.text(formatCurrency(valorDebito), headerX + colWidths[0] + colWidths[1] + colWidths[2], textY);
-doc.text(formatCurrency(valorCredito), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], textY);
+                doc.text(formatCurrency(valorDebito), headerX + colWidths[0] + colWidths[1] + colWidths[2], textY);
+                doc.text(formatCurrency(valorCredito), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], textY);
 
-// Ajustar a posição da coluna "pagamento"
-doc.text(safeText(reg.pagamento || ''), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], textY);
+                // Ajustar a posição da coluna "pagamento"
+                doc.text(safeText(reg.pagamento || ''), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], textY);
 
-    // Ajustar texto da coluna de observações
-    if (reg.observacoes.length > 100) {
-        doc.setFontSize(8); // Reduzir o tamanho da fonte
-        const obsText = doc.splitTextToSize(reg.observacoes, colWidths[6]); // Quebra o texto
-        obsText.forEach((line, lineIndex) => {
-            doc.text(line, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY + (lineIndex * 8)); // Espaço entre linhas
-        });
-        y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
-    } else {
-        doc.setFontSize(10); // Tamanho padrão da fonte
-        doc.text(reg.observacoes, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY);
-    }
+                // Ajustar texto da coluna de observações
+                if (reg.observacoes.length > 100) {
+                    doc.setFontSize(8); // Reduzir o tamanho da fonte
+                    const obsText = doc.splitTextToSize(reg.observacoes, colWidths[6]); // Quebra o texto
+                    obsText.forEach((line, lineIndex) => {
+                        doc.text(line, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY + (lineIndex * 8)); // Espaço entre linhas
+                    });
+                    y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
+                } else {
+                    doc.setFontSize(10); // Tamanho padrão da fonte
+                    doc.text(reg.observacoes, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY);
+                }
 
-    // Atualizar totais
-    totalDebitos += valorDebito;
-    totalCreditos += valorCredito;
+                // Atualizar totais
+                totalDebitos += valorDebito;
+                totalCreditos += valorCredito;
 
-    // Incrementar o contador de linhas e a posição Y
-    currentPageLines++;
-    y += lineHeight; // Espaço entre linhas (ajustado para caber o texto de várias linhas, se necessário)
-});
+                // Incrementar o contador de linhas e a posição Y
+                currentPageLines++;
+                y += lineHeight; // Espaço entre linhas (ajustado para caber o texto de várias linhas, se necessário)
+            });
 
-// Adicionar linha de totais
-doc.setFontSize(10);
-const totalsRowY = y;
+            // Adicionar linha de totais
+            doc.setFontSize(10);
+            const totalsRowY = y;
 
-// Largura total da página e margem
-const pageWidth = doc.internal.pageSize.getWidth();
-const marginRight = 14; // Margem direita (ajuste conforme necessário)
+            // Largura total da página e margem
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const marginRight = 14; // Margem direita (ajuste conforme necessário)
 
-// Definir cor do saldo com base no valor
-const saldo = totalCreditos - totalDebitos; // Inicializa a variável saldo
+            // Definir cor do saldo com base no valor
+            const saldo = totalCreditos - totalDebitos; // Inicializa a variável saldo
 
-// Calculando a posição X para alinhar à direita
-const textDebitos = 'Débitos:';
-const textCreditos = 'Créditos:';
-const textSaldo = 'Saldo:';
+            // Calculando a posição X para alinhar à direita
+            const textDebitos = 'Débitos:';
+            const textCreditos = 'Créditos:';
+            const textSaldo = 'Saldo:';
 
-// Estimando a largura dos textos
-const widthDebitos = doc.getTextWidth(textDebitos + formatCurrency(totalDebitos));
-const widthCreditos = doc.getTextWidth(textCreditos + formatCurrency(totalCreditos));
-const widthSaldo = doc.getTextWidth(textSaldo + formatCurrency(saldo));
+            // Estimando a largura dos textos
+            const widthDebitos = doc.getTextWidth(textDebitos + formatCurrency(totalDebitos));
+            const widthCreditos = doc.getTextWidth(textCreditos + formatCurrency(totalCreditos));
+            const widthSaldo = doc.getTextWidth(textSaldo + formatCurrency(saldo));
 
-// Posição X para alinhar à direita
-const xRightDebitos = pageWidth - widthDebitos - marginRight;
-const xRightCreditos = pageWidth - widthCreditos - marginRight;
-const xRightSaldo = pageWidth - widthSaldo - marginRight;
+            // Posição X para alinhar à direita
+            const xRightDebitos = pageWidth - widthDebitos - marginRight;
+            const xRightCreditos = pageWidth - widthCreditos - marginRight;
+            const xRightSaldo = pageWidth - widthSaldo - marginRight;
 
-// Adicionar totais de débitos em vermelho
-doc.setTextColor(255, 0, 0); // Cor vermelha para débitos
-doc.text(textDebitos, xRightDebitos, totalsRowY + 8);
-doc.text(formatCurrency(totalDebitos), xRightDebitos + doc.getTextWidth(textDebitos), totalsRowY + 8);
+            // Adicionar totais de débitos em vermelho
+            doc.setTextColor(255, 0, 0); // Cor vermelha para débitos
+            doc.text(textDebitos, xRightDebitos, totalsRowY + 8);
+            doc.text(formatCurrency(totalDebitos), xRightDebitos + doc.getTextWidth(textDebitos), totalsRowY + 8);
 
-// Adicionar totais de créditos em azul
-doc.setTextColor(0, 0, 255); // Cor azul para créditos
-doc.text(textCreditos, xRightCreditos, totalsRowY + 16);
-doc.text(formatCurrency(totalCreditos), xRightCreditos + doc.getTextWidth(textCreditos), totalsRowY + 16);
+            // Adicionar totais de créditos em azul
+            doc.setTextColor(0, 0, 255); // Cor azul para créditos
+            doc.text(textCreditos, xRightCreditos, totalsRowY + 16);
+            doc.text(formatCurrency(totalCreditos), xRightCreditos + doc.getTextWidth(textCreditos), totalsRowY + 16);
 
-// Definir a cor para o saldo após calcular
-if (saldo >= 0) {
-    doc.setTextColor(0, 0, 255); // Azul para saldo positivo
-} else {
-    doc.setTextColor(255, 0, 0); // Vermelho para saldo negativo
-}
-doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
-doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), totalsRowY + 24);
+            // Definir a cor para o saldo após calcular
+            if (saldo >= 0) {
+                doc.setTextColor(0, 0, 255); // Azul para saldo positivo
+            } else {
+                doc.setTextColor(255, 0, 0); // Vermelho para saldo negativo
+            }
+            doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
+            doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), totalsRowY + 24);
 
-          
+
 
             // Adicionar o saldo final
             doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
@@ -664,6 +672,7 @@ doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), total
 
             // Salvar o PDF
             doc.save(`relatorio_financeiro_${representanteId}_${dataInicio}_a_${dataFim}.pdf`);
+        };
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Erro ao gerar PDF:', textStatus, errorThrown);
             alert('Erro ao gerar PDF.');
@@ -708,7 +717,7 @@ doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), total
         const [year, month, day] = dateString.split('-');
         return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
     }
-    
+
 
 
     // Inicializar representantes no formulário PDF
@@ -827,32 +836,32 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify(formData)
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Registro financeiro salvo com sucesso:', data);
-        })
-        .catch(error => {
-            console.error('Erro ao salvar o registro financeiro:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                console.log('Registro financeiro salvo com sucesso:', data);
+            })
+            .catch(error => {
+                console.error('Erro ao salvar o registro financeiro:', error);
+            });
     });
 });
 
 
 let tiposPagamento = [];
 
-$(document).ready(function() {
+$(document).ready(function () {
     function carregarTiposPagamento() {
-        $.get('/api/tipo_pagamento', function(data) {
+        $.get('/api/tipo_pagamento', function (data) {
             tiposPagamento = data;
 
             // Preenche o select com os tipos de pagamento
             const $pagamentoSelect = $('#pagamento');
-            data.forEach(function(tipo) {
+            data.forEach(function (tipo) {
                 $pagamentoSelect.append(
                     `<option value="${tipo.id}">${tipo.tipo_pagamento}</option>`
                 );
             });
-        }).fail(function(jqXHR, textStatus, errorThrown) {
+        }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Erro ao carregar tipos de pagamento:', textStatus, errorThrown);
         });
     }
