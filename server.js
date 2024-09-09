@@ -14,7 +14,7 @@ const ExcelJS = require('exceljs');
 
 // Inicializar o Express
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Criação da conexão
 const db = mysql.createConnection({
