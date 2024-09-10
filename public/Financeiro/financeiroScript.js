@@ -709,6 +709,7 @@ $(document).ready(function () {
             alert('Erro ao gerar PDF.');
         });
     });
+    
 
 
     function formatDate(dateString) {
@@ -899,5 +900,113 @@ $(document).ready(function () {
 
     carregarTiposPagamento();
 });
+
+
+// BAIXAR AQRUIVO EXCEL 
+function formatDate(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toLocaleDateString();
+}
+
+function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(value);
+}
+
+function unformatCurrency(value) {
+    return parseFloat(value.replace(/[^\d,]/g, '').replace(',', '.')).toFixed(4) || '0.0000';
+}
+
+function downloadExcel() {
+    // Mostrar tela de carregamento
+    $('#loading-screen').show();
+
+    $.get('/api/registros_financeiros_todos', function (data) {
+        // Criar um workbook novo
+        const wb = XLSX.utils.book_new();
+
+        // Agrupar registros por representante
+        const representantes = {};
+
+        data.forEach(reg => {
+            if (!representantes[reg.representante_id]) {
+                representantes[reg.representante_id] = {
+                    nome: reg.representante_nome,
+                    registros: []
+                };
+            }
+
+            representantes[reg.representante_id].registros.push(reg);
+        });
+
+        // Adicionar uma aba para cada representante
+        Object.keys(representantes).forEach(representanteId => {
+            const rep = representantes[representanteId];
+            const wsData = [];
+
+            // Cabeçalho
+            wsData.push(['Data', 'Hora', 'Comprador', 'Débito', 'Crédito', 'Pagamento', 'Observações', 'Total Crédito', 'Total Débito', 'Saldo']);
+
+            let totalDebitos = 0;
+            let totalCreditos = 0;
+
+            // Adicionar registros
+            rep.registros.forEach(reg => {
+                const valorDebito = unformatCurrency(reg.valor_debito) / 100;
+                const valorCredito = unformatCurrency(reg.valor_credito) / 100;
+
+                wsData.push([
+                    formatDate(reg.data),
+                    reg.hora || '',
+                    reg.comprador || '',
+                    formatCurrency(valorDebito),
+                    formatCurrency(valorCredito),
+                    reg.pagamento || '',
+                    reg.observacoes || '',
+                    '', // Coluna H (Total Crédito - deixado em branco para a linha de totais)
+                    '', // Coluna I (Total Débito - deixado em branco para a linha de totais)
+                    ''  // Coluna J (Saldo - deixado em branco para a linha de totais)
+                ]);
+
+                totalDebitos += valorDebito;
+                totalCreditos += valorCredito;
+            });
+
+            // Adicionar totais na linha específica
+            // A linha 2 é a segunda linha no Excel (index 1)
+            wsData[1][7] = formatCurrency(totalCreditos); // Total Crédito (H2)
+            wsData[1][8] = formatCurrency(totalDebitos);   // Total Débito (I2)
+            wsData[1][9] = formatCurrency(totalCreditos - totalDebitos); // Saldo (J2)
+
+            // Criar uma nova aba para o representante
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+            // Ajustar largura das colunas
+            const colWidth = wsData[0].map((_, colIndex) => {
+                return {
+                    width: Math.max(...wsData.map(row => (row[colIndex] || '').toString().length))
+                };
+            });
+            ws['!cols'] = colWidth;
+
+            XLSX.utils.book_append_sheet(wb, ws, rep.nome);
+        });
+
+        // Gerar o arquivo Excel e iniciar o download
+        XLSX.writeFile(wb, 'Registros_Financeiros.xlsx');
+
+        // Esconder tela de carregamento
+        $('#loading-screen').hide();
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        console.error('Erro ao carregar registros financeiros:', textStatus, errorThrown);
+        $('#loading-screen').hide();
+    });
+}
+
 
 

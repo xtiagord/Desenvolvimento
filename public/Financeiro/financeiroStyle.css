@@ -30,17 +30,6 @@
     margin-right: 0.5rem; /* Espaçamento entre os botões */
 }
 
-.btn {
-    padding: 0.5rem; /* Reduzir o padding dos botões */
-    font-size: 0.8rem; /* Reduzir o tamanho da fonte dos ícones */
-}
-
-.btn i {
-    font-size: 1rem; /* Ajustar o tamanho do ícone */
-}
-
-
-
 /* CSS personalizado para botões maiores */
 .btn-registros {
     width: 100%;
@@ -50,7 +39,6 @@
     font-size: 1.2rem;
     /* Aumentar o tamanho da fonte */
 }
-
 
 .bg-debito {
     background-color: #f8d7da;

@@ -1879,6 +1879,26 @@ app.put('/dados/:id', (req, res) => {
     });
 });
 
+// Rota para obter todos os registros financeiros // EXCEL
+app.get('/api/registros_financeiros_todos', (req, res) => {
+    // Consulta SQL para obter todos os registros financeiros
+    const query = `
+        SELECT rf.id, rf.data, rf.hora, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.pagamento, rf.observacoes, rf.representante_id, r.nome AS representante_nome
+        FROM registros_financeiros rf
+        LEFT JOIN compradores c ON rf.comprador = c.id
+        LEFT JOIN representantes r ON rf.representante_id = r.id
+    `;
+    
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar registros financeiros:', error);
+            return res.status(500).json({ error: 'Erro ao buscar registros financeiros' });
+        }
+        res.json(results);
+    });
+});
+
+
 // Exemplo de rota usando Express.js
 app.post('/api/contagem', async (req, res) => {
     const { representanteId, contagem } = req.body;
