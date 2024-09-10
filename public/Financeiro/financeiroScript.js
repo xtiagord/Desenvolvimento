@@ -126,12 +126,21 @@ $(document).ready(function () {
                         <td class="editable">${pagamentoNome}</td>
                         <td class="editable">${observacoesFormatadas}</td>
                         <td>
-                            <button class="btn btn-primary btn-sm edit-btn">Editar</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">Excluir</button>
+                            <div class="btn-group">
+                                <!-- Botão Editar com ícone -->
+                                <button class="btn btn-primary btn-sm edit-btn">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <!-- Botão Excluir com ícone de lixeira -->
+                                <button class="btn btn-danger btn-sm" onclick="deleteRegistro(${reg.id})">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>`
                 );
-
+                
+                
                 totalDebitos += valorDebito;
                 totalCreditos += valorCredito;
             });
