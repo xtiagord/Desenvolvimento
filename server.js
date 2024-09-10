@@ -16,13 +16,13 @@ const ExcelJS = require('exceljs');
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Criação da conexão
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE
+    host: '192.168.0.177',
+    user: 'tiago',
+    password: '1234',
+    database: 'sys'
 });
-
 
 // Conectar ao banco de dados
 db.connect(err => {

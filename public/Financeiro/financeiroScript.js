@@ -492,187 +492,209 @@ $(document).ready(function () {
                 // Adicionar a imagem no canto esquerdo
                 doc.addImage(image, 'PNG', 10, 10, 30, 20); // x, y, largura, altura
 
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold"); // Define a fonte como Helvetica em negrito
-            doc.text('Relatório de Movimentação', 44, 16);
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold"); // Define a fonte como Helvetica em negrito
+                doc.text('Relatório de Movimentação', 44, 16);
 
 
-            // Adicionar informações do representante e período
-            doc.setFontSize(12);
-            const representanteNome = $('#representante_pdf option:selected').text();
-            const formattedDataInicio = formatDateToBR(dataInicio);
-            const formattedDataFim = formatDateToBR(dataFim);
+                // Adicionar informações do representante e período
+                doc.setFontSize(12);
+                const representanteNome = $('#representante_pdf option:selected').text();
+                const formattedDataInicio = formatDateToBR(dataInicio);
+                const formattedDataFim = formatDateToBR(dataFim);
 
-            console.log('Representante:', representanteNome);
-            console.log('Período:', formattedDataInicio, '-', formattedDataFim);
+                console.log('Representante:', representanteNome);
+                console.log('Período:', formattedDataInicio, '-', formattedDataFim);
 
-            doc.text(`Representante: ${representanteNome}`, 130, 16);
-            doc.text(`Período: ${formattedDataInicio} - ${formattedDataFim}`, 44, 24);
+                doc.text(`Representante: ${representanteNome}`, 130, 16);
+                doc.text(`Período: ${formattedDataInicio} - ${formattedDataFim}`, 44, 24);
 
 
-            // Definir posições e largura para a tabela
-            let y = 40; // Y inicial para a tabela
-            const colWidths = [20, 30, 50, 40, 40, 40, 70]; // Largura das colunas
-            const columns = ['Data', 'Hora', 'Comprador', 'Débito', 'Crédito', 'Pagamento', 'Observações'];
+                // Definir posições e largura para a tabela
+                let y = 40; // Y inicial para a tabela
+                const colWidths = [20, 20, 60, 30, 30, 30, 90]; // Largura das colunas
+                const columns = ['Data', 'Hora', 'Comprador', 'Débito', 'Crédito', 'Pagamento', 'Observações'];
 
-            // Adicionar cabeçalho da tabela
-            doc.setFillColor(255, 255, 255); // Cor de fundo branca
-            const headerHeight = 10;
-            const headerX = 14;
-            const headerWidth = colWidths.reduce((a, b) => a + b, 0); // Largura do cabeçalho igual à soma das larguras das colunas
-            doc.rect(headerX, y - headerHeight, headerWidth, headerHeight, 'F');
-            doc.setFontSize(10);
-            columns.forEach((col, index) => {
-                doc.text(col, headerX + colWidths.slice(0, index).reduce((a, b) => a + b, 0) + 2, y - 2); // Adiciona um ajuste de 2 unidades para espaçamento
-            });
+                // Adicionar cabeçalho da tabela
+                doc.setFillColor(255, 255, 255); // Cor de fundo branca
+                const headerHeight = 10;
+                const headerX = 14;
+                const headerWidth = colWidths.reduce((a, b) => a + b, 0); // Largura do cabeçalho igual à soma das larguras das colunas
+                doc.rect(headerX, y - headerHeight, headerWidth, headerHeight, 'F');
+                doc.setFontSize(10);
+                columns.forEach((col, index) => {
+                    doc.text(col, headerX + colWidths.slice(0, index).reduce((a, b) => a + b, 0) + 2, y - 2); // Adiciona um ajuste de 2 unidades para espaçamento
+                });
 
-            y += headerHeight; // Espaço abaixo do cabeçalho
+                y += headerHeight; // Espaço abaixo do cabeçalho
 
-            // Variáveis para totais
-            let totalDebitos = 0;
-            let totalCreditos = 0;
+                // Variáveis para totais
+                let totalDebitos = 0;
+                let totalCreditos = 0;
 
-            // Adicionar linhas da tabela
-            const linesPerPage = 30; // Número de linhas por página
-            const lineHeight = 10; // Altura de cada linha
-            function checkAddPage(doc, y, currentPageLines) {
-                if (currentPageLines >= linesPerPage) {
-                    doc.addPage();
-                    y = 20; // Margem superior da nova página
-                    currentPageLines = 0; // Reiniciar contagem de linhas
-                }
-                return { y, currentPageLines };
-            }
-
-            // Inicializar contadores
-            let currentPageLines = 0;
-            const rectHeight = 8; // Altura do retângulo menor
-            const rectPadding = 2; // Padding para reduzir a largura
-            const textOffset = 2; // Ajuste a posição do texto para cima
-            const extraLeftSpace = 10; // Espaço extra à esquerda do retângulo
-
-            data.forEach((reg, index) => {
-                // Verificar e adicionar uma nova página se necessário
-                const result = checkAddPage(doc, y, currentPageLines);
-                y = result.y;
-                currentPageLines = result.currentPageLines;
-
-                // Definir a cor de fundo da linha
-                if (index % 2 === 0) {
-                    doc.setFillColor(220, 220, 220); // Cinza claro
-                } else {
-                    doc.setFillColor(255, 255, 255); // Branco
+                // Adicionar linhas da tabela
+                const linesPerPage = 30; // Número de linhas por página
+                const lineHeight = 10; // Altura de cada linha
+                function checkAddPage(doc, y, currentPageLines) {
+                    if (currentPageLines >= linesPerPage) {
+                        doc.addPage();
+                        y = 10; // Margem superior da nova página
+                        currentPageLines = 0; // Reiniciar contagem de linhas
+                    }
+                    return { y, currentPageLines };
                 }
 
-                // Desenhar o retângulo de fundo para a linha com largura e altura ajustadas
-                const x = headerX - extraLeftSpace; // Ajuste a posição X para mais espaço à esquerda
-                const rectWidth = headerWidth + extraLeftSpace - rectPadding;
-                doc.rect(x, y - rectHeight, rectWidth, rectHeight, 'F');
+                // Inicializar contadores
+                let currentPageLines = 0;
+                const rectHeight = 8; // Altura do retângulo menor
+                const rectPadding = 2; // Padding para reduzir a largura
+                const textOffset = 2; // Ajuste a posição do texto para cima
+                const extraLeftSpace = 10; // Espaço extra à esquerda do retângulo
 
-                // Adicionar o texto para cada coluna
-                doc.setFont("helvetica", "normal");
-                doc.setFontSize(8); // Tamanho padrão da fonte
-                doc.setTextColor(0, 0, 0); // Cor do texto preta
+                data.forEach((reg, index) => {
+                    // Verificar e adicionar uma nova página se necessário
+                    const result = checkAddPage(doc, y, currentPageLines);
+                    y = result.y;
+                    currentPageLines = result.currentPageLines;
 
-                // Ajustar a posição do texto para cima
-                const textY = y - textOffset;
-                const compradorTexto = reg.comprador ? reg.comprador.toString() : '';
-                const safeText = (value) => (value !== undefined && value !== null) ? value.toString() : '';
+                    // Definir a cor de fundo da linha
+                    if (index % 2 === 0) {
+                        doc.setFillColor(220, 220, 220); // Cinza claro
+                    } else {
+                        doc.setFillColor(255, 255, 255); // Branco
+                    }
 
-                // Adicionar textos de forma ajustada
-                doc.text(formatDate(reg.data), headerX, textY);
-                doc.text(safeText(reg.hora || ''), headerX + colWidths[0], textY); // Verificar se "hora" está vazio
-                doc.text(compradorTexto, headerX + colWidths[0] + colWidths[1], textY);
+                    // Definir o texto seguro (garante que valores nulos ou indefinidos não causem problemas)
+                    const safeText = (value) => (value !== undefined && value !== null) ? value.toString() : '';
 
-                const valorDebito = unformatCurrency(reg.valor_debito) / 100;
-                const valorCredito = unformatCurrency(reg.valor_credito) / 100;
+                    // Definir o texto do comprador
+                    const compradorTexto = safeText(reg.comprador);
 
-                doc.text(formatCurrency(valorDebito), headerX + colWidths[0] + colWidths[1] + colWidths[2], textY);
-                doc.text(formatCurrency(valorCredito), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], textY);
+                    // Agora você pode definir 'compradorLinhas' corretamente antes de calcular a altura
+                    const compradorLinhas = doc.splitTextToSize(compradorTexto, colWidths[2] - 2); // Quebra o texto em múltiplas linhas, se necessário
 
-                // Ajustar a posição da coluna "pagamento"
-                doc.text(safeText(reg.pagamento || ''), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], textY);
+                    // Calcular a altura da linha com base no número de linhas do comprador
+                    const linhaCompradorAltura = compradorLinhas.length * 8; // Cada linha tem 8 de altura
 
-                // Ajustar texto da coluna de observações
-                if (reg.observacoes.length > 100) {
-                    doc.setFontSize(8); // Reduzir o tamanho da fonte
-                    const obsText = doc.splitTextToSize(reg.observacoes, colWidths[6]); // Quebra o texto
-                    obsText.forEach((line, lineIndex) => {
-                        doc.text(line, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY + (lineIndex * 8)); // Espaço entre linhas
+                    // Desenhar o retângulo de fundo para a linha com largura e altura ajustadas
+                    const rectHeightAdjusted = Math.max(rectHeight, linhaCompradorAltura);
+                    const x = headerX - extraLeftSpace; // Ajuste a posição X para mais espaço à esquerda
+                    const rectWidth = headerWidth + extraLeftSpace - rectPadding;
+                    doc.rect(x, y - rectHeight, rectWidth, rectHeightAdjusted, 'F');
+
+                    // Adicionar o texto para cada coluna
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(8); // Tamanho padrão da fonte
+                    doc.setTextColor(0, 0, 0); // Cor do texto preta
+
+                    // Ajustar a posição do texto para cima
+                    const textY = y - textOffset;
+
+                    // Adicionar o texto da data e hora
+                    doc.text(formatDate(reg.data), headerX, textY);
+                    doc.text(safeText(reg.hora || ''), headerX + colWidths[0], textY); // Verificar se "hora" está vazio
+
+                    // Adicionar o texto do comprador (com múltiplas linhas, se necessário)
+                    compradorLinhas.forEach((linha, linhaIndex) => {
+                        doc.text(linha, headerX + colWidths[0] + colWidths[1], textY + (linhaIndex * 8)); // Adiciona cada linha com espaçamento vertical
                     });
-                    y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
-                } else {
-                    doc.setFontSize(10); // Tamanho padrão da fonte
-                    doc.text(reg.observacoes, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY);
+
+                    // Adicionar os valores de débito e crédito
+                    const valorDebito = unformatCurrency(reg.valor_debito) / 100;
+                    const valorCredito = unformatCurrency(reg.valor_credito) / 100;
+
+                    doc.text(formatCurrency(valorDebito), headerX + colWidths[0] + colWidths[1] + colWidths[2], textY);
+                    doc.text(formatCurrency(valorCredito), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3], textY);
+
+                    // Ajustar a posição da coluna "pagamento"
+                    doc.text(safeText(reg.pagamento || ''), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4], textY);
+
+                    // Ajustar texto da coluna de observações (com quebra de linhas, se necessário)
+                    if (safeText(reg.observacoes).length > 100) {
+                        doc.setFontSize(8); // Reduzir o tamanho da fonte
+                        const obsText = doc.splitTextToSize(safeText(reg.observacoes), colWidths[6]);
+                        obsText.forEach((line, lineIndex) => {
+                            doc.text(line, headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY + (lineIndex * 8)); // Espaço entre linhas
+                        });
+                        y += (obsText.length * 8); // Ajusta a altura de acordo com o número de linhas
+                    } else {
+                        doc.setFontSize(10); // Tamanho padrão da fonte
+                        doc.text(safeText(reg.observacoes), headerX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5], textY);
+                    }
+
+                    // Atualizar totais
+                    totalDebitos += valorDebito;
+                    totalCreditos += valorCredito;
+
+                    // Incrementar o contador de linhas e a posição Y
+                    currentPageLines++;
+                    y += rectHeightAdjusted; // Aumenta Y com base na altura ajustada da célula
+                });
+
+                // Adicionar linha de totais
+                doc.setFontSize(10);
+
+                // Altura necessária para as linhas de totais (3 linhas: débitos, créditos, saldo)
+                const totalLinesHeight = 24;
+
+                // Verificar se há espaço suficiente na página atual para os totais
+                const pageHeight = doc.internal.pageSize.getHeight();
+                if (y + totalLinesHeight > pageHeight - 20) { // 20 para margem inferior
+                    doc.addPage(); // Adicionar nova página se não houver espaço
+                    y = 20; // Reiniciar a posição y para a nova página
                 }
 
-                // Atualizar totais
-                totalDebitos += valorDebito;
-                totalCreditos += valorCredito;
+                // Agora, adicionar os totais
+                const totalsRowY = y;
 
-                // Incrementar o contador de linhas e a posição Y
-                currentPageLines++;
-                y += lineHeight; // Espaço entre linhas (ajustado para caber o texto de várias linhas, se necessário)
-            });
+                // Largura total da página e margem
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const marginRight = 14; // Margem direita (ajuste conforme necessário)
 
-            // Adicionar linha de totais
-            doc.setFontSize(10);
-            const totalsRowY = y;
+                // Definir cor do saldo com base no valor
+                const saldo = totalCreditos - totalDebitos; // Inicializa a variável saldo
 
-            // Largura total da página e margem
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const marginRight = 14; // Margem direita (ajuste conforme necessário)
+                // Calculando a posição X para alinhar à direita
+                const textDebitos = 'Débitos:';
+                const textCreditos = 'Créditos:';
+                const textSaldo = 'Saldo:';
 
-            // Definir cor do saldo com base no valor
-            const saldo = totalCreditos - totalDebitos; // Inicializa a variável saldo
+                // Estimando a largura dos textos
+                const widthDebitos = doc.getTextWidth(textDebitos + formatCurrency(totalDebitos));
+                const widthCreditos = doc.getTextWidth(textCreditos + formatCurrency(totalCreditos));
+                const widthSaldo = doc.getTextWidth(textSaldo + formatCurrency(saldo));
 
-            // Calculando a posição X para alinhar à direita
-            const textDebitos = 'Débitos:';
-            const textCreditos = 'Créditos:';
-            const textSaldo = 'Saldo:';
+                // Posição X para alinhar à direita
+                const xRightDebitos = pageWidth - widthDebitos - marginRight;
+                const xRightCreditos = pageWidth - widthCreditos - marginRight;
+                const xRightSaldo = pageWidth - widthSaldo - marginRight;
 
-            // Estimando a largura dos textos
-            const widthDebitos = doc.getTextWidth(textDebitos + formatCurrency(totalDebitos));
-            const widthCreditos = doc.getTextWidth(textCreditos + formatCurrency(totalCreditos));
-            const widthSaldo = doc.getTextWidth(textSaldo + formatCurrency(saldo));
+                // Adicionar totais de débitos em vermelho
+                doc.setTextColor(255, 0, 0); // Cor vermelha para débitos
+                doc.text(textDebitos, xRightDebitos, totalsRowY + 8);
+                doc.text(formatCurrency(totalDebitos), xRightDebitos + doc.getTextWidth(textDebitos), totalsRowY + 8);
 
-            // Posição X para alinhar à direita
-            const xRightDebitos = pageWidth - widthDebitos - marginRight;
-            const xRightCreditos = pageWidth - widthCreditos - marginRight;
-            const xRightSaldo = pageWidth - widthSaldo - marginRight;
+                // Adicionar totais de créditos em azul
+                doc.setTextColor(0, 0, 255); // Cor azul para créditos
+                doc.text(textCreditos, xRightCreditos, totalsRowY + 16);
+                doc.text(formatCurrency(totalCreditos), xRightCreditos + doc.getTextWidth(textCreditos), totalsRowY + 16);
 
-            // Adicionar totais de débitos em vermelho
-            doc.setTextColor(255, 0, 0); // Cor vermelha para débitos
-            doc.text(textDebitos, xRightDebitos, totalsRowY + 8);
-            doc.text(formatCurrency(totalDebitos), xRightDebitos + doc.getTextWidth(textDebitos), totalsRowY + 8);
+                // Definir a cor para o saldo após calcular
+                if (saldo >= 0) {
+                    doc.setTextColor(0, 0, 255); // Azul para saldo positivo
+                } else {
+                    doc.setTextColor(255, 0, 0); // Vermelho para saldo negativo
+                }
+                doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
+                doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), totalsRowY + 24);
 
-            // Adicionar totais de créditos em azul
-            doc.setTextColor(0, 0, 255); // Cor azul para créditos
-            doc.text(textCreditos, xRightCreditos, totalsRowY + 16);
-            doc.text(formatCurrency(totalCreditos), xRightCreditos + doc.getTextWidth(textCreditos), totalsRowY + 16);
-
-            // Definir a cor para o saldo após calcular
-            if (saldo >= 0) {
-                doc.setTextColor(0, 0, 255); // Azul para saldo positivo
-            } else {
-                doc.setTextColor(255, 0, 0); // Vermelho para saldo negativo
-            }
-            doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
-            doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), totalsRowY + 24);
+                // Resetar a cor para o padrão após adicionar o saldo
+                doc.setTextColor(0, 0, 0);
 
 
-
-            // Adicionar o saldo final
-            doc.text(textSaldo, xRightSaldo, totalsRowY + 24);
-            doc.text(formatCurrency(saldo), xRightSaldo + doc.getTextWidth(textSaldo), totalsRowY + 24);
-
-            // Resetar a cor para o padrão após adicionar o saldo
-            doc.setTextColor(0, 0, 0);
-
-
-            // Salvar o PDF
-            doc.save(`relatorio_financeiro_${representanteId}_${dataInicio}_a_${dataFim}.pdf`);
-        };
+                // Salvar o PDF
+                doc.save(`relatorio_financeiro_${representanteId}_${dataInicio}_a_${dataFim}.pdf`);
+            };
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Erro ao gerar PDF:', textStatus, errorThrown);
             alert('Erro ao gerar PDF.');
