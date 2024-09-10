@@ -23,11 +23,13 @@
 /* CSS para garantir que os botões fiquem lado a lado e não se sobreponham */
 
 .btn-group {
-    display: flex; /* Alinha os botões horizontalmente */
+    display: flex;
+    /* Alinha os botões horizontalmente */
 }
 
 .btn {
-    margin-right: 0.5rem; /* Espaçamento entre os botões */
+    margin-right: 0.5rem;
+    /* Espaçamento entre os botões */
 }
 
 /* CSS personalizado para botões maiores */
@@ -125,4 +127,28 @@ body {
 .card {
     border-radius: 0.75rem;
     /* Ajuste o valor conforme necessário */
+}
+
+/* Estilos para a linha de total */
+.total-row {
+    font-weight: bold; /* Deixar o texto em negrito */
+    background-color: #f0f0f0; /* Cor de fundo suave para destacar a linha */
+}
+
+/* Estilos para saldo positivo */
+.saldo-positivo {
+    background-color: #b0d2ff; /* Azul claro */
+}
+
+.saldo-positivo:hover {
+    background-color: #8abaff; /* Azul mais forte no hover */
+}
+
+/* Estilos para saldo negativo */
+.saldo-negativo {
+    background-color: #ffb9c4; /* Vermelho claro */
+}
+
+.saldo-negativo:hover {
+    background-color: #ff9a9f; /* Vermelho mais forte no hover */
 }

@@ -33,6 +33,9 @@ $(document).ready(function () {
             return;
         }
 
+        // Mapeamento ID para Nome do pagamento
+        const pagamentoNome = $('#pagamento option:selected').text();
+
         // Enviar dados para o servidor
         $.ajax({
             url: '/api/registros_financeiros',
@@ -45,7 +48,7 @@ $(document).ready(function () {
                 comprador,
                 valor_debito,
                 valor_credito,
-                pagamento,
+                pagamento: pagamentoNome,
                 observacoes
             }),
             success: function (response) {
@@ -139,8 +142,8 @@ $(document).ready(function () {
                         </td>
                     </tr>`
                 );
-                
-                
+
+
                 totalDebitos += valorDebito;
                 totalCreditos += valorCredito;
             });
@@ -269,46 +272,49 @@ $(document).ready(function () {
 
     function loadRepresentantes() {
         $.get('/api/representantes_financeiros', function (data) {
+            // Ordenar os representantes por nome em ordem alfabética
+            data.sort((a, b) => a.nome.localeCompare(b.nome));
+            
             $('#representantes-container').empty();
             $('#representante').empty();
             $('#tabela-representantes tbody').empty();
             $('#representante').append('<option value="" disabled selected>Selecione um representante</option>'); // Re-adiciona a opção padrão
-
+    
             var container = $('<div class="row"></div>');
-
+    
             data.forEach((rep, index) => {
                 $('#representante').append(`<option value="${rep.id}">${rep.nome}</option>`);
                 $('#tabela-representantes tbody').append(`<tr><td>${rep.id}</td><td>${rep.nome}</td></tr>`);
-
+    
                 if (index % 4 === 0 && index !== 0) {
                     $('#representantes-container').append(container);
                     container = $('<div class="row"></div>');
                 }
-
+    
                 container.append(
                     `<div class="col-md-3 mb-2">
                         <button class="btn btn-primary btn-lg btn-registros" data-id="${rep.id}" data-nome="${rep.nome}">${rep.nome}</button>
                     </div>`
                 );
             });
-
+    
             if (container.children().length > 0) {
                 $('#representantes-container').append(container);
             }
-
+    
             $('.btn-registros').on('click', function () {
                 representanteIdSelecionado = $(this).data('id');
                 var representanteNome = $(this).data('nome');
                 $('#modal-representante-nome').text(representanteNome);
                 loadRegistros(representanteIdSelecionado);
             });
-
+    
             $('#tabela-representantes').DataTable();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Erro ao carregar representantes financeiros:', textStatus, errorThrown);
         });
     }
-
+    
 
     // Inicializar
     loadRepresentantes();
@@ -541,15 +547,22 @@ $(document).ready(function () {
                 let totalDebitos = 0;
                 let totalCreditos = 0;
 
-                // Adicionar linhas da tabela
-                const linesPerPage = 30; // Número de linhas por página
-                const lineHeight = 10; // Altura de cada linha
+                // Número de linhas por página para a primeira página e para as demais
+                const linesPerPageFirstPage = 18; // Número de linhas na primeira página
+                const linesPerPageOtherPages = 23; // Número de linhas nas demais páginas
+                let isFirstPage = true; // Variável para rastrear se estamos na primeira página
+
+                // Função para verificar e adicionar uma nova página se necessário
                 function checkAddPage(doc, y, currentPageLines) {
+                    const linesPerPage = isFirstPage ? linesPerPageFirstPage : linesPerPageOtherPages;
+
                     if (currentPageLines >= linesPerPage) {
                         doc.addPage();
                         y = 10; // Margem superior da nova página
                         currentPageLines = 0; // Reiniciar contagem de linhas
+                        isFirstPage = false; // Após a primeira página, todas são páginas subsequentes
                     }
+
                     return { y, currentPageLines };
                 }
 
@@ -709,7 +722,7 @@ $(document).ready(function () {
             alert('Erro ao gerar PDF.');
         });
     });
-    
+
 
 
     function formatDate(dateString) {
@@ -732,10 +745,17 @@ $(document).ready(function () {
         return parseFloat(value.replace(/R\$\s?/g, '').replace(/\./g, '').replace(/,/g, '.')) || 0;
     }
 
-    // Função para carregar representantes no formulário PDF
     function loadRepresentantesForPdf() {
         $.get('/api/representantes_financeiros', function (data) {
+            // Ordenar os representantes por nome em ordem alfabética
+            data.sort((a, b) => a.nome.localeCompare(b.nome));
+            
             $('#representante_pdf').empty();
+            
+            // Adicionar a opção padrão se necessário
+            $('#representante_pdf').append('<option value="" disabled selected>Selecione um representante</option>');
+    
+            // Adicionar as opções ordenadas ao dropdown
             data.forEach(rep => {
                 $('#representante_pdf').append(`<option value="${rep.id}">${rep.nome}</option>`);
             });
@@ -743,7 +763,7 @@ $(document).ready(function () {
             console.error('Erro ao carregar representantes para PDF:', textStatus, errorThrown);
         });
     }
-
+    
     function formatDateToBR(dateString) {
         // dateString deve estar no formato "YYYY-MM-DD"
         const [year, month, day] = dateString.split('-');
@@ -1007,6 +1027,111 @@ function downloadExcel() {
         $('#loading-screen').hide();
     });
 }
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/api/representantes_financeiros/saldos');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const representantes = await response.json();
+        console.log('Dados dos representantes:', representantes);
+
+        // Ordenar os representantes por nome em ordem alfabética
+        representantes.sort((a, b) => a.nome.localeCompare(b.nome));
+
+        // Selecionar o corpo da tabela
+        const tableBody = document.querySelector('#representantes-table tbody');
+        tableBody.innerHTML = ''; // Limpar qualquer conteúdo existente
+
+        let totalDebito = 0;
+        let totalCredito = 0;
+        let totalSaldo = 0;
+
+        // Iterar sobre os representantes e adicionar linhas à tabela
+        representantes.forEach(rep => {
+            const row = document.createElement('tr');
+
+            // Coluna do nome do representante
+            const nomeCell = document.createElement('td');
+            nomeCell.textContent = rep.nome;
+            row.appendChild(nomeCell);
+
+            // Coluna do total de débito
+            const debitoCell = document.createElement('td');
+            const debitoValue = parseFloat(rep.total_debito) || 0;
+            debitoCell.textContent = formatCurrency(debitoValue);
+            row.appendChild(debitoCell);
+
+            // Coluna do total de crédito
+            const creditoCell = document.createElement('td');
+            const creditoValue = parseFloat(rep.total_credito) || 0;
+            creditoCell.textContent = formatCurrency(creditoValue);
+            row.appendChild(creditoCell);
+
+            // Coluna do saldo final
+            const saldoCell = document.createElement('td');
+            const saldoValue = parseFloat(rep.saldo) || 0;
+            saldoCell.textContent = formatCurrency(saldoValue);
+
+            // Adicionar classe baseada no valor do saldo
+            if (saldoValue > 0) {
+                saldoCell.classList.add('saldo-positivo');
+            } else if (saldoValue < 0) {
+                saldoCell.classList.add('saldo-negativo');
+            }
+
+            row.appendChild(saldoCell);
+
+            tableBody.appendChild(row);
+
+            // Acumulando totais
+            totalDebito += debitoValue;
+            totalCredito += creditoValue;
+            totalSaldo += saldoValue;
+        });
+
+        // Adicionar linha de totais
+        const totalRow = document.createElement('tr');
+        totalRow.classList.add('total-row');
+        const totalNomeCell = document.createElement('td');
+        totalNomeCell.textContent = 'Total';
+        totalNomeCell.colSpan = 1; // Ajuste conforme o número de colunas
+        totalRow.appendChild(totalNomeCell);
+
+        const totalDebitoCell = document.createElement('td');
+        totalDebitoCell.textContent = formatCurrency(totalDebito);
+        totalRow.appendChild(totalDebitoCell);
+
+        const totalCreditoCell = document.createElement('td');
+        totalCreditoCell.textContent = formatCurrency(totalCredito);
+        totalRow.appendChild(totalCreditoCell);
+
+        const totalSaldoCell = document.createElement('td');
+        totalSaldoCell.textContent = formatCurrency(totalSaldo);
+
+        // Adicionar classe baseada no valor do saldo total
+        if (totalSaldo > 0) {
+            totalSaldoCell.classList.add('saldo-positivo');
+        } else if (totalSaldo < 0) {
+            totalSaldoCell.classList.add('saldo-negativo');
+        }
+
+        totalRow.appendChild(totalSaldoCell);
+
+        tableBody.appendChild(totalRow);
+
+    } catch (error) {
+        console.error('Erro ao buscar representantes:', error);
+    }
+});
+
+
+// Função para formatar valores como moeda
+function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
+
 
 
 

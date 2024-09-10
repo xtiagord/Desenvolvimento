@@ -40,7 +40,7 @@ app.get('/index.html', (req, res) => {
 
 // Configurar o middleware
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true })); 
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'js')));
 app.use(express.json());
@@ -190,7 +190,7 @@ app.post('/extract', extractUpload, async (req, res) => {
         const data = await pdfParse(req.file.buffer);
 
         console.log("Texto extraído do PDF:", data.text);
-        
+
         const extractedData = extractPDFData(data.text);
         res.json(extractedData);
     } catch (error) {
@@ -223,15 +223,15 @@ app.post('/save', (req, res) => {
 //rota representante e cooperados -extrator.html
 app.get('/representantes', (req, res) => {
     db.query('SELECT id, nome FROM representantes', (err, results) => {
-      if (err) {
-        console.error('Erro ao buscar representantes:', err);
-        return res.status(500).json({ message: 'Erro ao buscar representantes', error: err });
-      }
-      res.json(results);
+        if (err) {
+            console.error('Erro ao buscar representantes:', err);
+            return res.status(500).json({ message: 'Erro ao buscar representantes', error: err });
+        }
+        res.json(results);
     });
-  });
-  
-  app.post('/api/representantes', (req, res) => {
+});
+
+app.post('/api/representantes', (req, res) => {
     const { nome, maquina } = req.body;
 
     if (!nome || !maquina) {
@@ -279,17 +279,17 @@ app.get('/api/representantes/:id', (req, res) => {
 });
 
 
-  // Rota para obter fornecedores
-  app.get('/fornecedores', (req, res) => {
+// Rota para obter fornecedores
+app.get('/fornecedores', (req, res) => {
     db.query('SELECT id, nome FROM cooperados', (err, results) => {
-      if (err) {
-        console.error('Erro ao buscar fornecedores:', err);
-        return res.status(500).json({ message: 'Erro ao buscar fornecedores', error: err });
-      }
-      res.json(results);
+        if (err) {
+            console.error('Erro ao buscar fornecedores:', err);
+            return res.status(500).json({ message: 'Erro ao buscar fornecedores', error: err });
+        }
+        res.json(results);
     });
-  });
-  
+});
+
 
 // Rota para criar subpastas e mover arquivos
 app.post('/create-subfolder', (req, res) => {
@@ -353,14 +353,14 @@ app.post('/create-subfolder', (req, res) => {
                 handleFile('file', true),  // Renomeia o arquivo
                 handleFile('pdfFile', false) // Não renomeia o PDF
             ])
-            .then(() => {
-                updateFoldersInfo(subFolderPath);
-                res.send('Subfolder and files created successfully.');
-            })
-            .catch((err) => {
-                console.error(err);
-                res.status(500).send('Error handling files.');
-            });
+                .then(() => {
+                    updateFoldersInfo(subFolderPath);
+                    res.send('Subfolder and files created successfully.');
+                })
+                .catch((err) => {
+                    console.error(err);
+                    res.status(500).send('Error handling files.');
+                });
         });
     });
 });
@@ -593,7 +593,7 @@ app.post('/api/cooperados', (req, res) => {
                 }
                 if (results.length === 0) {
                     console.error('Representante não encontrado:', representanteId);
-                    return res.status(400).json({ error: 'Representante não encontrado.'});
+                    return res.status(400).json({ error: 'Representante não encontrado.' });
                 }
 
                 const insertSql = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES (?, ?, ?)';
@@ -642,25 +642,25 @@ app.get('/api/cooperados/:representanteId', (req, res) => {
     if (!representanteId) {
         return res.status(400).json({ error: 'representanteId é obrigatório' });
     }
-  
+
     const sql = `
       SELECT *
       FROM cooperados
       WHERE representante_id = ?;
     `;
-  
+
     db.query(sql, [representanteId], (error, results) => {
-      if (error) {
-        console.error('Erro ao buscar cooperados associados:', error);
-        res.status(500).json({ error: 'Erro interno no servidor' });
-        return;
-      }
-  
-      if (results.length === 0) {
-          return res.status(404).json({ error: 'Nenhum cooperado encontrado para o representante fornecido' });
-      }
-  
-      res.json(results);
+        if (error) {
+            console.error('Erro ao buscar cooperados associados:', error);
+            res.status(500).json({ error: 'Erro interno no servidor' });
+            return;
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Nenhum cooperado encontrado para o representante fornecido' });
+        }
+
+        res.json(results);
     });
 });
 
@@ -827,36 +827,36 @@ app.get('/api/equipamentos', (req, res) => {
 app.post('/api/equipamentos', (req, res) => {
     const { nomeequipamento, porcentagemPd, porcentagemPt, porcentagemRh } = req.body;
     const query = 'INSERT INTO equipamentos (nomeequipamento, porcentagemPd, porcentagemPt, porcentagemRh) VALUES (?, ?, ?, ?)';
-  
+
     db.query(query, [nomeequipamento, porcentagemPd, porcentagemPt, porcentagemRh], (err, result) => {
-      if (err) {
-        console.error('Erro ao cadastrar equipamento:', err);
-        return res.status(500).send(err);
-      }
-      res.status(200).json({ message: 'Equipamento cadastrado com sucesso!' });
+        if (err) {
+            console.error('Erro ao cadastrar equipamento:', err);
+            return res.status(500).send(err);
+        }
+        res.status(200).json({ message: 'Equipamento cadastrado com sucesso!' });
     });
 });
 
 app.get('/api/equipamentos/:representanteId', async (req, res) => {
     const representanteId = req.params.representanteId;
-  
+
     try {
-      // Consulta no banco de dados para obter equipamentos associados ao representante
-      const query = `
+        // Consulta no banco de dados para obter equipamentos associados ao representante
+        const query = `
         SELECT e.id, e.nome
         FROM equipamentos e
         INNER JOIN representante_equipamento re ON e.id = re.id_equipamento
         WHERE re.id_representante = ?
       `;
-      const equipamentos = await pool.query(query, [representanteId]);
-  
-      res.json(equipamentos);
+        const equipamentos = await pool.query(query, [representanteId]);
+
+        res.json(equipamentos);
     } catch (error) {
-      console.error('Erro ao consultar equipamentos:', error);
-      res.status(500).json({ error: 'Erro ao consultar equipamentos' });
+        console.error('Erro ao consultar equipamentos:', error);
+        res.status(500).json({ error: 'Erro ao consultar equipamentos' });
     }
-  });
-  app.get('/api/exportarRepresentantes', (req, res) => {
+});
+app.get('/api/exportarRepresentantes', (req, res) => {
     const loteSelecionado = req.query.lote;  // Captura o parâmetro 'lote' da query string
     let query = 'SELECT * FROM dados';
     let queryParams = [];
@@ -882,7 +882,7 @@ app.post('/register', async (req, res) => {
     const { username, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const sql = 'INSERT INTO users (username, password) VALUES (?, ?)';
-    
+
     db.query(sql, [username, hashedPassword], (err, result) => {
         if (err) return res.status(500).send(err.message);
         res.status(201).send('User registered successfully');
@@ -1038,16 +1038,16 @@ app.get('/api/lote', async (req, res) => {
     const query = `
      SELECT nome FROM lote 
     `;
-  
+
     db.query(query, (err, results) => {
-      if (err) {
-        console.error('Erro ao buscar dados de lote:', err);
-        res.status(500).json({ error: 'Erro ao buscar dados de lote' });
-      } else {
-        res.json(results);
-      }
+        if (err) {
+            console.error('Erro ao buscar dados de lote:', err);
+            res.status(500).json({ error: 'Erro ao buscar dados de lote' });
+        } else {
+            res.json(results);
+        }
     });
-  });
+});
 
 // Rota para buscar dados de kg somados por lote
 app.get('/api/kg-e-lote', (req, res) => {
@@ -1056,46 +1056,46 @@ app.get('/api/kg-e-lote', (req, res) => {
       FROM dados 
       GROUP BY lote
     `;
-  
+
     db.query(query, (err, results) => {
-      if (err) {
-        console.error('Erro ao buscar dados de kg e lote:', err);
-        res.status(500).json({ error: 'Erro ao buscar dados de kg e lote' });
-      } else {
-        res.json(results);
-      }
+        if (err) {
+            console.error('Erro ao buscar dados de kg e lote:', err);
+            res.status(500).json({ error: 'Erro ao buscar dados de kg e lote' });
+        } else {
+            res.json(results);
+        }
     });
-  });
+});
 
 //rota para salvar o numero de lote
 app.post('/api/lote', (req, res) => {
     const { nome, iddados } = req.body;
     const query = 'INSERT INTO lote (nome, iddados) VALUES (?, ?)';
-    
+
     db.query(query, [nome, iddados], (err, result) => {
-      if (err) {
-        console.error('Error inserting data:', err);
-        return res.status(500).json({ error: 'Error inserting data' });
-      }
-      res.status(201).json({ message: 'Lote inserted successfully' });
+        if (err) {
+            console.error('Error inserting data:', err);
+            return res.status(500).json({ error: 'Error inserting data' });
+        }
+        res.status(201).json({ message: 'Lote inserted successfully' });
     });
-  });
+});
 
 // Rota para buscar dados do valor total 
-  app.get('/api/valor-lotes', (req, res) => {
+app.get('/api/valor-lotes', (req, res) => {
     const query = `
       SELECT lote, SUM(Valor) as totalValor
       FROM dados 
       GROUP BY lote
     `;
-  
+
     db.query(query, (err, results) => {
-      if (err) {
-        console.error('Erro ao buscar dados de valor e lote:', err);
-        res.status(500).json({ error: 'Erro ao buscar dados de valor e lote' });
-      } else {
-        res.json(results);
-      }
+        if (err) {
+            console.error('Erro ao buscar dados de valor e lote:', err);
+            res.status(500).json({ error: 'Erro ao buscar dados de valor e lote' });
+        } else {
+            res.json(results);
+        }
     });
 });
 
@@ -1106,11 +1106,11 @@ app.post('/api/lote', (req, res) => {
 // app.post('/upload', upload.single('file'), (req, res) => {
 //     const { npdf_id, representante_id } = req.body;
 //     const file = req.file;
-  
+
 //     if (!file) {
 //       return res.status(400).send('Nenhum arquivo enviado.');
 //     }
-  
+
 //     const { originalname, buffer } = file;
 //     const sql = 'INSERT INTO arquivos (nome_original, dados, npdf_id, representante_id) VALUES (?, ?, ?, ?)';
 //     db.query(sql, [originalname, buffer, npdf_id, representante_id], (err) => {
@@ -1173,22 +1173,22 @@ app.get('/files', (req, res) => {
 
 app.post('/create-folder', async (req, res) => {
     const { folder_name, representante_id } = req.body;
-  
+
     const dir = path.join(__dirname, 'uploads', folder_name);
-  
+
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+        fs.mkdirSync(dir, { recursive: true });
     }
-  
+
     // Insira a pasta no banco de dados
     const query = 'INSERT INTO pastas (nome, representante_id) VALUES (?, ?)';
     db.query(query, [folder_name, representante_id], (err, result) => {
-      if (err) {
-        console.error('Erro ao criar pasta no banco de dados:', err);
-        res.status(500).send('Erro ao criar pasta');
-      } else {
-        res.send('Pasta criada com sucesso!');
-      }
+        if (err) {
+            console.error('Erro ao criar pasta no banco de dados:', err);
+            res.status(500).send('Erro ao criar pasta');
+        } else {
+            res.send('Pasta criada com sucesso!');
+        }
     });
 });
 
@@ -1272,7 +1272,7 @@ app.get('/pdfs/:id', (req, res) => {
     const pdfId = req.params.id;
     const query = 'SELECT name, data FROM pdfs WHERE id = ?';
 
-    db.query(query, [pdfId], (err, results) => {    
+    db.query(query, [pdfId], (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
@@ -1287,7 +1287,7 @@ app.get('/pdfs/:id', (req, res) => {
         // Configura o cabeçalho para exibir o PDF diretamente no navegador
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', 'inline; filename="' + pdf.name + '"');
-        
+
         // Envia o PDF para exibição no navegador
         res.send(pdf.data);
     });
@@ -1376,7 +1376,7 @@ app.get('/download-pdfs', async (req, res) => {
             const mergedPdf = await PDFDocument.create();
 
             for (const pdf of pdfs) {
-                if (pdf.data && pdf.data.toString('utf-8').startsWith('%PDF-')) { 
+                if (pdf.data && pdf.data.toString('utf-8').startsWith('%PDF-')) {
                     const pdfDoc = await PDFDocument.load(pdf.data);
                     const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
                     copiedPages.forEach((page) => mergedPdf.addPage(page));
@@ -1500,7 +1500,7 @@ app.get('/photos/:id', (req, res) => {
     const photosId = req.params.id;
     const query = 'SELECT name, data FROM photos WHERE id = ?';
 
-    db.query(query, [photosId], (err, results) => {    
+    db.query(query, [photosId], (err, results) => {
         if (err) {
             console.error(err);
             return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
@@ -1515,7 +1515,7 @@ app.get('/photos/:id', (req, res) => {
         // Configura o cabeçalho para exibir o PDF diretamente no navegador
         res.setHeader('Content-Type', 'application/photos');
         res.setHeader('Content-Disposition', 'inline; filename="' + photos.name + '"');
-        
+
         // Envia o PDF para exibição no navegador
         res.send(photos.data);
     });
@@ -1779,7 +1779,7 @@ app.post('/api/registros_financeiros', (req, res) => {
 // Rota para obter todos os registros financeiros
 app.get('/api/registros_financeiros', (req, res) => {
     const representanteId = req.query.representante_id;
-    
+
     // Consulta SQL para obter registros financeiros com o nome do comprador
     const query = `
         SELECT rf.id, rf.data, rf.hora, COALESCE(c.nome, rf.comprador) AS comprador, rf.valor_debito, rf.valor_credito, rf.pagamento, rf.observacoes
@@ -1787,7 +1787,7 @@ app.get('/api/registros_financeiros', (req, res) => {
         LEFT JOIN compradores c ON rf.comprador = c.id
         WHERE rf.representante_id = ?
     `;
-    
+
     db.query(query, [representanteId], (error, results) => {
         if (error) {
             console.error('Erro ao buscar registros financeiros:', error);
@@ -1888,7 +1888,7 @@ app.get('/api/registros_financeiros_todos', (req, res) => {
         LEFT JOIN compradores c ON rf.comprador = c.id
         LEFT JOIN representantes r ON rf.representante_id = r.id
     `;
-    
+
     db.query(query, (error, results) => {
         if (error) {
             console.error('Erro ao buscar registros financeiros:', error);
@@ -1902,31 +1902,31 @@ app.get('/api/registros_financeiros_todos', (req, res) => {
 // Exemplo de rota usando Express.js
 app.post('/api/contagem', async (req, res) => {
     const { representanteId, contagem } = req.body;
-  
+
     try {
-      // Verificar se já existe uma entrada para esse representante
-      const [existingEntry] = db.query(
-          'SELECT contagem FROM contagem_representantes WHERE representante_id = ?',
-          [representanteId]
-      );
-  
-      if (existingEntry) {
-        // Atualizar a contagem existente
-        db.query(
-              'UPDATE contagem_representantes SET contagem = ? WHERE representante_id = ?',
-              [contagem, representanteId]
-          );
-      } else {
-        // Inserir nova entrada para o representante
-        db.query(
-              'INSERT INTO contagem_representantes (representante_id, contagem) VALUES (?, ?)',
-              [representanteId, contagem]
-          );
-      }
-  
-      res.status(200).send({ message: 'Contagem atualizada com sucesso.' });
+        // Verificar se já existe uma entrada para esse representante
+        const [existingEntry] = db.query(
+            'SELECT contagem FROM contagem_representantes WHERE representante_id = ?',
+            [representanteId]
+        );
+
+        if (existingEntry) {
+            // Atualizar a contagem existente
+            db.query(
+                'UPDATE contagem_representantes SET contagem = ? WHERE representante_id = ?',
+                [contagem, representanteId]
+            );
+        } else {
+            // Inserir nova entrada para o representante
+            db.query(
+                'INSERT INTO contagem_representantes (representante_id, contagem) VALUES (?, ?)',
+                [representanteId, contagem]
+            );
+        }
+
+        res.status(200).send({ message: 'Contagem atualizada com sucesso.' });
     } catch (error) {
-      res.status(500).send({ error: 'Erro ao salvar a contagem.' });
+        res.status(500).send({ error: 'Erro ao salvar a contagem.' });
     }
 });
 
@@ -1952,14 +1952,36 @@ app.get('/api/compradores', (req, res) => {
 
 // Endpoint para retornar todos os tipos de pagamento
 app.get('/api/tipo_pagamento', (req, res) => {
-    const query = 'SELECT * FROM pagamento'; 
+    const query = 'SELECT * FROM pagamento';
     db.query(query, (err, results) => {
         if (err) return res.status(500).send(err);
         res.json(results); // Retorna os resultados como JSON
     });
 });
 
- 
+// Endpoint para obter saldos dos representantes
+app.get('/api/representantes_financeiros/saldos', (req, res) => {
+    const query = `
+      SELECT r.nome,
+             COALESCE(SUM(d.valor_debito), 0) AS total_debito,
+             COALESCE(SUM(d.valor_credito), 0) AS total_credito,
+             COALESCE(SUM(d.valor_credito - d.valor_debito), 0) AS saldo
+      FROM representantes_financeiros r
+      LEFT JOIN registros_financeiros d ON r.id = d.representante_id
+      GROUP BY r.id, r.nome;
+    `;
+  
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Erro ao buscar saldos');
+        return;
+      }
+      res.json(results);
+    });
+  });
+
+
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
     console.error(err.stack);

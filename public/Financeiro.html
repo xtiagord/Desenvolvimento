@@ -4,7 +4,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Cadastrar Cliente</title>
+   <title>Movimento Financeiro</title>
    <!-- Bootstrap CSS -->
    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
@@ -255,6 +255,30 @@
             </div>
          </div>
       </div>
+       <!-- Tabela de Representantes -->
+       <div class="container mt-4">
+         <div class="card">
+            <div class="card-header">
+               <h4 class="card-title">Representantes Geral</h4>
+            </div>
+            <div class="card-body">
+               <table id="representantes-table" class="table table-striped">
+                  <thead>
+                     <tr>
+                        <th>Nome do Representante</th>
+                        <th>Total Débito</th>
+                        <th>Total Crédito</th>
+                        <th>Saldo</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <!-- Linhas da tabela serão adicionadas dinamicamente -->
+                  </tbody>
+               </table>
+            </div>
+         </div>
+      </div>
+      
       <!-- Modal para exibir registros financeiros -->
       <div class="modal fade modal-fullscreen" id="modalRegistrosFinanceiros" tabindex="-1"
          aria-labelledby="modalRegistrosFinanceirosLabel" aria-hidden="true">
@@ -316,14 +340,14 @@
                <div class="modal-body">
                   <form id="formCadastroComprador">
                      <div class="form-group">
-                        <label for="comprador_nome">Nome do Comprador</label>
-                        <input type="text" class="form-control" id="comprador_nome" name="nome" required>
-                     </div>
-                     <div class="form-group">
                         <label for="representante_select">Representante</label>
                         <select class="form-control" id="representante_select" name="representante_id" required>
                            <!-- Options serão preenchidas dinamicamente -->
                         </select>
+                     </div>
+                     <div class="form-group">
+                        <label for="comprador_nome">Nome do Comprador</label>
+                        <input type="text" class="form-control" id="comprador_nome" name="nome" required>
                      </div>
                      <button type="submit" class="btn btn-primary">Salvar Comprador</button>
                   </form>
