@@ -1,15 +1,29 @@
 $(document).ready(function () {
     let representanteIdSelecionado = null;
+    let associadoId = null; // Variável para armazenar o associado
 
     $('#representante').append('<option value="" disabled selected>Selecione um representante</option>');
 
     // Evento para selecionar um representante
     $('#representante').on('change', function () {
         representanteIdSelecionado = $(this).val();
+
+        if (representanteIdSelecionado) {
+            $.ajax({
+                url: `/api/associado/${representanteIdSelecionado}`, // Endpoint para obter o associado
+                method: 'GET',
+                success: function (data) {
+                    associadoId = data.associado; // Armazena o ID do associado
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('Erro ao buscar associado:', textStatus, errorThrown);
+                }
+            });
+        }
     });
 
-    // Inicialização de eventos
-    $('#form-registro').on('submit', function (event) {
+      // Evento para enviar o formulário
+      $('#form-registro').on('submit', function (event) {
         event.preventDefault(); // Evita a submissão padrão do formulário
 
         if (!representanteIdSelecionado) {
@@ -18,7 +32,7 @@ $(document).ready(function () {
         }
 
         // Coletar os valores dos campos
-        const representante_id = $('#representante').val();
+        const representante_id = representanteIdSelecionado;
         const data = $('#data').val();
         const hora = $('#hora').val();
         const comprador = $('#comprador').val();
@@ -42,14 +56,15 @@ $(document).ready(function () {
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify({
-                representante_id: representanteIdSelecionado,
+                representante_id,
                 data,
                 hora,
                 comprador,
                 valor_debito,
                 valor_credito,
                 pagamento: pagamentoNome,
-                observacoes
+                observacoes,
+                associado: associadoId // Inclui o associado no payload
             }),
             success: function (response) {
                 alert('Registro financeiro salvo com sucesso!');
@@ -61,7 +76,7 @@ $(document).ready(function () {
             }
         });
     });
-
+    
     // Inicializar Cleave.js para os campos de valor
     new Cleave('#valor_debito', {
         numeral: true,
@@ -274,47 +289,47 @@ $(document).ready(function () {
         $.get('/api/representantes_financeiros', function (data) {
             // Ordenar os representantes por nome em ordem alfabética
             data.sort((a, b) => a.nome.localeCompare(b.nome));
-            
+
             $('#representantes-container').empty();
             $('#representante').empty();
             $('#tabela-representantes tbody').empty();
             $('#representante').append('<option value="" disabled selected>Selecione um representante</option>'); // Re-adiciona a opção padrão
-    
+
             var container = $('<div class="row"></div>');
-    
+
             data.forEach((rep, index) => {
                 $('#representante').append(`<option value="${rep.id}">${rep.nome}</option>`);
                 $('#tabela-representantes tbody').append(`<tr><td>${rep.id}</td><td>${rep.nome}</td></tr>`);
-    
+
                 if (index % 4 === 0 && index !== 0) {
                     $('#representantes-container').append(container);
                     container = $('<div class="row"></div>');
                 }
-    
+
                 container.append(
                     `<div class="col-md-3 mb-2">
                         <button class="btn btn-primary btn-lg btn-registros" data-id="${rep.id}" data-nome="${rep.nome}">${rep.nome}</button>
                     </div>`
                 );
             });
-    
+
             if (container.children().length > 0) {
                 $('#representantes-container').append(container);
             }
-    
+
             $('.btn-registros').on('click', function () {
                 representanteIdSelecionado = $(this).data('id');
                 var representanteNome = $(this).data('nome');
                 $('#modal-representante-nome').text(representanteNome);
                 loadRegistros(representanteIdSelecionado);
             });
-    
+
             $('#tabela-representantes').DataTable();
         }).fail(function (jqXHR, textStatus, errorThrown) {
             console.error('Erro ao carregar representantes financeiros:', textStatus, errorThrown);
         });
     }
-    
+
 
     // Inicializar
     loadRepresentantes();
@@ -390,32 +405,34 @@ $(document).ready(function () {
     }
 
 
-    $(document).ready(function () {
-        $('#form-representante').on('submit', function (event) {
-            event.preventDefault(); // Impede o comportamento padrão de envio do formulário
+    // Adicionar representante financeiro
+    $('#form-representante').on('submit', function (event) {
+        event.preventDefault();
+        const nome = $('#nome').val();
+        const associado = $('#associado').val(); // Obtém o valor selecionado
 
-            // Coleta os dados do formulário
-            var formData = $(this).serialize();
+        if (!nome) {
+            alert('Por favor, insira o nome do representante.');
+            return;
+        }
 
-            // Envia os dados via AJAX
-            $.ajax({
-                type: 'POST',
-                url: '/api/representantes_financeiros', // Substitua pelo URL de sua API ou endpoint
-                data: formData,
-                success: function (response) {
-                    // Manipule a resposta do servidor aqui
-                    console.log('Dados enviados com sucesso', response);
-                    $('#modalRepresentante').modal('hide'); // Fecha o modal após o sucesso
-                    // Atualize a tabela ou a interface conforme necessário
-                    location.reload();
-                },
-                error: function (xhr, status, error) {
-                    // Manipule o erro aqui
-                    console.error('Erro ao enviar dados', error);
-                }
-            });
+        $.ajax({
+            url: '/api/representantes_financeiros',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ nome, associado }),
+            success: function () {
+                $('#nome').val('');
+                $('#associado').val('');
+                loadRepresentantes();
+                $('#modalRepresentante').modal('hide'); // Fechar o modal
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('Erro ao adicionar representante financeiro:', textStatus, errorThrown);
+            }
         });
     });
+
 });
 
 document.getElementById('search-input').addEventListener('input', function () {
@@ -749,12 +766,12 @@ $(document).ready(function () {
         $.get('/api/representantes_financeiros', function (data) {
             // Ordenar os representantes por nome em ordem alfabética
             data.sort((a, b) => a.nome.localeCompare(b.nome));
-            
+
             $('#representante_pdf').empty();
-            
+
             // Adicionar a opção padrão se necessário
             $('#representante_pdf').append('<option value="" disabled selected>Selecione um representante</option>');
-    
+
             // Adicionar as opções ordenadas ao dropdown
             data.forEach(rep => {
                 $('#representante_pdf').append(`<option value="${rep.id}">${rep.nome}</option>`);
@@ -763,7 +780,7 @@ $(document).ready(function () {
             console.error('Erro ao carregar representantes para PDF:', textStatus, errorThrown);
         });
     }
-    
+
     function formatDateToBR(dateString) {
         // dateString deve estar no formato "YYYY-MM-DD"
         const [year, month, day] = dateString.split('-');
@@ -1131,6 +1148,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 function formatCurrency(value) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
+
+// Função para carregar representantes no select
+function loadRepresentantes() {
+    $.ajax({
+        url: '/api/representantes',
+        method: 'GET',
+        success: function (data) {
+            const $select = $('#associado');
+            $select.empty(); // Limpa opções antigas
+            data.forEach(function (representante) {
+                $select.append(new Option(representante.nome, representante.id));
+            });
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.error('Erro ao carregar representantes:', textStatus, errorThrown);
+        }
+    });
+}
+
+// Mostrar modal e carregar representantes
+$('#modalRepresentante').on('show.bs.modal', function () {
+    loadRepresentantes();
+});
 
 
 

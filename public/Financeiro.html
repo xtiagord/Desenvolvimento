@@ -154,7 +154,7 @@
                      </div>
                      <div class="form-group">
                         <button type="submit" class="btn btn-success">Salvar Registro</button>
-                        <!-- Botão para abrir o modal -->
+                        
                         <button type="button" class="btn btn-danger" data-toggle="modal"
                            data-target="#modalRepresentante">
                            Cadastrar Representante
@@ -217,29 +217,37 @@
          <div class="loading-text">Carregando...</div>
       </div>
       <!-- Modal -->
-      <div class="modal fade" id="modalRepresentante" tabindex="-1" role="dialog"
-         aria-labelledby="modalRepresentanteLabel" aria-hidden="true">
-         <div class="modal-dialog" role="document">
-            <div class="modal-content">
-               <div class="modal-header">
-                  <h5 class="modal-title" id="modalRepresentanteLabel">Cadastrar Representante</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                  </button>
-               </div>
-               <div class="modal-body">
-                  <!-- Formulário para registrar representantes -->
-                  <form id="form-representante">
-                     <div class="form-group">
-                        <label for="nome">Nome</label>
-                        <input type="text" class="form-control" id="nome" name="nome" required>
-                     </div>
-                     <button type="submit" class="btn btn-primary">Salvar Representante</button>
-                  </form>
-               </div>
-            </div>
-         </div>
-      </div>
+     <!-- Modal para Cadastrar Representante -->
+<div class="modal fade" id="modalRepresentante" tabindex="-1" role="dialog" aria-labelledby="modalRepresentanteLabel" aria-hidden="true">
+   <div class="modal-dialog" role="document">
+       <div class="modal-content">
+           <div class="modal-header">
+               <h5 class="modal-title" id="modalRepresentanteLabel">Cadastrar Representante</h5>
+               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                   <span aria-hidden="true">&times;</span>
+               </button>
+           </div>
+           <div class="modal-body">
+               <!-- Formulário para registrar representantes -->
+               <form id="form-representante">
+                   <div class="form-group">
+                       <label for="nome">Nome</label>
+                       <input type="text" class="form-control" id="nome" name="nome" required>
+                   </div>
+                   <div class="form-group">
+                       <label for="associado">Associado</label>
+                       <select class="form-control" id="associado" name="associado" required>
+                           <!-- Options will be populated here by JavaScript -->
+                       </select>
+                   </div>
+                   <button type="submit" class="btn btn-primary">Salvar Representante</button>
+               </form>
+           </div>
+       </div>
+   </div>
+</div>
+
+
       <!-- Tabelas para listar representantes e registros financeiros -->
       <!-- Tabela de Representantes -->
       <div class="container mt-4">

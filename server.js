@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys'
+    database: 'sys_test'
 });
 
 // Conectar ao banco de dados
@@ -1739,11 +1739,15 @@ app.get('/api/pecas/resumo-por-tipo', async (req, res) => {
 
 // Rota para registrar um novo representante
 app.post('/api/representantes_financeiros', (req, res) => {
-    const { nome } = req.body;
-    const query = 'INSERT INTO representantes_financeiros (nome) VALUES (?)';
-    db.query(query, [nome], (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ id: results.insertId, nome });
+    const { nome, associado } = req.body;
+    const sql = 'INSERT INTO representantes_financeiros (nome, associado) VALUES (?, ?)';
+
+    db.query(sql, [nome, associado], (err, results) => {
+        if (err) {
+            console.error('Erro ao adicionar representante financeiro:', err);
+            return res.status(500).json({ message: 'Erro ao adicionar representante financeiro', error: err });
+        }
+        res.status(201).json({ message: 'Representante financeiro adicionado com sucesso' });
     });
 });
 
@@ -1758,7 +1762,7 @@ app.get('/api/representantes_financeiros', (req, res) => {
 
 // Rota para adicionar um novo registro financeiro
 app.post('/api/registros_financeiros', (req, res) => {
-    const { representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes } = req.body;
+    const { representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associado } = req.body;
 
     // Validar se o representante_id não é nulo
     if (!representante_id) {
@@ -1766,8 +1770,8 @@ app.post('/api/registros_financeiros', (req, res) => {
     }
 
     // Inserir o registro financeiro no banco de dados
-    const query = `INSERT INTO registros_financeiros (representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ? )`;
-    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes], (error, results) => {
+    const query = `INSERT INTO registros_financeiros (representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? )`;
+    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associado], (error, results) => {
         if (error) {
             console.error('Erro ao inserir registro financeiro:', error);
             return res.status(500).json({ error: 'Erro ao salvar o registro financeiro' });
@@ -2073,8 +2077,30 @@ ORDER BY
     });
 });
 
+// Rota para obter o associado baseado no representante_id
+app.get('/api/associado/:representanteId', (req, res) => {
+    const representanteId = req.params.representanteId;
 
+    const query = `
+        SELECT associado
+        FROM representantes_financeiros
+        WHERE id = ?
+    `;
+    
+    db.query(query, [representanteId], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar associado:', err);
+            return res.status(500).json({ message: 'Erro ao buscar associado', error: err });
+        }
 
+        if (results.length > 0) {
+            const associado = results[0].associado;
+            res.json({ associado }); // Retorna o associado
+        } else {
+            res.status(404).json({ message: 'Representante não encontrado' });
+        }
+    });
+});
 
 
 // Middleware para tratamento de erros
