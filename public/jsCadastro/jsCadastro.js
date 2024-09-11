@@ -688,7 +688,15 @@ function loadLotes() {
                 const option = `<option value="${lote.nome}">${lote.nome}</option>`;
                 loteSelect.append(option);
             });
-        },
+         // Defina aqui o lote padrão que você quer selecionar
+         const lotePadrao = 'lote 30'; // Substitua pelo nome do lote que você deseja
+         if (lotes.some(lote => lote.nome === lotePadrao)) {
+             loteSelect.val(lotePadrao).trigger('change'); // Seleciona o lote padrão e dispara o evento change
+         } else if (lotes.length > 0) {
+             // Caso o lote padrão não exista, seleciona o primeiro da lista
+             loteSelect.val(lotes[0].nome).trigger('change');
+         }
+     },
         error: function(err) {
             console.error("Erro ao carregar lotes:", err);
         }
@@ -767,7 +775,6 @@ function formatarNomeFornecedor(nome) {
 
 
 // Função para carregar informações do representante baseado no nome e lote
-
 document.getElementById('saveRepresentanteButton').addEventListener('click', function() {
     const modalEdicao = document.getElementById('modalEdicaoRepresentante');
     const idRepresentante = modalEdicao.getAttribute('data-idrepresentante');
@@ -920,3 +927,62 @@ function salvarLinha(id) {
     });
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Carrega os lotes ao carregar a página
+    loadLotes();
+
+    // Adiciona o evento de mudança no select de lotes
+    $('#loteSelect').on('change', function() {
+        const lote = $(this).val(); // Obtém o valor do lote selecionado
+
+        if (!lote) {
+            $('#loteAlert').show(); // Exibe o alerta se nenhum lote for selecionado
+            return;
+        }
+
+        $('#loteAlert').hide(); // Esconde o alerta
+
+        // Faz a requisição para buscar os dados filtrados por lote
+        $.ajax({
+            url: `/api/representantes_financeiros/geral?lote=${lote}`, // Endpoint que retorna os representantes filtrados
+            method: 'GET',
+            success: function(data) {
+                const tabela = $('#tabela-representantes');
+                tabela.empty(); // Limpa a tabela antes de inserir os novos dados
+
+                data.forEach(item => {
+                    // Converte os valores para números e formata como moeda real
+                    const compraCatalisador = Number(item.compra_catalisador) || 0;
+                    const saldoAdiantamentos = item.saldo_adiantamentos === '-' ? '-' : Number(item.saldo_adiantamentos);
+                    const totalValorPecas = Number(item.total_valor_pecas) || 0;
+                    
+                    // Calcula o saldo total como a subtração de Compra Catalisador e Saldo Adiantamentos
+                    const saldoTotal = saldoAdiantamentos === '-' ? compraCatalisador : compraCatalisador - saldoAdiantamentos;
+
+                    // Define a classe CSS com base no valor do saldo total
+                    const saldoClass = saldoTotal >= 0 ? 'saldo-positivo' : 'saldo-negativo';
+
+                    const compraCatalisadorFormatado = compraCatalisador.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const saldoAdiantamentosFormatado = saldoAdiantamentos === '-' ? '-' : saldoAdiantamentos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const totalValorPecasFormatado = totalValorPecas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const saldoTotalFormatado = saldoTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                    const row = `
+                        <tr>
+                            <td>${item.representante}</td>
+                            <td>${item.total_kg}</td>
+                            <td class="compra-catalisador">${compraCatalisadorFormatado}</td>
+                            <td class="saldo-adiantamentos">${saldoAdiantamentosFormatado}</td>
+                            <td class="total-valor-pecas">${totalValorPecasFormatado}</td>
+                            <td class="${saldoClass}">${saldoTotalFormatado}</td>
+                        </tr>
+                    `;
+                    tabela.append(row);
+                });
+            },
+            error: function(err) {
+                console.error("Erro ao carregar dados dos representantes:", err);
+            }
+        });
+    });
+});

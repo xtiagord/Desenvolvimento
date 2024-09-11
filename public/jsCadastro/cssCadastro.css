@@ -156,3 +156,47 @@ body {
     overflow-y: auto; /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura do corpo */
 }
 
+/* Estilos gerais de fundo */
+.compra-catalisador {
+    background-color: #d0e0f0; /* Azul claro */
+}
+
+.total-valor-pecas {
+    background-color: #d0e0f0; /* Azul claro */
+}
+
+.saldo-adiantamentos {
+    background-color: #fdd0d0; /* Vermelho claro */
+}
+
+.saldo-positivo {
+    background-color: #d0f0c0; /* Verde claro */
+}
+
+.saldo-negativo {
+    background-color: #fdd0d0; /* Vermelho claro */
+}
+
+/* Efeito de hover mais intenso para cada coluna */
+.compra-catalisador:hover {
+    background-color: #a0c0f0; /* Azul mais forte */
+}
+
+.total-valor-pecas:hover {
+    background-color: #a0c0f0; /* Azul mais forte */
+}
+
+.saldo-adiantamentos:hover {
+    background-color: #fbb0b0; /* Vermelho mais forte */
+}
+
+.saldo-positivo:hover {
+    background-color: #a0d0a0; /* Verde mais forte */
+}
+
+.saldo-negativo:hover {
+    background-color: #fbb0b0; /* Vermelho mais forte */
+}
+
+
+

@@ -14,7 +14,7 @@ const ExcelJS = require('exceljs');
 
 // Inicializar o Express
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 // Criação da conexão
 const db = mysql.createConnection({
@@ -1970,16 +1970,80 @@ app.get('/api/representantes_financeiros/saldos', (req, res) => {
       LEFT JOIN registros_financeiros d ON r.id = d.representante_id
       GROUP BY r.id, r.nome;
     `;
-  
+
     db.query(query, (err, results) => {
-      if (err) {
-        console.error(err);
-        res.status(500).send('Erro ao buscar saldos');
-        return;
-      }
-      res.json(results);
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erro ao buscar saldos');
+            return;
+        }
+        res.json(results);
     });
-  });
+});
+
+// Endpoint para obter saldos dos representantes
+app.get('/api/representantes_financeiros/geral', (req, res) => {
+    const lote = req.query.lote; // Obtém o lote da query string
+
+    let query = `
+       SELECT
+           rf.nome AS representante,
+           COALESCE(dados_soma.total_kg, 0) AS total_kg,
+           COALESCE(pecas_soma.total_valor_pecas, 0) AS total_valor_pecas,
+           COALESCE(dados_soma.compra_catalisador, 0) AS compra_catalisador,
+           COALESCE(adiantamentos_soma.saldo_adiantamentos, 0) AS saldo_adiantamentos,
+           COALESCE(dados_soma.compra_catalisador, 0) + COALESCE(adiantamentos_soma.saldo_adiantamentos, 0) AS saldo
+       FROM
+           representantes_financeiros rf
+       LEFT JOIN (
+           SELECT representante, SUM(kg) AS total_kg, SUM(valor) AS compra_catalisador
+           FROM dados
+           ${lote ? 'WHERE lote = ?' : ''}
+           GROUP BY representante
+       ) AS dados_soma ON rf.nome = dados_soma.representante
+       LEFT JOIN (
+           SELECT representante_id, SUM(valor_debito) AS saldo_adiantamentos
+           FROM registros_financeiros
+           GROUP BY representante_id
+       ) AS adiantamentos_soma ON rf.id = adiantamentos_soma.representante_id
+       LEFT JOIN (
+           SELECT representante_id, SUM(valor) AS total_valor_pecas
+           FROM pecas
+           GROUP BY representante_id
+       ) AS pecas_soma ON rf.id = pecas_soma.representante_id
+       GROUP BY
+           rf.nome,
+           dados_soma.total_kg,
+           pecas_soma.total_valor_pecas,
+           dados_soma.compra_catalisador,
+           adiantamentos_soma.saldo_adiantamentos
+       HAVING total_kg > 0;
+    `;
+
+    const params = [];
+    if (lote) {
+        params.push(lote);
+    }
+
+    db.query(query, params, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar saldos:', err);
+            res.status(500).send('Erro ao buscar saldos');
+            return;
+        }
+
+        // Ajusta o resultado para que Saldo Adiantamentos sempre seja '-'
+        const adjustedResults = results.map(item => ({
+            ...item,
+            saldo_adiantamentos: item.saldo_adiantamentos > 0 ? item.saldo_adiantamentos : '-', // Define o valor de Saldo Adiantamentos como '-' se for zero
+        }));
+
+        res.json(adjustedResults);
+    });
+});
+
+
+
 
 
 // Middleware para tratamento de erros
