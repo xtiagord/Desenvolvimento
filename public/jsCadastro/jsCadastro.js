@@ -952,18 +952,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 data.forEach(item => {
                     // Converte os valores para números e formata como moeda real
-                    const compraCatalisador = Number(item.compra_catalisador) || 0;
-                    const saldoAdiantamentos = item.saldo_adiantamentos === '-' ? '-' : Number(item.saldo_adiantamentos);
-                    const totalValorPecas = Number(item.total_valor_pecas) || 0;
-                    
+                    const compraCatalisador = parseFloat(item.compra_catalisador) || 0;
+                    const saldoAdiantamentos = item.saldo_adiantamentos === '-' ? 0 : parseFloat(item.saldo_adiantamentos);
+                    const totalValorPecas = parseFloat(item.total_valor_pecas) || 0;
+
                     // Calcula o saldo total como a subtração de Compra Catalisador e Saldo Adiantamentos
-                    const saldoTotal = saldoAdiantamentos === '-' ? compraCatalisador : compraCatalisador - saldoAdiantamentos;
+                    const saldoTotal = compraCatalisador + totalValorPecas - saldoAdiantamentos;
 
                     // Define a classe CSS com base no valor do saldo total
                     const saldoClass = saldoTotal >= 0 ? 'saldo-positivo' : 'saldo-negativo';
 
                     const compraCatalisadorFormatado = compraCatalisador.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    const saldoAdiantamentosFormatado = saldoAdiantamentos === '-' ? '-' : saldoAdiantamentos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    const saldoAdiantamentosFormatado = saldoAdiantamentos === 0 ? '-' : saldoAdiantamentos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     const totalValorPecasFormatado = totalValorPecas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                     const saldoTotalFormatado = saldoTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -986,3 +986,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+

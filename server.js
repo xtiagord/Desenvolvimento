@@ -1986,38 +1986,69 @@ app.get('/api/representantes_financeiros/geral', (req, res) => {
     const lote = req.query.lote; // Obtém o lote da query string
 
     let query = `
-       SELECT
-           rf.nome AS representante,
-           COALESCE(dados_soma.total_kg, 0) AS total_kg,
-           COALESCE(pecas_soma.total_valor_pecas, 0) AS total_valor_pecas,
-           COALESCE(dados_soma.compra_catalisador, 0) AS compra_catalisador,
-           COALESCE(adiantamentos_soma.saldo_adiantamentos, 0) AS saldo_adiantamentos,
-           COALESCE(dados_soma.compra_catalisador, 0) + COALESCE(adiantamentos_soma.saldo_adiantamentos, 0) AS saldo
-       FROM
-           representantes_financeiros rf
-       LEFT JOIN (
-           SELECT representante, SUM(kg) AS total_kg, SUM(valor) AS compra_catalisador
-           FROM dados
-           ${lote ? 'WHERE lote = ?' : ''}
-           GROUP BY representante
-       ) AS dados_soma ON rf.nome = dados_soma.representante
-       LEFT JOIN (
-           SELECT representante_id, SUM(valor_debito) AS saldo_adiantamentos
-           FROM registros_financeiros
-           GROUP BY representante_id
-       ) AS adiantamentos_soma ON rf.id = adiantamentos_soma.representante_id
-       LEFT JOIN (
-           SELECT representante_id, SUM(valor) AS total_valor_pecas
-           FROM pecas
-           GROUP BY representante_id
-       ) AS pecas_soma ON rf.id = pecas_soma.representante_id
-       GROUP BY
-           rf.nome,
-           dados_soma.total_kg,
-           pecas_soma.total_valor_pecas,
-           dados_soma.compra_catalisador,
-           adiantamentos_soma.saldo_adiantamentos
-       HAVING total_kg > 0;
+SELECT
+    r.nome AS representante,
+    COALESCE(dados_soma.total_kg, 0) AS total_kg,
+    COALESCE(pecas_soma.valor_total_pecas, 0) AS total_valor_pecas,
+    COALESCE(dados_soma.compra_catalisador, 0) AS compra_catalisador,
+    COALESCE(adiantamentos_soma.saldo_adiantamentos, 0) AS saldo_adiantamentos,
+    COALESCE(dados_soma.compra_catalisador, 0) + COALESCE(adiantamentos_soma.saldo_adiantamentos, 0) AS saldo
+FROM
+    representantes r
+LEFT JOIN (
+    SELECT 
+        representante AS nome, 
+        SUM(kg) AS total_kg, 
+        SUM(valor) AS compra_catalisador
+    FROM dados
+    ${lote ? 'WHERE lote = ?' : '1=1'}
+    GROUP BY representante
+) AS dados_soma ON r.nome = dados_soma.nome
+LEFT JOIN (
+    SELECT 
+        r.nome AS representante,
+        COALESCE(SUM(rf2.saldo), 0) AS saldo_adiantamentos
+    FROM 
+        representantes r
+    LEFT JOIN (
+        SELECT 
+            CASE 
+                WHEN associado IS NOT NULL THEN associado 
+                ELSE representante_id 
+            END AS id,
+            COALESCE(SUM(valor_debito - valor_credito), 0) AS saldo
+        FROM 
+            registros_financeiros
+        GROUP BY 
+            CASE 
+                WHEN associado IS NOT NULL THEN associado 
+                ELSE representante_id 
+            END
+    ) AS rf2 ON r.id = rf2.id
+    GROUP BY 
+        r.nome
+) AS adiantamentos_soma ON r.nome = adiantamentos_soma.representante
+LEFT JOIN (
+    SELECT 
+        p.representante_id, 
+        SUM(p.valor) AS valor_total_pecas
+    FROM 
+        pecas p
+    GROUP BY 
+        p.representante_id
+) AS pecas_soma ON r.id = pecas_soma.representante_id
+GROUP BY
+    r.nome,
+    dados_soma.total_kg,
+    pecas_soma.valor_total_pecas,
+    dados_soma.compra_catalisador,
+    adiantamentos_soma.saldo_adiantamentos
+ORDER BY
+    r.nome;
+
+
+
+
     `;
 
     const params = [];
