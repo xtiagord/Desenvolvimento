@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys_test'
+    database: 'sys'
 });
 
 // Conectar ao banco de dados
@@ -2086,7 +2086,7 @@ app.get('/api/associado/:representanteId', (req, res) => {
         FROM representantes_financeiros
         WHERE id = ?
     `;
-    
+
     db.query(query, [representanteId], (err, results) => {
         if (err) {
             console.error('Erro ao buscar associado:', err);
@@ -2101,6 +2101,31 @@ app.get('/api/associado/:representanteId', (req, res) => {
         }
     });
 });
+
+app.get('/api/registros_financeiros_por_data', (req, res) => {
+    const dataSelecionada = req.query.data;
+
+    const query = `
+       SELECT rf.id, rf.data, rf.hora, r.nome AS representante, COALESCE(c.nome, rf.comprador) AS comprador, 
+           rf.valor_debito, rf.valor_credito, rf.pagamento, rf.observacoes
+    FROM registros_financeiros rf
+    LEFT JOIN compradores c ON rf.comprador = c.id
+    LEFT JOIN representantes_financeiros r ON rf.representante_id = r.id
+    WHERE rf.data = ?
+    `;
+
+    db.query(query, [dataSelecionada], (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar registros financeiros:', error);
+            return res.status(500).json({ error: 'Erro ao buscar registros financeiros' });
+        }
+        console.log('Dados retornados:', results); // Adicione este log
+        res.json(results);
+    });
+});
+
+
+
 
 
 // Middleware para tratamento de erros

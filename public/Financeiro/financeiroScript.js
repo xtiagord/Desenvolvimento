@@ -22,8 +22,8 @@ $(document).ready(function () {
         }
     });
 
-      // Evento para enviar o formulário
-      $('#form-registro').on('submit', function (event) {
+    // Evento para enviar o formulário
+    $('#form-registro').on('submit', function (event) {
         event.preventDefault(); // Evita a submissão padrão do formulário
 
         if (!representanteIdSelecionado) {
@@ -76,7 +76,7 @@ $(document).ready(function () {
             }
         });
     });
-    
+
     // Inicializar Cleave.js para os campos de valor
     new Cleave('#valor_debito', {
         numeral: true,
@@ -1171,6 +1171,125 @@ function loadRepresentantes() {
 $('#modalRepresentante').on('show.bs.modal', function () {
     loadRepresentantes();
 });
+
+document.getElementById('form-gerar-pdf-diario').addEventListener('submit', function (event) {
+    event.preventDefault();
+    const dataSelecionada = document.getElementById('data_relatorio_diario').value;
+
+    if (dataSelecionada) {
+        fetch(`/api/registros_financeiros_por_data?data=${dataSelecionada}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Dados recebidos:', data);
+                gerarPDF(data); // Função que vai gerar o PDF com os dados recebidos
+            })
+            .catch(error => {
+                console.error('Erro ao buscar registros financeiros:', error);
+            });
+    }
+});
+
+
+
+async function gerarPDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // Orientação paisagem
+
+    // Verifique se autoTable está disponível
+    if (typeof doc.autoTable !== 'function') {
+        console.error('autoTable não está disponível. Certifique-se de que a biblioteca está corretamente incluída.');
+        return;
+    }
+
+    // Função para formatar números como moeda real
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(value);
+    };
+
+    const columns = ['Data', 'Hora', 'Representante', 'Comprador', 'Débito', 'Crédito', 'Pagamento', 'Observações'];
+    const rows = data.map(registro => [
+        registro.data ? new Date(registro.data).toLocaleDateString() : '',  // Formatar a data se necessário
+        registro.hora || '',
+        registro.representante || '',  // Verificar se representante_id está presente
+        registro.comprador || '',
+        formatCurrency(parseFloat(registro.valor_debito) || 0),
+        formatCurrency(parseFloat(registro.valor_credito) || 0),
+        registro.pagamento || '',
+        registro.observacoes || ''
+    ]);
+
+    // Adicionar a tabela ao PDF
+    doc.autoTable({
+        head: [columns],
+        body: rows,
+        startY: 20,
+        theme: 'grid',
+        headStyles: { fillColor: [22, 160, 133] }, // Cor de fundo dos cabeçalhos
+        styles: { fontSize: 10 },
+        margin: { horizontal: 10 },
+        pageBreak: 'auto',
+    });
+
+    // Cálculo dos totais
+    const totalDebitos = data.reduce((sum, registro) => sum + parseFloat(registro.valor_debito || 0), 0);
+    const totalCreditos = data.reduce((sum, registro) => sum + parseFloat(registro.valor_credito || 0), 0);
+    const saldo = totalDebitos - totalCreditos;
+
+    // Adicionar totais ao final do PDF
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const marginRight = 10;
+    const totalsRowY = doc.autoTable.previous.finalY + 10; // A posição Y da última linha da tabela
+
+     // Função para calcular a largura do texto com a formatação
+     const getTextWidth = (text) => {
+        return doc.getTextWidth(text);
+    };
+
+    // Definir posição X fixa para alinhar os totais à direita
+    const xRight = pageWidth - marginRight;
+
+    // Ajustar tamanho da fonte para os totais
+    const fontSize = 10; // Tamanho da fonte menor
+    doc.setFontSize(fontSize);
+
+    // Calcular as posições X para alinhar os totais à direita
+    const textDebitos = `Débitos: ${formatCurrency(totalDebitos)}`;
+    const textCreditos = `Créditos: ${formatCurrency(totalCreditos)}`;
+    const textSaldo = `Saldo: ${formatCurrency(saldo)}`;
+
+    // Larguras dos textos
+    const widthDebitos = getTextWidth(textDebitos);
+    const widthCreditos = getTextWidth(textCreditos);
+    const widthSaldo = getTextWidth(textSaldo);
+
+    // Adicionar totais ao PDF
+    // Adicionar totais de débitos em vermelho
+    doc.setTextColor(255, 0, 0); // Cor vermelha para débitos
+    doc.text(textDebitos, xRight - widthDebitos, totalsRowY + 8);
+
+    // Adicionar totais de créditos em azul
+    doc.setTextColor(0, 0, 255); // Cor azul para créditos
+    doc.text(textCreditos, xRight - widthCreditos, totalsRowY + 16);
+
+    // Definir a cor para o saldo
+    doc.setFontSize(fontSize); // Aplicar tamanho da fonte menor
+    if (totalDebitos > totalCreditos) {
+        doc.setTextColor(255, 0, 0); // Vermelho para saldo negativo
+    } else {
+        doc.setTextColor(0, 0, 255); // Azul para saldo positivo
+    }
+    doc.text(textSaldo, xRight - widthSaldo, totalsRowY + 24);
+
+    // Resetar a cor para o padrão após adicionar o saldo
+    doc.setTextColor(0, 0, 0);
+
+    // Baixar o PDF
+    doc.save('relatorio_diario.pdf');
+}
+
 
 
 

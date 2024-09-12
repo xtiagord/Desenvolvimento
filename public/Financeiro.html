@@ -14,6 +14,8 @@
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.5.3/jspdf.plugin.autotable.min.js"></script>
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
 
 </head>
 
@@ -154,7 +156,7 @@
                      </div>
                      <div class="form-group">
                         <button type="submit" class="btn btn-success">Salvar Registro</button>
-                        
+
                         <button type="button" class="btn btn-danger" data-toggle="modal"
                            data-target="#modalRepresentante">
                            Cadastrar Representante
@@ -164,11 +166,17 @@
                            data-target="#modalCadastroComprador">
                            Cadastrar Comprador
                         </button>
-                        <!-- Botão para abrir o modal -->
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#modalForm">
-                           Gerar Pdf
-                        </button>
                         <button type="button" class="btn btn-warning" onclick="downloadExcel()">Baixar Excel</button>
+                        <div class="btn-group" role="group">
+                           <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle"
+                              data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              Relatórios
+                           </button>
+                           <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                              <a class="btn btn-info" data-toggle="modal" data-target="#modalForm">Gerar PDF</a>
+                              <a class="btn btn-danger" href="#" data-bs-toggle="modal" data-bs-target="#relatorioDiarioModal">Relatório Diário</a>
+                           </div>
+                        </div>
                      </div>
                   </div>
                </form>
@@ -217,35 +225,36 @@
          <div class="loading-text">Carregando...</div>
       </div>
       <!-- Modal -->
-     <!-- Modal para Cadastrar Representante -->
-<div class="modal fade" id="modalRepresentante" tabindex="-1" role="dialog" aria-labelledby="modalRepresentanteLabel" aria-hidden="true">
-   <div class="modal-dialog" role="document">
-       <div class="modal-content">
-           <div class="modal-header">
-               <h5 class="modal-title" id="modalRepresentanteLabel">Cadastrar Representante</h5>
-               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                   <span aria-hidden="true">&times;</span>
-               </button>
-           </div>
-           <div class="modal-body">
-               <!-- Formulário para registrar representantes -->
-               <form id="form-representante">
-                   <div class="form-group">
-                       <label for="nome">Nome</label>
-                       <input type="text" class="form-control" id="nome" name="nome" required>
-                   </div>
-                   <div class="form-group">
-                       <label for="associado">Associado</label>
-                       <select class="form-control" id="associado" name="associado" required>
+      <!-- Modal para Cadastrar Representante -->
+      <div class="modal fade" id="modalRepresentante" tabindex="-1" role="dialog"
+         aria-labelledby="modalRepresentanteLabel" aria-hidden="true">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title" id="modalRepresentanteLabel">Cadastrar Representante</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+                  </button>
+               </div>
+               <div class="modal-body">
+                  <!-- Formulário para registrar representantes -->
+                  <form id="form-representante">
+                     <div class="form-group">
+                        <label for="nome">Nome</label>
+                        <input type="text" class="form-control" id="nome" name="nome" required>
+                     </div>
+                     <div class="form-group">
+                        <label for="associado">Associado</label>
+                        <select class="form-control" id="associado" name="associado" required>
                            <!-- Options will be populated here by JavaScript -->
-                       </select>
-                   </div>
-                   <button type="submit" class="btn btn-primary">Salvar Representante</button>
-               </form>
-           </div>
-       </div>
-   </div>
-</div>
+                        </select>
+                     </div>
+                     <button type="submit" class="btn btn-primary">Salvar Representante</button>
+                  </form>
+               </div>
+            </div>
+         </div>
+      </div>
 
 
       <!-- Tabelas para listar representantes e registros financeiros -->
@@ -263,8 +272,8 @@
             </div>
          </div>
       </div>
-       <!-- Tabela de Representantes -->
-       <div class="container mt-4">
+      <!-- Tabela de Representantes -->
+      <div class="container mt-4">
          <div class="card">
             <div class="card-header">
                <h4 class="card-title">Representantes Geral</h4>
@@ -286,7 +295,7 @@
             </div>
          </div>
       </div>
-      
+
       <!-- Modal para exibir registros financeiros -->
       <div class="modal fade modal-fullscreen" id="modalRegistrosFinanceiros" tabindex="-1"
          aria-labelledby="modalRegistrosFinanceirosLabel" aria-hidden="true">
@@ -364,6 +373,27 @@
          </div>
       </div>
 
+      <!-- Modal para seleção da data -->
+<div class="modal fade" id="relatorioDiarioModal" tabindex="-1" aria-labelledby="relatorioDiarioModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+     <div class="modal-content">
+       <div class="modal-header">
+         <h5 class="modal-title" id="relatorioDiarioModalLabel">Selecione a Data</h5>
+         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+       </div>
+       <div class="modal-body">
+         <form id="form-gerar-pdf-diario">
+           <div class="mb-3">
+             <label for="data_relatorio_diario" class="form-label">Data</label>
+             <input type="date" class="form-control" id="data_relatorio_diario" required>
+           </div>
+           <button type="submit" class="btn btn-primary">Gerar PDF</button>
+         </form>
+       </div>
+     </div>
+   </div>
+ </div>
+
       <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
       <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
@@ -373,8 +403,10 @@
       <script src="https://cdn.jsdelivr.net/npm/cleave.js@1.6.0/dist/cleave.min.js"></script>
       <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/2.5.3/jspdf.plugin.autotable.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.22/jspdf.plugin.autotable.min.js"></script>      
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 
 
 
