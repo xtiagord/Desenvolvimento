@@ -1221,6 +1221,23 @@ async function gerarPDF(data) {
         registro.observacoes || ''
     ]);
 
+    // Adicionar título e data no topo do PDF
+    const titulo = 'Relatório Movimentação Financeira';
+
+    // Usar a data do primeiro registro (se existir) para "Data Movimentação"
+    const dataMovimentacao = data.length > 0 && data[0].data ? new Date(data[0].data).toLocaleDateString('pt-BR') : 'Data Desconhecida';
+
+    // Título no centro da página
+    const pageWidthe = doc.internal.pageSize.getWidth();
+    doc.setFontSize(16);
+    const tituloWidth = doc.getTextWidth(titulo);
+    doc.text(titulo, (pageWidthe - tituloWidth) / 2, 10); // Alinhar o título ao centro no topo
+
+    // Data de movimentação no canto direito superior
+    doc.setFontSize(12);
+    doc.text(`Data Movimentação: ${dataMovimentacao}`, pageWidthe - doc.getTextWidth(`Data Movimentação: ${dataMovimentacao}`) - 10, 10); // Data à direita
+
+
     // Adicionar a tabela ao PDF
     doc.autoTable({
         head: [columns],
@@ -1243,8 +1260,8 @@ async function gerarPDF(data) {
     const marginRight = 10;
     const totalsRowY = doc.autoTable.previous.finalY + 10; // A posição Y da última linha da tabela
 
-     // Função para calcular a largura do texto com a formatação
-     const getTextWidth = (text) => {
+    // Função para calcular a largura do texto com a formatação
+    const getTextWidth = (text) => {
         return doc.getTextWidth(text);
     };
 
