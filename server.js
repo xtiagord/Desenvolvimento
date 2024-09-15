@@ -14,11 +14,11 @@ const ExcelJS = require('exceljs');
 
 // Inicializar o Express
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3003;
 
 // Criação da conexão
 const db = mysql.createConnection({
-    host: '192.168.0.177',
+    host: '192.168.15.45',
     user: 'tiago',
     password: '1234',
     database: 'sys'
@@ -56,14 +56,16 @@ const query = (sql, values, callback) => {
     });
 };
 
-const storage = multer.diskStorage({
+/*const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/'); // Pasta onde os arquivos serão armazenados
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname)); // Nome do arquivo com timestamp
     }
-});
+});*/
+
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const extractUpload = multer().single('pdf');
 //const upload = multer({ dest: 'uploads/' }).fields([{ name: 'file', maxCount: 1 }, { name: 'pdfFile', maxCount: 1 }]);
@@ -2123,10 +2125,6 @@ app.get('/api/registros_financeiros_por_data', (req, res) => {
         res.json(results);
     });
 });
-
-
-
-
 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {

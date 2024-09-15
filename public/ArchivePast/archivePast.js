@@ -100,7 +100,11 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         }
     } catch (error) {
         console.error('Erro ao enviar arquivos:', error);
-    }
+    } setTimeout(function() {
+        // Exibe o modal de confirmação
+        var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+        confirmationModal.show();
+    }, 500); // Simula o tempo de resposta do servidor
 });
 
 
