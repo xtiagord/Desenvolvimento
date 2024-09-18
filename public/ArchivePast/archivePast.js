@@ -147,17 +147,39 @@ function carregarPDFs() {
                 card.className = `col-md-${12 / pdfsPorLinha} mb-4`;
 
                 card.innerHTML = `
-                    <div class="card">
+                    <div class="card text-center"> <!-- Centraliza o conteúdo dentro do card -->
                         <div class="card-body">
-                            <h5 class="card-title">${pdf.name}</h5>
-                            <button onclick="exibirPDF(${index})" class="btn btn-primary">Ver PDF</button>
-                            <button onclick="renomearPDF(${pdf.id})" class="btn btn-warning edit-button">Renomear</button>
-                            <button onclick="deletarPDF(${pdf.id})" class="btn btn-danger edit-button">Deletar</button>
+                            <!-- Canvas para a miniatura do PDF, centralizado e com tamanho ajustado -->
+                            <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
+                                <canvas id="pdf-thumbnail-${pdf.id}" width="350" height="350"></canvas>
+                            </div>
+                            <h5 class="card-title mt-3">${pdf.name}</h5>
+                        </div>
+
+                        <!-- Card interno para os botões -->
+                        <div class="card mt-2">
+                            <div class="card-body d-flex justify-content-between">
+                                <button onclick="exibirPDF(${index})" class="btn btn-primary"> Ver PDF
+                                    <i class="fas fa-eye"></i> <!-- Ícone de visualizar -->
+                                </button>
+                                <button onclick="renomearPDF(${pdf.id})" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> <!-- Ícone de renomear -->
+                                </button>
+                                <button onclick="deletarPDF(${pdf.id})" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> <!-- Ícone de lixeira -->
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
 
                 listaPDFs.appendChild(card);
+
+                // Construir a URL do PDF baseado no ID ou caminho no servidor
+                const pdfUrl = `/pdfs/${pdf.id}`; // Ajuste isso para o caminho correto do PDF no seu servidor
+
+                // Renderizar a miniatura do PDF usando pdf.js
+                renderizarMiniaturaPDF(pdfUrl, `pdf-thumbnail-${pdf.id}`);
             });
         })
         .catch(error => {
@@ -165,6 +187,35 @@ function carregarPDFs() {
             alert('Erro ao carregar a lista de PDFs.');
         });
 }
+
+
+
+function renderizarMiniaturaPDF(pdfUrl, canvasId) {
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    
+    loadingTask.promise.then(function(pdf) {
+        // Carrega a primeira página do PDF
+        pdf.getPage(1).then(function(page) {
+            const scale = 0.2;  // Defina a escala para a miniatura
+            const viewport = page.getViewport({ scale: scale });
+
+            const canvas = document.getElementById(canvasId);
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            // Renderiza a página no contexto do canvas
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            page.render(renderContext);
+        });
+    }).catch(function(error) {
+        console.error('Erro ao renderizar o PDF:', error);
+    });
+}
+
 
 let pdfs = [];
 let currentPdfIndex = -1;
