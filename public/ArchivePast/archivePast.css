@@ -99,16 +99,6 @@ body {
     /* Ajusta o preenchimento dos itens do dropdown */
 }
 
-.btn-custom {
-    height: 100px;
-    /* Ajuste a altura conforme necessário */
-}
-
-.modal-dialog {
-    padding: 20px;
-    /* Adiciona espaço ao redor do modal inteiro */
-}
-
 .modal-content {
     padding: 20px;
     /* Adiciona espaço ao redor do conteúdo dentro do modal */
@@ -138,4 +128,35 @@ body {
 #pdfModal .modal-footer {
     height: 56px; /* Ajustar conforme a altura do rodapé */
     border-top: 1px solid #dee2e6;
+}
+/* CSS para tornar o modal com altura ajustada */
+#downloadModal .modal-dialog.modal-dialog-centered {
+    height: auto; /* Ajusta a altura para se adaptar ao conteúdo */
+    max-height: 80vh; /* Define uma altura máxima para o modal */
+    margin: auto; /* Centraliza verticalmente */
+}
+
+#downloadModal .modal-content.custom-modal-content {
+    height: 100%; /* Ajusta a altura do conteúdo do modal */
+    border: 0;
+    border-radius: 0.3rem;
+    overflow: hidden;
+}
+
+#downloadModal .modal-body {
+    max-height: calc(80vh - 56px); /* Ajusta a altura do corpo do modal para o máximo disponível */
+    overflow-y: auto; /* Adiciona rolagem se o conteúdo exceder a altura */
+    padding: 20px; /* Ajusta o padding interno do corpo do modal */
+}
+
+#downloadModal .modal-header,
+#downloadModal .modal-footer {
+    height: 20px; /* Ajusta a altura do cabeçalho e rodapé do modal */
+}
+#pdfModal .modal-header .close {
+    margin: -1rem -1rem -1rem auto; /* Ajusta a posição do botão de fechar */
+}
+
+#pdfModal .modal-header .close span {
+    font-size: 1.5rem; /* Ajusta o tamanho do "X" */
 }
