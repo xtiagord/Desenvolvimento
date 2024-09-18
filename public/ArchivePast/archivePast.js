@@ -100,11 +100,7 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         }
     } catch (error) {
         console.error('Erro ao enviar arquivos:', error);
-    } setTimeout(function() {
-        // Exibe o modal de confirmação
-        var confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
-        confirmationModal.show();
-    }, 500); // Simula o tempo de resposta do servidor
+    }
 });
 
 
@@ -264,42 +260,29 @@ function toggleEditButtons() {
     });
 }
 
-// Função para carregar opções de representantes no modal de download
-function carregarRepresentantesParaDownload() {
-    fetch('/api/representantes') // Ajuste o endpoint se necessário
-        .then(response => response.json())
-        .then(data => {
-            const select = document.getElementById('representanteDownload');
-            select.innerHTML = '<option value="">Todos</option>'; // Adicionar opção "Todos"
-
-            data.forEach(rep => {
-                const option = document.createElement('option');
-                option.value = rep.id;
-                option.textContent = rep.nome;
-                select.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar representantes:', error));
-}
-
 // Função para baixar PDFs
 function baixarPDFs() {
-    const downloadOption = document.getElementById('downloadOption').value;
-    const representantesSelecionados = Array.from(document.querySelectorAll('input[name="representantes"]:checked'))
-        .map(checkbox => checkbox.value);
+    const lote = document.getElementById('loteDownload').value;
+    const option = document.getElementById('downloadOption').value;
     
-    let url = '/download-pdfs?';
-
-    if (representantesSelecionados.length > 0) {
-        url += `representante_ids=${representantesSelecionados.join(',')}&`;
+    if (!lote) {
+        alert('Por favor, selecione um lote antes de prosseguir.');
+        return;
     }
-
-    url += `option=${downloadOption}`;
-
-    window.location.href = url; // Inicia o download
+    
+    // Captura os IDs dos representantes selecionados
+    const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]:checked');
+    const representanteIds = Array.from(checkboxes).map(checkbox => checkbox.value);
+    
+    const queryParams = new URLSearchParams({
+        lote: lote,
+        representante_ids: representanteIds.join(','),
+        option: option
+    });
+    
+    const downloadUrl = `/download-pdfs?${queryParams.toString()}`;
+    window.location.href = downloadUrl; // Redireciona para o download
 }
-// Chama a função para carregar representantes ao abrir o modal
-$('#downloadModal').on('show.bs.modal', carregarRepresentantesParaDownload);
 
 function carregarRepresentantesComoCheckboxes() {
     fetch('/representantes')
@@ -343,6 +326,28 @@ function mostrarCheckboxes() {
         checkboxContainer.style.display = 'none';
     }
 }
+
+function carregarLotesParaDownload() {
+    fetch('/api/lote')
+        .then(response => response.json())
+        .then(lotes => {
+            const loteSelect = document.getElementById('loteDownload');
+            loteSelect.innerHTML = '<option value="">Todos</option>'; // Opção padrão
+
+            lotes.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.nome; // Ou outro identificador único do lote
+                option.text = lote.nome;
+                loteSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar lotes:', error));
+}
+
+$('#downloadModal').on('show.bs.modal', function () {
+    carregarLotesParaDownload(); // Agora também carrega os lotes
+});
+
 
 function carregarFotos() {
     const representanteId = document.getElementById('representante').value;

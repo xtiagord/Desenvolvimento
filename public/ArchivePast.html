@@ -182,41 +182,42 @@
 </div>
 <!-- Modal para seleção e download de PDFs -->
 <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content custom-modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="downloadModalLabel">Download de PDFs</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="representanteDownload">Escolha o Representante:</label>
-                    <select id="representanteDownload" class="form-control">
-                        <option value="">Todos</option>
-                        <!-- As opções serão carregadas dinamicamente -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="downloadOption">Opção de Download:</label>
-                    <select id="downloadOption" onchange="mostrarCheckboxes()">
-                        <option value="">Selecione uma opção</option>
-                        <option value="zip">Baixar ZIP</option>
-                        <option value="unify">Baixar PDF Unificado</option>
-                    </select>     
-                    <div id="representantesCheckboxes" style="display: none;">
-                        <h4>Selecione os Representantes:</h4>
-                        <div id="checkboxContainer" class="row">
-                            <!-- Checkboxes dos representantes serão carregados aqui -->
-                        </div>
+            <div class="form-group">
+                <label for="downloadOption">Opção de Download:</label>
+                <select id="downloadOption" class="form-control" onchange="mostrarCheckboxes()">
+                    <option value="">Selecione uma opção</option>
+                    <option value="zip">Baixar ZIP</option>
+                    <option value="unify">Baixar PDF Unificado</option>
+                </select>     
+                <div id="representantesCheckboxes" style="display: none;">
+                    <h4>Selecione os Representantes:</h4>
+                    <div id="checkboxContainer" class="row">
+                        <!-- Checkboxes dos representantes serão carregados aqui -->
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>              
             </div>
+            <div class="form-group">
+                <label for="loteDownload">Escolha o Lote (Obrigatório):</label>
+                <select id="loteDownload" class="form-control" required>
+                    <option value="">Selecione um lote</option>
+                    <!-- As opções serão carregadas dinamicamente -->
+                </select>
+            </div>
+            
+            <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>              
         </div>
     </div>
 </div>
+
+
 <!-- Modal para visualização de Fotos -->
 <div class="modal fade" id="photosModal" tabindex="-1" role="dialog" aria-labelledby="photosModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">

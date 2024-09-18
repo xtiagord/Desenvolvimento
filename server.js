@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3003;
 
 // Criação da conexão
 const db = mysql.createConnection({
-    host: '192.168.15.45',
+    host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
     database: 'sys'
@@ -1361,17 +1361,35 @@ app.delete('/pdfs/:id', (req, res) => {
 
 app.get('/download-pdfs', async (req, res) => {
     const representanteIds = req.query.representante_ids ? req.query.representante_ids.split(',') : [];
+    const lote = req.query.lote;
     const option = req.query.option;
 
-    let queryStr = 'SELECT name, data FROM pdfs';
+    // Construção da query SQL com ordenação por nome do representante
+    let queryStr = `
+        SELECT p.name, p.data, r.nome AS representante_nome 
+        FROM pdfs p
+        JOIN representantes r ON p.representante_id = r.id
+        WHERE 1=1
+    `;
     let queryParams = [];
 
+    // Filtro por representantes
     if (representanteIds.length > 0) {
-        queryStr += ' WHERE representante_id IN (?)';
+        queryStr += ' AND p.representante_id IN (?)';
         queryParams.push(representanteIds);
     }
 
+    // Filtro por lote
+    if (lote) {
+        queryStr += ' AND p.lote = ?';
+        queryParams.push(lote);
+    }
+
+    // Ordenar os PDFs pelo nome do representante
+    queryStr += ' ORDER BY r.nome ASC';
+
     try {
+        // Executa a query para buscar os PDFs
         const pdfs = await promisify(db.query).bind(db)(queryStr, queryParams);
 
         if (option === 'unify') {
@@ -1414,6 +1432,7 @@ app.get('/download-pdfs', async (req, res) => {
         res.status(500).send('Erro ao buscar PDFs do banco de dados.');
     }
 });
+
 
 app.get('/photos', (req, res) => {
     const representanteId = req.query.representante_id;

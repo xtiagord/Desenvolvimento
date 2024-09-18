@@ -71,5 +71,33 @@ body {
    .btn-custom {
     height: 100px; /* Ajuste a altura conforme necessário */
     }
+    .custom-modal-content {
+        max-height: 90vh; /* O modal pode ter no máximo 90% da altura da janela de visualização */
+        min-height: 10vh; /* Altura mínima para o modal */
+        overflow: visible; /* Sem barras de rolagem */
+    }
     
+    .modal-dialog {
+        max-width: 50%; /* Para ajustar a largura do modal */
+    }
+    
+    .modal-body {
+        padding: 20px; /* Ajuste o padding do conteúdo se necessário */
+    }
+    .custom-modal-content {
+    max-height: 90vh; /* Altura máxima do modal */
+    min-height: 30vh; /* Altura mínima do modal */
+    overflow: visible; /* Remove barras de rolagem */
+    padding: 20px; /* Adiciona espaço ao redor do conteúdo */
+}
+
+.modal-header, .modal-body, .modal-footer {
+    padding: 20px; /* Adiciona padding adicional às seções internas */
+}
+
+/* Ajusta o espaço específico do conteúdo da modal-body */
+.modal-body {
+    padding: 20px; /* Adiciona espaço ao redor do conteúdo da modal */
+}
+
     
