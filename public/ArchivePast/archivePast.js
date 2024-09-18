@@ -176,14 +176,25 @@ function exibirPDF(index) {
     }
 
     currentPdfIndex = index;
-    const pdfId = pdfs[index].id;
+    const pdf = pdfs[index];
+    const pdfId = pdf.id;
+    const pdfName = pdf.name;
 
+    // Atualiza o iframe com o PDF
     document.getElementById('pdfViewer').setAttribute('src', `/pdfs/${pdfId}`);
+    
+    // Atualiza o nome do PDF
+    document.getElementById('pdfName').textContent = pdfName;
+
+    // Atualiza a contagem do PDF
+    document.getElementById('pdfCount').textContent = `${currentPdfIndex + 1}/${pdfs.length}`;
+
+    // Mostra o modal
     $('#pdfModal').modal('show');
 
-    toggleNavigationButtons(); // Atualizar os botões de navegação
+    // Atualiza os botões de navegação
+    toggleNavigationButtons();
 }
-
 function navigatePDF(direction) {
     const newIndex = currentPdfIndex + direction;
 
