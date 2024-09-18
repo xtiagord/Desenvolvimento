@@ -128,6 +128,7 @@ fetch('/representantes')
         alert('Erro ao carregar a lista de representantes.');
     });
 }
+
 function carregarPDFs() {
     const representanteId = document.getElementById('representante').value;
     const loteId = document.getElementById('lote').value;
@@ -137,10 +138,11 @@ function carregarPDFs() {
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            pdfs = data; // Salvar a lista de PDFs carregados
             const listaPDFs = document.getElementById('lista-pdfs');
             listaPDFs.innerHTML = '';
 
-            data.forEach(pdf => {
+            data.forEach((pdf, index) => {
                 const card = document.createElement('div');
                 card.className = `col-md-${12 / pdfsPorLinha} mb-4`;
 
@@ -148,7 +150,7 @@ function carregarPDFs() {
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">${pdf.name}</h5>
-                            <button onclick="exibirPDF('/pdfs/${pdf.id}')" class="btn btn-primary">Ver PDF</button>
+                            <button onclick="exibirPDF(${index})" class="btn btn-primary">Ver PDF</button>
                             <button onclick="renomearPDF(${pdf.id})" class="btn btn-warning edit-button">Renomear</button>
                             <button onclick="deletarPDF(${pdf.id})" class="btn btn-danger edit-button">Deletar</button>
                         </div>
@@ -164,35 +166,35 @@ function carregarPDFs() {
         });
 }
 
-
-
 let pdfs = [];
-let currentPdfIndex = 0;
+let currentPdfIndex = -1;
 
-function exibirPDF(url) {
-    document.getElementById('pdfViewer').setAttribute('src', url);
-    $('#pdfModal').modal('show'); // Mostrar o modal
-    // Atualiza a lista de PDFs e o índice atual
-    pdfs = []; // Inicializar ou atualizar com a lista de PDFs
-    currentPdfIndex = pdfs.findIndex(pdf => pdf.url === url);
+function exibirPDF(index) {
+    if (index < 0 || index >= pdfs.length) {
+        console.error('Índice de PDF inválido:', index);
+        return;
+    }
 
-    // Atualiza a visibilidade dos botões de navegação
-    atualizarNavegacao();
+    currentPdfIndex = index;
+    const pdfId = pdfs[index].id;
+
+    document.getElementById('pdfViewer').setAttribute('src', `/pdfs/${pdfId}`);
+    $('#pdfModal').modal('show');
+
+    toggleNavigationButtons(); // Atualizar os botões de navegação
 }
-function atualizarNavegacao() {
-    document.getElementById('prevPdf').style.display = currentPdfIndex > 0 ? 'inline-block' : 'none';
-    document.getElementById('nextPdf').style.display = currentPdfIndex < pdfs.length - 1 ? 'inline-block' : 'none';
-}
+
 function navigatePDF(direction) {
-    // Calcula o novo índice
     const newIndex = currentPdfIndex + direction;
 
     if (newIndex >= 0 && newIndex < pdfs.length) {
-        currentPdfIndex = newIndex;
-        const newPdf = pdfs[currentPdfIndex];
-        document.getElementById('pdfViewer').setAttribute('src', newPdf.url);
-        atualizarNavegacao();
+        exibirPDF(newIndex);
     }
+}
+
+function toggleNavigationButtons() {
+    document.getElementById('prevPdf').style.display = currentPdfIndex > 0 ? 'inline-block' : 'none';
+    document.getElementById('nextPdf').style.display = currentPdfIndex < pdfs.length - 1 ? 'inline-block' : 'none';
 }
 // Carregar os representantes quando a página carregar
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
