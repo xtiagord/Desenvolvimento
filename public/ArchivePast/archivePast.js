@@ -311,21 +311,33 @@ function toggleNavigationButtons() {
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
 function renomearPDF(id, event) {
     event.stopPropagation();
-    const novoNome = prompt("Digite o novo nome para o PDF:");
-    if (novoNome) {
-        let trimmedNome = novoNome.trim();
 
-        // Adiciona a extensão .pdf se não estiver presente
-        if (!trimmedNome.toLowerCase().endsWith('.pdf')) {
-            trimmedNome += '.pdf';
-        }
+    // Obtém o ID do representante selecionado
+    const representanteSelect = document.getElementById('representante');
+    const representanteId = representanteSelect.value;
+
+    // Verifica se um representante foi selecionado
+    if (!representanteId) {
+        alert('Por favor, selecione um representante.');
+        return;
+    }
+
+    // Obtém o nome do representante selecionado
+    const representanteNome = representanteSelect.options[representanteSelect.selectedIndex].text;
+
+    // Solicita o número ao usuário
+    const numero = prompt("Digite o número do PDF (exemplo: 01):");
+
+    if (numero) {
+        // Formata o novo nome do PDF
+        const novoNome = `${numero} - ${representanteNome}.pdf`.trim();
 
         fetch(`/pdfs/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ novoNome: trimmedNome })
+            body: JSON.stringify({ novoNome })
         })
             .then(response => {
                 if (response.ok) {
