@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys_test'
+    database: 'sys'
 });
 
 // Conectar ao banco de dados
@@ -1194,6 +1194,20 @@ app.post('/create-folder', async (req, res) => {
     });
 });
 
+// Função auxiliar para obter o nome do representante
+const obterNomeRepresentante = (representanteId, callback) => {
+    db.query('SELECT nome FROM representantes WHERE id = ?', [representanteId], (err, rows) => {
+        if (err) {
+            return callback(err);
+        }
+        if (rows.length === 0) {
+            return callback(new Error('Representante não encontrado'));
+        }
+        callback(null, rows[0].nome);
+    });
+};
+
+
 // Endpoint para upload de arquivos
 app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 'photoFiles', maxCount: 10 }]), (req, res) => {
     const representanteId = req.body.representanteId;
@@ -1217,12 +1231,20 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
             return res.status(400).send('ID do representante inválido.');
         }
 
+        // Obter o nome do representante
+        obterNomeRepresentante(representanteId, (err, nomeRepresentante) => {
+            if (err) {
+                console.error('Erro ao obter o nome do representante:', err);
+                return res.status(500).send('Erro ao obter o nome do representante.');
+            }
+
         let queries = [];
         let queryParams = [];
 
         pdfFiles.forEach(file => {
+            const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
             queries.push('INSERT INTO pdfs (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
-            queryParams.push([file.originalname, file.buffer, representanteId, npdf, lote]);
+            queryParams.push([newFilename, file.buffer, representanteId, npdf, lote]);
         });
 
         photoFiles.forEach(file => {
@@ -1264,6 +1286,7 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
             saveFile(query, queryParams[index], onQueryComplete);
         });
     });
+});
 });
 
 
