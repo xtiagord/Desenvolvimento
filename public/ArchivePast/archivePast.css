@@ -160,3 +160,42 @@ body {
 #pdfModal .modal-header .close span {
     font-size: 1.5rem; /* Ajusta o tamanho do "X" */
 }
+.card-clickable {
+    transition: all 0.3s ease; /* Suaviza a transição */
+    border: 1px solid #ddd; /* Borda padrão */
+}
+
+.card-clickable:hover {
+    border-color: #007bff; /* Borda azul ao passar o mouse */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    cursor: pointer; /* Altera o cursor para indicar clique */
+}
+
+/* Estilo para a seleção de cards */
+.card-selected {
+    border-color: #007bff !important; /* Borda azul para o card selecionado */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important; /* Sombra um pouco mais forte */
+}
+
+/* Estilo para o checkbox para tornar visível a seleção */
+.card-select {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.card-checkbox:checked {
+    background-color: #007bff; /* Bolinha azul ao ser selecionada */
+}
+
+#actionBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+#actionBar.d-none {
+    display: none;
+}

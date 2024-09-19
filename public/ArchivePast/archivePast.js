@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const representanteSelect = document.getElementById('representanteSelect');
     fetch('/api/representantes')
         .then(response => response.json())
@@ -13,41 +13,41 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => console.error('Erro ao carregar representantes:', error));
 });
 
-document.getElementById('representanteSelect').addEventListener('change', function() {
+document.getElementById('representanteSelect').addEventListener('change', function () {
     const representante = this.options[this.selectedIndex].text; // Usa o nome do representante selecionado
     const loteSelect = document.getElementById('loteSelect');
-    
+
     loteSelect.innerHTML = '';  // Limpar opções anteriores de lotes
 
     fetch(`/api/lotes?representante=${encodeURIComponent(representante)}`)
-    .then(response => response.json())
-    .then(lotes => {
-        // Adiciona uma opção vazia
-        const emptyOption = document.createElement('option');
-        emptyOption.value = '';
-        emptyOption.textContent = 'Selecione o lote';
-        loteSelect.appendChild(emptyOption);
-        
-        lotes.forEach(lote => {
-            const option = document.createElement('option');
-            option.value = lote.lote;
-            option.textContent = lote.lote;
-            loteSelect.appendChild(option);
-        });
+        .then(response => response.json())
+        .then(lotes => {
+            // Adiciona uma opção vazia
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Selecione o lote';
+            loteSelect.appendChild(emptyOption);
 
-        // Remove a opção vazia após a primeira seleção (opcional)
-        loteSelect.addEventListener('focus', function() {
-            emptyOption.disabled = true;
-        });
-    })
-    .catch(error => console.error('Erro ao carregar lotes:', error));
+            lotes.forEach(lote => {
+                const option = document.createElement('option');
+                option.value = lote.lote;
+                option.textContent = lote.lote;
+                loteSelect.appendChild(option);
+            });
+
+            // Remove a opção vazia após a primeira seleção (opcional)
+            loteSelect.addEventListener('focus', function () {
+                emptyOption.disabled = true;
+            });
+        })
+        .catch(error => console.error('Erro ao carregar lotes:', error));
 });
 
 
-document.getElementById('loteSelect').addEventListener('change', function() {
+document.getElementById('loteSelect').addEventListener('change', function () {
     const representante = document.getElementById('representanteSelect').options[document.getElementById('representanteSelect').selectedIndex].text;
     const lote = this.value;
-    const npdfSelect = document.getElementById('npdfSelect');   
+    const npdfSelect = document.getElementById('npdfSelect');
     npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
     fetch(`/api/npdfs?representante=${encodeURIComponent(representante)}&lote=${encodeURIComponent(lote)}`)
         .then(response => response.json())
@@ -61,7 +61,7 @@ document.getElementById('loteSelect').addEventListener('change', function() {
         })
         .catch(error => console.error('Erro ao carregar Npdfs:', error));
 });
-document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+document.getElementById('uploadForm').addEventListener('submit', async function (event) {
     event.preventDefault();
 
     const formData = new FormData();
@@ -112,23 +112,68 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
 
 
 function carregarRepresentantes() {
-fetch('/representantes')
-    .then(response => response.json())
-    .then(data => {
-        const select = document.getElementById('representante');
-        data.forEach(representante => {
-            const option = document.createElement('option');
-            option.value = representante.id;
-            option.textContent = representante.nome;
-            select.appendChild(option);
+    fetch('/representantes')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('representante');
+            data.forEach(representante => {
+                const option = document.createElement('option');
+                option.value = representante.id;
+                option.textContent = representante.nome;
+                select.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar representantes:', error);
+            alert('Erro ao carregar a lista de representantes.');
         });
-    })
-    .catch(error => {
-        console.error('Erro ao carregar representantes:', error);
-        alert('Erro ao carregar a lista de representantes.');
-    });
 }
 
+function atualizarBarraDeAcoes() {
+    const selectedCards = document.querySelectorAll('.card-selected');
+    const actionBar = document.getElementById('actionBar');
+    
+    if (selectedCards.length > 0) {
+        actionBar.classList.remove('d-none');
+    } else {
+        actionBar.classList.add('d-none');
+    }
+}
+
+// Adiciona evento para o clique do checkbox
+document.addEventListener('click', function (event) {
+    // Verifica se o clique foi no checkbox
+    if (event.target.classList.contains('card-checkbox')) {
+        // Impede que o clique no checkbox propague para o card
+        event.stopPropagation();
+
+        const card = event.target.closest('.card-clickable');
+        if (card) {
+            if (event.target.checked) {
+                card.classList.add('card-selected');
+            } else {
+                card.classList.remove('card-selected');
+            }
+            atualizarBarraDeAcoes();
+        }
+    }
+});
+
+// Adiciona evento para o clique do card
+document.addEventListener('click', function (event) {
+    const card = event.target.closest('.card-clickable');
+
+    // Verifica se o clique foi fora do checkbox e dentro do card
+    if (card && !event.target.classList.contains('card-checkbox')) {
+        const cardId = card.querySelector('.card-checkbox').getAttribute('data-id');
+        const pdfIndex = pdfs.findIndex(pdf => pdf.id == cardId);
+        if (pdfIndex !== -1) {
+            exibirPDF(pdfIndex);
+        }
+    }
+});
+
+// Função para carregar PDFs e adicionar os cards
 function carregarPDFs() {
     const representanteId = document.getElementById('representante').value;
     const loteId = document.getElementById('lote').value;
@@ -147,8 +192,11 @@ function carregarPDFs() {
                 card.className = `col-md-${12 / pdfsPorLinha} mb-4`;
 
                 card.innerHTML = `
-                    <div class="card text-center"> <!-- Centraliza o conteúdo dentro do card -->
+                    <div class="card text-center card-clickable">
                         <div class="card-body">
+                            <div class="card-select">
+                                <input type="checkbox" id="select-${pdf.id}" class="card-checkbox" data-id="${pdf.id}">
+                            </div>
                             <!-- Canvas para a miniatura do PDF, centralizado e com tamanho ajustado -->
                             <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
                                 <canvas id="pdf-thumbnail-${pdf.id}" width="350" height="350"></canvas>
@@ -162,10 +210,10 @@ function carregarPDFs() {
                                 <button onclick="exibirPDF(${index})" class="btn btn-primary"> Ver PDF
                                     <i class="fas fa-eye"></i> <!-- Ícone de visualizar -->
                                 </button>
-                                <button onclick="renomearPDF(${pdf.id})" class="btn btn-warning">
+                                <button onclick="renomearPDF(${pdf.id}, event)" class="btn btn-warning">
                                     <i class="fas fa-edit"></i> <!-- Ícone de renomear -->
                                 </button>
-                                <button onclick="deletarPDF(${pdf.id})" class="btn btn-danger">
+                                <button onclick="deletarPDF(${pdf.id}, event)" class="btn btn-danger">
                                     <i class="fas fa-trash"></i> <!-- Ícone de lixeira -->
                                 </button>
                             </div>
@@ -190,12 +238,13 @@ function carregarPDFs() {
 
 
 
+
 function renderizarMiniaturaPDF(pdfUrl, canvasId) {
     const loadingTask = pdfjsLib.getDocument(pdfUrl);
-    
-    loadingTask.promise.then(function(pdf) {
+
+    loadingTask.promise.then(function (pdf) {
         // Carrega a primeira página do PDF
-        pdf.getPage(1).then(function(page) {
+        pdf.getPage(1).then(function (page) {
             const scale = 0.2;  // Defina a escala para a miniatura
             const viewport = page.getViewport({ scale: scale });
 
@@ -211,7 +260,7 @@ function renderizarMiniaturaPDF(pdfUrl, canvasId) {
             };
             page.render(renderContext);
         });
-    }).catch(function(error) {
+    }).catch(function (error) {
         console.error('Erro ao renderizar o PDF:', error);
     });
 }
@@ -233,7 +282,7 @@ function exibirPDF(index) {
 
     // Atualiza o iframe com o PDF
     document.getElementById('pdfViewer').setAttribute('src', `/pdfs/${pdfId}`);
-    
+
     // Atualiza o nome do PDF
     document.getElementById('pdfName').textContent = pdfName;
 
@@ -260,7 +309,8 @@ function toggleNavigationButtons() {
 }
 // Carregar os representantes quando a página carregar
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
-function renomearPDF(id) {
+function renomearPDF(id, event) {
+    event.stopPropagation();
     const novoNome = prompt("Digite o novo nome para o PDF:");
     if (novoNome) {
         let trimmedNome = novoNome.trim();
@@ -277,73 +327,66 @@ function renomearPDF(id) {
             },
             body: JSON.stringify({ novoNome: trimmedNome })
         })
-        .then(response => {
-            if (response.ok) {
-                alert('Nome do PDF atualizado com sucesso.');
-                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
-            } else {
-                return response.text(); // Para obter a mensagem de erro
-            }
-        })
-        .then(errorMessage => {
-            if (errorMessage) {
-                alert('Erro ao renomear o PDF: ' + errorMessage);
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao renomear o PDF:', error);
-            alert('Erro ao renomear o PDF.');
-        });
+            .then(response => {
+                if (response.ok) {
+                    alert('Nome do PDF atualizado com sucesso.');
+                    carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+                } else {
+                    return response.text(); // Para obter a mensagem de erro
+                }
+            })
+            .then(errorMessage => {
+                if (errorMessage) {
+                    alert('Erro ao renomear o PDF: ' + errorMessage);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao renomear o PDF:', error);
+                alert('Erro ao renomear o PDF.');
+            });
     }
 }
-function deletarPDF(id) {
+function deletarPDF(id, event) {
+    event.stopPropagation();
     if (confirm("Tem certeza que deseja deletar este PDF?")) {
         fetch(`/pdfs/${id}`, {
             method: 'DELETE',
         })
-        .then(response => {
-            if (response.ok) {
-                alert('PDF deletado com sucesso.');
-                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
-            } else {
+            .then(response => {
+                if (response.ok) {
+                    alert('PDF deletado com sucesso.');
+                    carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+                } else {
+                    alert('Erro ao deletar o PDF.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao deletar o PDF:', error);
                 alert('Erro ao deletar o PDF.');
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao deletar o PDF:', error);
-            alert('Erro ao deletar o PDF.');
-        });
+            });
     }
-}
-let editButtonsVisible = false;
-function toggleEditButtons() {
-    editButtonsVisible = !editButtonsVisible; // Alterna o estado
-    const editButtons = document.querySelectorAll('.edit-button');
-    editButtons.forEach(button => {
-        button.classList.toggle('d-none', !editButtonsVisible); // Aplica a visibilidade com base no estado
-    });
 }
 
 // Função para baixar PDFs
 function baixarPDFs() {
     const lote = document.getElementById('loteDownload').value;
     const option = document.getElementById('downloadOption').value;
-    
+
     if (!lote) {
         alert('Por favor, selecione um lote antes de prosseguir.');
         return;
     }
-    
+
     // Captura os IDs dos representantes selecionados
     const checkboxes = document.querySelectorAll('#checkboxContainer input[type="checkbox"]:checked');
     const representanteIds = Array.from(checkboxes).map(checkbox => checkbox.value);
-    
+
     const queryParams = new URLSearchParams({
         lote: lote,
         representante_ids: representanteIds.join(','),
         option: option
     });
-    
+
     const downloadUrl = `/download-pdfs?${queryParams.toString()}`;
     window.location.href = downloadUrl; // Redireciona para o download
 }
@@ -522,23 +565,23 @@ function renomearFOTO(id) {
             },
             body: JSON.stringify({ novoNome: trimmedNome })
         })
-        .then(response => {
-            if (response.ok) {
-                alert('Nome da FOTO atualizado com sucesso.');
-                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
-            } else {
-                return response.text(); // Para obter a mensagem de erro
-            }
-        })
-        .then(errorMessage => {
-            if (errorMessage) {
-                alert('Erro ao renomear a FOTO: ' + errorMessage);
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao renomear a FOTO:', error);
-            alert('Erro ao renomear a FOTO.');
-        });
+            .then(response => {
+                if (response.ok) {
+                    alert('Nome da FOTO atualizado com sucesso.');
+                    carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+                } else {
+                    return response.text(); // Para obter a mensagem de erro
+                }
+            })
+            .then(errorMessage => {
+                if (errorMessage) {
+                    alert('Erro ao renomear a FOTO: ' + errorMessage);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao renomear a FOTO:', error);
+                alert('Erro ao renomear a FOTO.');
+            });
     }
 }
 
@@ -547,18 +590,49 @@ function deletarFOTO(id) {
         fetch(`/photos/${id}`, {
             method: 'DELETE',
         })
-        .then(response => {
-            if (response.ok) {
-                alert('FOTO deletado com sucesso.');
-                carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
-            } else {
-                alert('Erro ao deletar o FOTO.');
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao deletar o FOTO:', error);
-            alert('Erro ao deletar o FOT.');
-        });
+            .then(response => {
+                if (response.ok) {
+                    alert('FOTO deletado com sucesso.');
+                    carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+                } else {
+                    alert('Erro ao deletar o FOTO.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao deletar o FOTO:', error);
+                alert('Erro ao deletar o FOT.');
+            });
     }
 }
 
+document.getElementById('deleteSelected').addEventListener('click', function() {
+    const selectedCheckboxes = document.querySelectorAll('.card-checkbox:checked');
+    const ids = Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.id);
+
+    if (ids.length === 0) {
+        alert('Nenhum PDF selecionado para exclusão.');
+        return;
+    }
+
+    if (confirm('Tem certeza de que deseja excluir os PDFs selecionados?')) {
+        ids.forEach(id => {
+            fetch(`/pdfs/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.text())
+            .then(message => {
+                console.log(message); // Exibe mensagem de sucesso
+                // Remove o card do DOM após a exclusão
+                const card = document.querySelector(`.card-checkbox[data-id="${id}"]`).closest('.card-clickable');
+                card.parentElement.remove();
+            })
+            .catch(error => {
+                console.error('Erro ao excluir o PDF:', error);
+                alert('Erro ao excluir o PDF.');
+            });
+        });
+        
+        // Esconde a barra de ações após a exclusão
+        atualizarBarraDeAcoes();
+    }
+});
