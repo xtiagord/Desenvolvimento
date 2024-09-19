@@ -9,16 +9,19 @@
 
 /* Define o fundo da página como cinza */
 body {
-    background-color: #e2e2e2; /* Cor cinza clara para o fundo da página */
-  }
+    background-color: #e2e2e2;
+    /* Cor cinza clara para o fundo da página */
+}
 
 .modal-content {
     height: 100%;
-    border-radius: 0; /* Remove bordas arredondadas para ocupar toda a tela */
+    border-radius: 0;
+    /* Remove bordas arredondadas para ocupar toda a tela */
 }
 
 .modal-body {
-    max-height: calc(100% - 120px); /* Ajuste conforme necessário para considerar o espaço ocupado pelo cabeçalho e rodapé */
+    max-height: calc(100% - 120px);
+    /* Ajuste conforme necessário para considerar o espaço ocupado pelo cabeçalho e rodapé */
     overflow-y: auto;
     position: relative;
 }
@@ -27,58 +30,79 @@ body {
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: #343a40; /* Cor de fundo do cabeçalho */
-    color: white; /* Cor do texto do cabeçalho */
-    border-radius: .25rem; /* Bordas arredondadas para todos os itens */
-    transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
+    background-color: #343a40;
+    /* Cor de fundo do cabeçalho */
+    color: white;
+    /* Cor do texto do cabeçalho */
+    border-radius: .25rem;
+    /* Bordas arredondadas para todos os itens */
+    transition: background-color 0.2s, color 0.2s;
+    /* Adiciona espaço à direita dos itens */
 }
 
 /* Estilo para centralizar o modal */
 .modal.fade .modal-dialog {
-    transform: translate(0, 0); /* Remove qualquer deslocamento inicial */
+    transform: translate(0, 0);
+    /* Remove qualquer deslocamento inicial */
 }
 
 .modal.show .modal-dialog {
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Centraliza o modal */
+    transform: translate(-50%, -50%);
+    /* Centraliza o modal */
     position: absolute;
 }
 
-.navbar-nav .nav-link.active, .navbar-nav .nav-link:hover {
+.navbar-nav .nav-link.active,
+.navbar-nav .nav-link:hover {
     color: #fff !important;
-    background-color: #006fdf !important; /* Cor de fundo para quando ativo ou hover */
+    background-color: #006fdf !important;
+    /* Cor de fundo para quando ativo ou hover */
 }
 
 .navbar-nav .nav-link {
-    font-size: 1rem; /* Aumenta o tamanho da fonte dos itens da navbar */
-    margin-right: 1rem; /* Adiciona espaço à direita dos itens */
-    color: #ffffff; /* Cor padrão do texto */
-    border-radius: .25rem; /* Bordas arredondadas para todos os itens */
-    transition: background-color 0.2s, color 0.2s; /* Adiciona espaço à direita dos itens */
+    font-size: 1rem;
+    /* Aumenta o tamanho da fonte dos itens da navbar */
+    margin-right: 1rem;
+    /* Adiciona espaço à direita dos itens */
+    color: #ffffff;
+    /* Cor padrão do texto */
+    border-radius: .25rem;
+    /* Bordas arredondadas para todos os itens */
+    transition: background-color 0.2s, color 0.2s;
+    /* Adiciona espaço à direita dos itens */
 }
 
 .dropdown-menu {
-    background-color: #575757; /* Cor de fundo do dropdown */
-    border: none; /* Remove borda do dropdown */
+    background-color: #575757;
+    /* Cor de fundo do dropdown */
+    border: none;
+    /* Remove borda do dropdown */
 }
 
 .dropdown-item:hover {
-    background-color: #006fdf; /* Cor de fundo ao passar o mouse sobre o item do dropdown */
+    background-color: #006fdf;
+    /* Cor de fundo ao passar o mouse sobre o item do dropdown */
 }
 
 .nav-item.dropdown {
-    margin-left: 1rem; /* Adiciona espaço à esquerda do dropdown */
+    margin-left: 1rem;
+    /* Adiciona espaço à esquerda do dropdown */
 }
 
 .dropdown-item {
-    color: #fff; /* Cor do texto do dropdown */
-    font-size: 1.1rem; /* Aumenta o tamanho da fonte dos itens do dropdown */
-    padding: 0.5rem 1rem; /* Ajusta o preenchimento dos itens do dropdown */
+    color: #fff;
+    /* Cor do texto do dropdown */
+    font-size: 1.1rem;
+    /* Aumenta o tamanho da fonte dos itens do dropdown */
+    padding: 0.5rem 1rem;
+    /* Ajusta o preenchimento dos itens do dropdown */
 }
 
 .btn-custom {
-    height: 100px; /* Ajuste a altura conforme necessário */
+    height: 100px;
+    /* Ajuste a altura conforme necessário */
 }
 
 /* CSS personalizado para o modal em tela cheia */
@@ -87,13 +111,14 @@ body {
     width: 100vw;
     height: 100vh;
     margin: 0;
-  }
+}
 
-  
+
 /* CSS para garantir que todos os botões tenham o mesmo tamanho */
 .btn-uniform {
     /* Adiciona altura fixa para botões */
-    height: 60px; /* Ajuste conforme necessário */
+    height: 60px;
+    /* Ajuste conforme necessário */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,14 +128,17 @@ body {
 .btn-uniform.w-100 {
     width: 100%;
 }
+
 /* Estilo do cabeçalho da tabela para ficar fixo na parte superior */
 .modal-table thead th {
     position: sticky;
     top: 0;
     z-index: 2;
-    background-color: #343a40; /* Ou a cor que preferir */
+    background-color: #343a40;
+    /* Ou a cor que preferir */
     color: #fff;
-    border-radius: 0; /* Remova ou ajuste conforme seu design */
+    border-radius: 0;
+    /* Remova ou ajuste conforme seu design */
     padding: 0.75rem;
 }
 
@@ -129,74 +157,103 @@ body {
 .modal-body {
     padding: 0;
     overflow-y: auto;
-    max-height: calc(100% - 120px); /* Ajuste conforme necessário */
+    max-height: calc(100% - 120px);
+    /* Ajuste conforme necessário */
 }
 
 /* CSS personalizado para o modal de confirmação */
 /* CSS personalizado para o modal de confirmação */
 .custom-modal .modal-dialog {
-    max-width: 400px; /* Ajuste a largura máxima do modal */
-    width: 100%; /* Para garantir que o modal use toda a largura disponível dentro do max-width */
-    margin: 30px auto; /* Centraliza o modal verticalmente e horizontalmente */
+    max-width: 400px;
+    /* Ajuste a largura máxima do modal */
+    width: 100%;
+    /* Para garantir que o modal use toda a largura disponível dentro do max-width */
+    margin: 30px auto;
+    /* Centraliza o modal verticalmente e horizontalmente */
 }
 
 .custom-modal .modal-content {
-    border-radius: 8px; /* Adiciona bordas arredondadas ao modal */
-    max-height: 300px; /* Define a altura máxima do modal */
-    overflow-y: auto; /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura máxima */
+    border-radius: 8px;
+    /* Adiciona bordas arredondadas ao modal */
+    max-height: 300px;
+    /* Define a altura máxima do modal */
+    overflow-y: auto;
+    /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura máxima */
 }
 
 .custom-modal .modal-header,
 .custom-modal .modal-footer {
-    background-color: #f8f9fa; /* Adiciona uma cor de fundo ao cabeçalho e rodapé do modal */
+    background-color: #f8f9fa;
+    /* Adiciona uma cor de fundo ao cabeçalho e rodapé do modal */
 }
 
 .custom-modal .modal-body {
-    max-height: calc(300px - 120px); /* Ajusta a altura do corpo do modal (300px - altura do cabeçalho e rodapé) */
-    overflow-y: auto; /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura do corpo */
+    max-height: calc(300px - 120px);
+    /* Ajusta a altura do corpo do modal (300px - altura do cabeçalho e rodapé) */
+    overflow-y: auto;
+    /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura do corpo */
 }
 
 /* Estilos gerais de fundo */
 .compra-catalisador {
-    background-color: #d0e0f0; /* Azul claro */
+    background-color: #d0e0f0;
+    /* Azul claro */
 }
 
 .total-valor-pecas {
-    background-color: #d0e0f0; /* Azul claro */
+    background-color: #d0e0f0;
+    /* Azul claro */
 }
 
 .saldo-adiantamentos {
-    background-color: #fdd0d0; /* Vermelho claro */
+    background-color: #fdd0d0;
+    /* Vermelho claro */
 }
 
 .saldo-positivo {
-    background-color: #d0f0c0; /* Verde claro */
+    background-color: #d0f0c0;
+    /* Verde claro */
 }
 
 .saldo-negativo {
-    background-color: #fdd0d0; /* Vermelho claro */
+    background-color: #fdd0d0;
+    /* Vermelho claro */
 }
 
 /* Efeito de hover mais intenso para cada coluna */
 .compra-catalisador:hover {
-    background-color: #a0c0f0; /* Azul mais forte */
+    background-color: #a0c0f0;
+    /* Azul mais forte */
 }
 
 .total-valor-pecas:hover {
-    background-color: #a0c0f0; /* Azul mais forte */
+    background-color: #a0c0f0;
+    /* Azul mais forte */
 }
 
 .saldo-adiantamentos:hover {
-    background-color: #fbb0b0; /* Vermelho mais forte */
+    background-color: #fbb0b0;
+    /* Vermelho mais forte */
 }
 
 .saldo-positivo:hover {
-    background-color: #a0d0a0; /* Verde mais forte */
+    background-color: #a0d0a0;
+    /* Verde mais forte */
 }
 
 .saldo-negativo:hover {
-    background-color: #fbb0b0; /* Vermelho mais forte */
+    background-color: #fbb0b0;
+    /* Vermelho mais forte */
 }
 
-
-
+ /* Estilo do modal para arrasto */
+ .modal-header {
+    cursor: move; /* Muda o cursor para indicar que o modal pode ser movido */
+}
+#pdfModal .modal-dialog {
+    max-width: 600px; /* Ajuste a largura conforme necessário */
+}
+#pdfModal .modal-body {
+    height: 300px; /* Ajuste a altura conforme necessário */
+    overflow: auto; /* Adiciona rolagem se o conteúdo exceder a altura */
+}

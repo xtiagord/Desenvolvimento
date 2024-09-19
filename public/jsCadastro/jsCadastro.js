@@ -727,14 +727,14 @@ function loadRepresentanteInfo(nomeRepresentante) {
             $('#modalDataBody').empty();
 
             if (dados.length === 0) {
-                $('#modalDataBody').append('<tr><td colspan="13">Nenhum dado encontrado para este representante.</td></tr>');
+                $('#modalDataBody').append('<tr><td colspan="14">Nenhum dado encontrado para este representante.</td></tr>');
             } else {
                 dados.sort((a, b) => a.Npdf - b.Npdf);
 
                 dados.forEach(dado => {
                     console.log('ID do dado:', dado.id);
                     const row = `
-                        <tr data-id="${dado.iddados}"> <!-- Assumindo que cada dado tem um ID -->
+                        <tr data-id="${dado.iddados}" class="clickable-row">
                             <td>${dado.Npdf}</td>
                             <td>${dado.kg}</td>
                             <td>${dado.pd}</td>
@@ -748,14 +748,22 @@ function loadRepresentanteInfo(nomeRepresentante) {
                             <td>${dado.hora}</td>
                             <td>${formatarNomeFornecedor(dado.fornecedor)}</td>
                             <td>${dado.sn}</td>
+                            <td>${dado.lote}</td> <!-- Adicionado lote -->
                             <td>
                                <button class="btn btn-sm btn-warning" onclick="editarLinha(${dado.iddados})">Editar</button>
-                                <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.iddados})">Excluir</button>
+                               <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.iddados})">Excluir</button>
                             </td>
                         </tr>
                     `;
                     $('#modalDataBody').append(row);
                 });
+
+                // Adiciona um evento de clique à linha para mostrar o PDF
+                $('.clickable-row').on('click', function() {
+                    const npdf = $(this).find('td:eq(0)').text(); // Ajuste o índice conforme necessário
+                    mostrarPdf(npdf, nomeRepresentante, loteSelecionado); // Passa todos os parâmetros necessários
+                });
+                
             }
 
             $('#detalhesModal').modal('show');
@@ -765,7 +773,6 @@ function loadRepresentanteInfo(nomeRepresentante) {
         }
     });
 }
-
 
 function formatarNomeFornecedor(nome) {
     const [primeiroNome, segundoNome] = nome.split(" ");
@@ -867,13 +874,37 @@ $('#confirmDeleteButton').click(function() {
 });
 
 function editarLinha(id) {
-    const row = $(`tr[data-id=${id}]`);
+    const row = $(`tr[data-id='${id}']`);
     const cells = row.find('td');
-    
+
     cells.each((index, cell) => {
         if (index < cells.length - 1) { // Ignora a última célula (botões)
             const text = $(cell).text();
-            $(cell).html(`<input type="text" value="${text}" class="form-control">`);
+            if (index === 13) { // Supondo que o índice 13 seja para o lote
+                // Busca os lotes e popula o <select>
+                $.ajax({
+                    url: '/api/lote',
+                    method: 'GET',
+                    success: function(lotes) {
+                        let options = '';
+                        lotes.forEach(lote => {
+                            options += `<option value="${lote.nome}" ${text === lote.nome ? 'selected' : ''}>${lote.nome}</option>`;
+                        });
+
+                        $(cell).html(`
+                            <select class="form-control">
+                                ${options}
+                            </select>
+                        `);
+                    },
+                    error: function(err) {
+                        console.error('Erro ao carregar lotes:', err);
+                        $(cell).html('<select class="form-control"><option value="">Erro ao carregar lotes</option></select>');
+                    }
+                });
+            } else {
+                $(cell).html(`<input type="text" value="${text}" class="form-control">`);
+            }
         }
     });
 
@@ -882,10 +913,12 @@ function editarLinha(id) {
     btn.removeClass('btn-warning').addClass('btn-success').attr('onclick', `salvarLinha(${id})`);
 }
 
+
 function salvarLinha(id) {
     const row = $(`tr[data-id='${id}']`);
     const inputs = row.find('input');
-    
+    const select = row.find('select');
+
     const updatedData = {
         Npdf: inputs.eq(0).val(),
         kg: inputs.eq(1).val(),
@@ -895,11 +928,12 @@ function salvarLinha(id) {
         valorkg: inputs.eq(5).val(),
         Valor: inputs.eq(6).val(),
         tipo: inputs.eq(7).val(),
-        hedge:inputs.eq(8).val(),
+        hedge: inputs.eq(8).val(),
         data: inputs.eq(9).val(),
         hora: inputs.eq(10).val(),
         fornecedor: inputs.eq(11).val(),
-        sn: inputs.eq(12).val()
+        sn: inputs.eq(12).val(),
+        lote: select.val()  // Adiciona o valor do campo lote
     };
 
     $.ajax({
@@ -912,13 +946,16 @@ function salvarLinha(id) {
             // Atualizar a linha com os novos valores
             row.find('td').each(function(index) {
                 const input = $(this).find('input');
+                const select = $(this).find('select');
                 if (input.length) {
                     $(this).text(input.val());
+                } else if (select.length) {
+                    $(this).text(select.val());  // Atualiza o texto com o valor do select
                 }
             });
 
             // Mudar o botão de volta para "Editar"
-            row.find('button.btn-warning').text('Editar').attr('onclick', `editarLinha(${id})`);
+            row.find('button.btn-success').text('Editar').attr('onclick', `editarLinha(${id})`).removeClass('btn-success').addClass('btn-warning');
         },
         error: function(err) {
             console.error('Erro ao atualizar dado:', err);
@@ -987,3 +1024,64 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+function mostrarPdf(npdf, representanteNome, loteId) {
+    console.log('Dentro da função mostrarPdf:');
+    console.log('npdf:', npdf);
+    console.log('representanteNome:', representanteNome);
+    console.log('loteId:', loteId);
+
+    // Verifica se todos os parâmetros foram fornecidos
+    if (!npdf || !representanteNome || !loteId) {
+        console.error('Parâmetros necessários não fornecidos:', { npdf, representanteNome, loteId });
+        return;
+    }
+
+    // Buscar o ID do representante com base no nome
+    $.ajax({
+        url: `/api/representante-id?nome=${encodeURIComponent(representanteNome)}`,
+        method: 'GET',
+        success: function(response) {
+            const representanteId = response.id;
+
+            console.log('ID do representante encontrado:', representanteId);
+
+            // Fazer a requisição para buscar o PDF com o ID do representante
+            $.ajax({
+                url: `/api/pdf?representante_id=${encodeURIComponent(representanteId)}&lote_id=${encodeURIComponent(loteId)}&npdf=${encodeURIComponent(npdf)}`,
+                method: 'GET',
+                xhrFields: {
+                    responseType: 'blob'  // Define o tipo de resposta como 'blob' para arquivos binários
+                },
+                success: function(pdfData) {
+                    console.log('PDF carregado com sucesso.');
+
+                    // Cria um URL temporário para o PDF recebido e exibe no modal
+                    const pdfUrl = URL.createObjectURL(pdfData);
+                    $('#pdfViewer').attr('src', pdfUrl);  // Exibe o PDF dentro do elemento embed no modal
+
+                    // Atualiza o título do modal com o NDPF
+                    $('#pdfModalLabel').text(`Número PDF: ${npdf}`);
+
+                    // Mostra o modal com o PDF
+                    $('#pdfModal').modal('show');
+                },
+                error: function(err) {
+                    console.error('Erro ao carregar o PDF:', err);
+                    alert('Erro ao carregar o PDF');
+                }
+            });
+        },
+        error: function(err) {
+            console.error('Erro ao buscar o ID do representante:', err);
+            alert('Erro ao buscar o ID do representante');
+        }
+    });
+}
+
+
+$(document).ready(function() {
+    // Habilita o arrasto para o modal
+    $('#pdfModal').draggable({
+        handle: '.modal-header' // Faz com que a área de arrasto seja o cabeçalho do modal
+    });
+});

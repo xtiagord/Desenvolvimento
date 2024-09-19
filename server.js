@@ -498,7 +498,7 @@ app.delete('/api/dados/:id', (req, res) => {
     });
 });
 
-// Exemplo de rota PUT para atualizar dados
+//rota PUT para atualizar dados
 app.put('/dados/:id', (req, res) => {
     const id = req.params.id;
 
@@ -507,22 +507,22 @@ app.put('/dados/:id', (req, res) => {
         return res.status(400).send('O corpo da solicitação está vazio.');
     }
 
-    const { Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn } = req.body;
+    const { Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, lote } = req.body;
 
     // Verificar se todos os campos necessários estão presentes
     if (Npdf === undefined || kg === undefined || pd === undefined || pt === undefined || rh === undefined ||
         valorkg === undefined || Valor === undefined || tipo === undefined || data === undefined || hora === undefined ||
-        fornecedor === undefined || sn === undefined) {
+        fornecedor === undefined || sn === undefined || lote === undefined) {
         return res.status(400).send('Faltam campos no corpo da solicitação.');
     }
 
     const query = `
         UPDATE dados
-        SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?
+        SET Npdf = ?, kg = ?, pd = ?, pt = ?, rh = ?, valorkg = ?, Valor = ?, tipo = ?, data = ?, hora = ?, fornecedor = ?, sn = ?, lote = ?
         WHERE iddados = ?
     `;
 
-    db.query(query, [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, id], (err, results) => {
+    db.query(query, [Npdf, kg, pd, pt, rh, valorkg, Valor, tipo, data, hora, fornecedor, sn, lote, id], (err, results) => {
         if (err) {
             console.error('Erro ao atualizar dado:', err);
             return res.status(500).send('Erro ao atualizar dado');
@@ -535,6 +535,7 @@ app.put('/dados/:id', (req, res) => {
         res.send('Dado atualizado com sucesso');
     });
 });
+
 
 app.get('/api/representantes', (req, res) => {
     const sql = 'SELECT * FROM representantes';
@@ -2167,6 +2168,66 @@ app.get('/api/registros_financeiros_por_data', (req, res) => {
         res.json(results);
     });
 });
+
+// Endpoint para buscar o ID do representante pelo nome
+app.get('/api/representante-id', (req, res) => {
+    const nome = req.query.nome;
+
+    if (!nome) {
+        return res.status(400).send('Parâmetro nome é obrigatório.');
+    }
+
+    const query = 'SELECT id FROM representantes WHERE nome = ?';
+    db.query(query, [nome], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar o ID do representante:', err);
+            return res.status(500).send('Erro ao buscar o ID do representante.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Representante não encontrado.');
+        }
+
+        res.json({ id: results[0].id });
+    });
+});
+
+// Endpoint para buscar um PDF específico com base no representante e lote
+app.get('/api/pdf', (req, res) => {
+    const representante_id = req.query.representante_id;
+    const lote_id = req.query.lote_id;
+    const npdf = req.query.npdf;
+
+    if (!representante_id || !lote_id || !npdf) {
+        return res.status(400).send('Parâmetros necessários não fornecidos.');
+    }
+
+    const query = `
+        SELECT data
+        FROM pdfs
+        WHERE representante_id = ? AND lote = ? AND Npdf = ?
+    `;
+    
+    db.query(query, [representante_id, lote_id, npdf], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar o PDF:', err);
+            return res.status(500).send('Erro ao buscar o PDF.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('PDF não encontrado.');
+        }
+
+        res.contentType('application/pdf');
+        res.send(results[0].data);
+    });
+});
+
+
+
+
+
+
 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
