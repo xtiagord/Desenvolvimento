@@ -2223,6 +2223,32 @@ app.get('/api/pdf', (req, res) => {
     });
 });
 
+app.put('/api/compradores/:id', (req, res) => {
+    const compradorId = req.params.id;
+    const { nome } = req.body;
+
+    // Atualize o comprador no banco de dados
+    db.query('UPDATE compradores SET nome = ? WHERE id = ?', [nome, compradorId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Erro ao atualizar o comprador' });
+        }
+        res.json({ success: true });
+    });
+});
+
+
+app.delete('/api/compradores/:id', (req, res) => {
+    const compradorId = req.params.id;
+
+    // Exclua o comprador do banco de dados
+    db.query('DELETE FROM compradores WHERE id = ?', [compradorId], (err, result) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: 'Erro ao excluir o comprador' });
+        }
+        res.json({ success: true });
+    });
+});
+
 
 
 

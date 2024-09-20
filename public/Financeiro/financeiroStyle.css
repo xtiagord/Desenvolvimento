@@ -152,3 +152,21 @@ body {
 .saldo-negativo:hover {
     background-color: #ff9a9f; /* Vermelho mais forte no hover */
 }
+
+.table-responsive {
+    max-height: 400px; /* Altura máxima da tabela */
+    overflow-y: auto; /* Permitir rolagem vertical */
+    margin: 0; /* Remover margens */
+}
+.input-group {
+    margin-bottom: 0; /* Remover a margem inferior do grupo de inputs */
+}
+
+.table-responsive {
+    margin-top: 10px; /* Ajustar a margem superior se necessário */
+}
+
+.table {
+    margin-bottom: 0; /* Remover a margem inferior da tabela */
+}
+

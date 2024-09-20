@@ -182,11 +182,7 @@ $(document).ready(function () {
         });
     }
 
-
-
-
-
-    function toggleEditMode(tr) {
+   function toggleEditMode(tr) {
         const isEditing = tr.hasClass('editing');
 
         if (isEditing) {
@@ -281,10 +277,6 @@ $(document).ready(function () {
         }
     }
 
-
-
-
-
     function loadRepresentantes() {
         $.get('/api/representantes_financeiros', function (data) {
             // Ordenar os representantes por nome em ordem alfabética
@@ -329,7 +321,6 @@ $(document).ready(function () {
             console.error('Erro ao carregar representantes financeiros:', textStatus, errorThrown);
         });
     }
-
 
     // Inicializar
     loadRepresentantes();
@@ -1306,6 +1297,173 @@ async function gerarPDF(data) {
     // Baixar o PDF
     doc.save('relatorio_diario.pdf');
 }
+
+// Edição Representantes
+document.addEventListener('DOMContentLoaded', function () {
+    const editRepresentantesSelect = document.getElementById('editRepresentantesSelect');
+
+    // Função para carregar representantes no modal
+    function carregarRepresentantes() {
+        fetch('/api/representantes_financeiros')
+            .then(response => response.json())
+            .then(data => {
+                editRepresentantesSelect.innerHTML = '<option value="">Selecione um representante</option>';
+                data.forEach(representante => {
+                    const option = document.createElement('option');
+                    option.value = representante.id;
+                    option.textContent = representante.nome;
+                    editRepresentantesSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Erro ao carregar representantes:', error);
+            });
+    }
+
+    // Evento para abrir o modal e carregar representantes
+    const editRepresentantesModal = new bootstrap.Modal(document.getElementById('editRepresentantesModal'));
+
+    document.querySelector('[data-bs-toggle="modal"][data-bs-target="#editRepresentantesModal"]').addEventListener('click', function () {
+        carregarRepresentantes();
+        editRepresentantesModal.show();
+    });
+
+    // Evento para carregar compradores quando o representante é selecionado
+    editRepresentantesSelect.addEventListener('change', function () {
+        const representanteId = this.value;
+        if (representanteId) {
+            carregarCompradores(representanteId);
+        } else {
+            document.getElementById('compradoresTableBody').innerHTML = '<tr><td colspan="2">Selecione um representante</td></tr>';
+        }
+    });
+});
+function carregarCompradores(representanteId) {
+    fetch(`/api/compradores?representante_id=${representanteId}`)
+        .then(response => response.json())
+        .then(data => {
+            const compradoresTableBody = document.getElementById('compradoresTableBody');
+            compradoresTableBody.innerHTML = ''; // Limpar a tabela antes de inserir novos dados
+
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="2">Nenhum comprador encontrado</td>';
+                compradoresTableBody.appendChild(emptyRow);
+            } else {
+                data.forEach(comprador => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <span class="comprador-nome">${comprador.nome}</span>
+                            <input type="text" class="edit-input" value="${comprador.nome}" style="display: none;" />
+                        </td>
+                         <div class="d-flex justify-content-end"> <!-- Adicionando um contêiner flexível -->
+        <button class="btn btn-primary btn-sm btn-editar me-2">Editar</button> <!-- Adicionando 'me-2' para margem à direita -->
+        <button class="btn btn-danger btn-sm btn-excluir">Excluir</button>
+    </div>
+</td>
+                    `;
+                    compradoresTableBody.appendChild(row);
+
+                    // Adicionar evento de edição para cada linha
+                    const btnEditar = row.querySelector('.btn-editar');
+                    const btnExcluir = row.querySelector('.btn-excluir');
+                    const compradorNome = row.querySelector('.comprador-nome');
+                    const inputEditar = row.querySelector('.edit-input');
+
+                    // Função para Editar o Comprador
+                    btnEditar.addEventListener('click', function () {
+                        if (btnEditar.textContent === 'Editar') {
+                            compradorNome.style.display = 'none';
+                            inputEditar.style.display = 'inline-block';
+                            btnEditar.textContent = 'Salvar';
+                        } else {
+                            const novoNome = inputEditar.value;
+                            editarComprador(comprador.id, novoNome, compradorNome, inputEditar, btnEditar);
+                        }
+                    });
+
+                    // Função para Excluir o Comprador
+                    btnExcluir.addEventListener('click', function () {
+                        excluirComprador(comprador.id, row);
+                    });
+                });
+
+                // Adicionar a funcionalidade de pesquisa
+                adicionarFuncaoPesquisa();
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao carregar compradores:', error);
+        });
+}
+
+// Função para adicionar a funcionalidade de pesquisa
+function adicionarFuncaoPesquisa() {
+    const searchInput = document.getElementById('searchCompradores');
+    searchInput.addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#compradoresTableBody tr');
+
+        rows.forEach(row => {
+            const compradorNome = row.querySelector('.comprador-nome').textContent.toLowerCase();
+            row.style.display = compradorNome.includes(filter) ? '' : 'none'; // Mostrar/ocultar linhas
+        });
+    });
+}
+
+
+function editarComprador(compradorId, novoNome, compradorNomeElem, inputEditarElem, btnEditarElem) {
+    fetch(`/api/compradores/${compradorId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ nome: novoNome })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            compradorNomeElem.textContent = novoNome; // Atualiza o nome exibido
+            compradorNomeElem.style.display = 'inline-block';
+            inputEditarElem.style.display = 'none';
+            btnEditarElem.textContent = 'Editar'; // Retorna o botão para o modo 'Editar'
+        } else {
+            alert('Erro ao salvar o nome do comprador.');
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao editar comprador:', error);
+    });
+}
+
+function excluirComprador(compradorId, rowElement) {
+    if (confirm('Tem certeza que deseja excluir este comprador?')) {
+        fetch(`/api/compradores/${compradorId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                rowElement.remove(); // Remove a linha da tabela
+            } else {
+                alert('Erro ao excluir o comprador.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao excluir comprador:', error);
+        });
+    }
+}
+//gambiarra para fechar corretamente o modal de edição de representantes
+$('#editRepresentantesModal').on('hidden.bs.modal', function () {
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open'); 
+    $('body').css('padding-right', '');  
+});
+
+
+
 
 
 
