@@ -1982,9 +1982,12 @@ app.post('/api/contagem', async (req, res) => {
 app.post('/api/compradores', (req, res) => {
     const { nome, representante_id, cpf_cnpj } = req.body;
 
+    // Remover formatação de CPF/CNPJ
+    const cpfCnpjLimpo = cpf_cnpj.replace(/[^\d]+/g, '');
+
     // Verificar se já existe um comprador com o mesmo CPF/CNPJ e representante
     const checkQuery = 'SELECT * FROM compradores WHERE cpf_cnpj = ? AND representante_id = ?';
-    db.query(checkQuery, [cpf_cnpj, representante_id], (err, results) => {
+    db.query(checkQuery, [cpfCnpjLimpo, representante_id], (err, results) => {
         if (err) return res.status(500).send(err);
 
         if (results.length > 0) {
@@ -1993,12 +1996,13 @@ app.post('/api/compradores', (req, res) => {
 
         // Se não houver duplicidade, prosseguir com a inserção
         const insertQuery = 'INSERT INTO compradores (nome, representante_id, cpf_cnpj) VALUES (?, ?, ?)';
-        db.query(insertQuery, [nome, representante_id, cpf_cnpj], (err, result) => {
+        db.query(insertQuery, [nome, representante_id, cpfCnpjLimpo], (err, result) => {
             if (err) return res.status(500).send(err);
-            res.status(201).send({ id: result.insertId, nome, representante_id, cpf_cnpj });
+            res.status(201).send({ id: result.insertId, nome, representante_id, cpf_cnpj: cpfCnpjLimpo });
         });
     });
 });
+
 
 //verifica duplicidade ao cadastrar comprador
 app.get('/api/verificar_comprador', (req, res) => {
@@ -2257,10 +2261,12 @@ app.get('/api/pdf', (req, res) => {
 
 app.put('/api/compradores/:id', (req, res) => {
     const compradorId = req.params.id;
-    const { nome } = req.body;
+    const { nome, cpf_cnpj } = req.body;
 
-    // Atualize o comprador no banco de dados
-    db.query('UPDATE compradores SET nome = ? WHERE id = ?', [nome, compradorId], (err, result) => {
+    // Certifique-se de remover qualquer formatação antes de salvar
+    const cpfCnpjLimpo = cpf_cnpj.replace(/[^\d]+/g, '');
+
+    db.query('UPDATE compradores SET nome = ?, cpf_cnpj = ? WHERE id = ?', [nome, cpfCnpjLimpo, compradorId], (err, result) => {
         if (err) {
             return res.status(500).json({ success: false, message: 'Erro ao atualizar o comprador' });
         }

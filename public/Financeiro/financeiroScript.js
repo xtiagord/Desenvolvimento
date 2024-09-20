@@ -785,6 +785,11 @@ $(document).ready(function () {
 });
 
 document.addEventListener('DOMContentLoaded', function () {
+    // Função para remover formatação de CPF/CNPJ
+    function removerFormatacaoCpfCnpj(valor) {
+        return valor.replace(/[^\d]+/g, ''); // Remove qualquer caractere que não seja número
+    }
+
     // Preencher o select com representantes financeiros
     const select = document.getElementById('representante_select');
     const defaultOption = document.createElement('option');
@@ -823,8 +828,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     
         // Captura o CPF/CNPJ
-        const cpfCnpj = document.getElementById('cpf_cnpj').value; // Captura o valor do CPF/CNPJ
-        data.cpf_cnpj = cpfCnpj; // Adiciona ao objeto data
+        const cpfCnpj = removerFormatacaoCpfCnpj(document.getElementById('cpf_cnpj').value); // Limpa a formatação
+        data.cpf_cnpj = cpfCnpj; // Adiciona ao objeto data o valor sem formatação
     
         // Verificar duplicidade no frontend
         fetch(`/api/verificar_comprador?cpf_cnpj=${encodeURIComponent(cpfCnpj)}&representante_id=${data.representante_id}`)
@@ -859,10 +864,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.error('Erro:', error);
             });
     });
-    
 });
-
-
 
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -1374,16 +1376,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+// Adicione a máscara de CPF/CNPJ ao campo de entrada
+function aplicarMascaraCpfCnpj(input) {
+    $(input).inputmask({
+        mask: ['999.999.999-99', '99.999.999/9999-99'],
+        placeholder: ' ',
+        clearIncomplete: true
+    });
+}
+    // Função para formatar CPF ou CNPJ para exibição
+    function formatarCpfCnpj(valor) {
+        if (valor.length === 11) {
+            // Formatar como CPF
+            return valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        } else if (valor.length === 14) {
+            // Formatar como CNPJ
+            return valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+        }
+        return valor; // Caso não tenha o tamanho esperado, retorna como está
+    }
+
+
+
 function carregarCompradores(representanteId) {
     fetch(`/api/compradores?representante_id=${representanteId}`)
         .then(response => response.json())
         .then(data => {
             const compradoresTableBody = document.getElementById('compradoresTableBody');
-            compradoresTableBody.innerHTML = ''; // Limpar a tabela antes de inserir novos dados
+            compradoresTableBody.innerHTML = '';
 
             if (data.length === 0) {
                 const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = '<td colspan="2">Nenhum comprador encontrado</td>';
+                emptyRow.innerHTML = '<td colspan="3">Nenhum comprador encontrado</td>';
                 compradoresTableBody.appendChild(emptyRow);
             } else {
                 data.forEach(comprador => {
@@ -1393,39 +1417,47 @@ function carregarCompradores(representanteId) {
                             <span class="comprador-nome">${comprador.nome}</span>
                             <input type="text" class="edit-input" value="${comprador.nome}" style="display: none;" />
                         </td>
-                         <div class="d-flex justify-content-end"> <!-- Adicionando um contêiner flexível -->
-        <button class="btn btn-primary btn-sm btn-editar me-2">Editar</button> <!-- Adicionando 'me-2' para margem à direita -->
-        <button class="btn btn-danger btn-sm btn-excluir">Excluir</button>
-    </div>
-</td>
+                        <td>
+                            <span class="comprador-cpf">${formatarCpfCnpj(comprador.cpf_cnpj)}</span>
+                            <input type="text" class="edit-cpf-input" value="${comprador.cpf_cnpj}" style="display: none;" />
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-end">
+                                <button class="btn btn-primary btn-sm btn-editar me-2">Editar</button>
+                                <button class="btn btn-danger btn-sm btn-excluir">Excluir</button>
+                            </div>
+                        </td>
                     `;
                     compradoresTableBody.appendChild(row);
 
-                    // Adicionar evento de edição para cada linha
                     const btnEditar = row.querySelector('.btn-editar');
                     const btnExcluir = row.querySelector('.btn-excluir');
                     const compradorNome = row.querySelector('.comprador-nome');
                     const inputEditar = row.querySelector('.edit-input');
+                    const compradorCpf = row.querySelector('.comprador-cpf');
+                    const inputEditarCpf = row.querySelector('.edit-cpf-input');
 
-                    // Função para Editar o Comprador
+                    // Aplicar a máscara ao CPF/CNPJ durante a edição
+                    aplicarMascaraCpfCnpj(inputEditarCpf);
+
                     btnEditar.addEventListener('click', function () {
                         if (btnEditar.textContent === 'Editar') {
                             compradorNome.style.display = 'none';
+                            compradorCpf.style.display = 'none';
                             inputEditar.style.display = 'inline-block';
+                            inputEditarCpf.style.display = 'inline-block';
                             btnEditar.textContent = 'Salvar';
                         } else {
                             const novoNome = inputEditar.value;
-                            editarComprador(comprador.id, novoNome, compradorNome, inputEditar, btnEditar);
+                            const novoCpf = inputEditarCpf.value;
+                            editarComprador(comprador.id, novoNome, novoCpf, compradorNome, compradorCpf, inputEditar, inputEditarCpf, btnEditar);
                         }
                     });
 
-                    // Função para Excluir o Comprador
                     btnExcluir.addEventListener('click', function () {
                         excluirComprador(comprador.id, row);
                     });
                 });
-
-                // Adicionar a funcionalidade de pesquisa
                 adicionarFuncaoPesquisa();
             }
         })
@@ -1448,30 +1480,42 @@ function adicionarFuncaoPesquisa() {
     });
 }
 
+function removerFormatacaoCpfCnpj(valor) {
+    return valor.replace(/[^\d]+/g, ''); // Remove qualquer caractere que não seja número
+}
 
-function editarComprador(compradorId, novoNome, compradorNomeElem, inputEditarElem, btnEditarElem) {
+function editarComprador(compradorId, novoNome, novoCpf, compradorNomeElem, compradorCpfElem, inputEditarElem, inputEditarCpfElem, btnEditarElem) {
+    // Remover a formatação do CPF/CNPJ
+    const cpfCnpjLimpo = removerFormatacaoCpfCnpj(novoCpf);
+
     fetch(`/api/compradores/${compradorId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ nome: novoNome })
+        body: JSON.stringify({ nome: novoNome, cpf_cnpj: cpfCnpjLimpo }) // Enviar o valor sem formatação
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            compradorNomeElem.textContent = novoNome; // Atualiza o nome exibido
+            compradorNomeElem.textContent = novoNome;
             compradorNomeElem.style.display = 'inline-block';
+            compradorCpfElem.textContent = novoCpf; // Exibir o CPF/CNPJ com formatação no frontend
+            compradorCpfElem.style.display = 'inline-block';
+
             inputEditarElem.style.display = 'none';
-            btnEditarElem.textContent = 'Editar'; // Retorna o botão para o modo 'Editar'
+            inputEditarCpfElem.style.display = 'none';
+
+            btnEditarElem.textContent = 'Editar';
         } else {
-            alert('Erro ao salvar o nome do comprador.');
+            alert('Erro ao salvar os dados do comprador.');
         }
     })
     .catch(error => {
         console.error('Erro ao editar comprador:', error);
     });
 }
+
 
 function excluirComprador(compradorId, rowElement) {
     if (confirm('Tem certeza que deseja excluir este comprador?')) {
