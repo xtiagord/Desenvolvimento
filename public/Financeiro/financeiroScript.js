@@ -786,10 +786,17 @@ $(document).ready(function () {
 
 document.addEventListener('DOMContentLoaded', function () {
     // Preencher o select com representantes financeiros
+    const select = document.getElementById('representante_select');
+    const defaultOption = document.createElement('option');
+    defaultOption.value = ''; // Valor vazio
+    defaultOption.textContent = 'Selecione um representante'; // Texto da opção padrão
+    defaultOption.selected = true; // Torna esta opção a selecionada por padrão
+    defaultOption.disabled = true; // Impede que esta opção seja selecionada novamente
+    select.appendChild(defaultOption);
+
     fetch('/api/representantes_financeiros')
         .then(response => response.json())
         .then(data => {
-            const select = document.getElementById('representante_select');
             data.forEach(representante => {
                 const option = document.createElement('option');
                 option.value = representante.id;
@@ -798,36 +805,65 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
 
+    // Adicionar máscara de CPF/CNPJ
+    $('#cpf_cnpj').inputmask({
+        mask: ['999.999.999-99', '99.999.999/9999-99'],
+        placeholder: ' ',
+        clearIncomplete: true // Limpa entradas incompletas
+    });
+
     // Enviar o formulário ao servidor
     document.getElementById('formCadastroComprador').addEventListener('submit', function (event) {
         event.preventDefault();
-
+    
         const formData = new FormData(this);
         const data = {};
         formData.forEach((value, key) => {
             data[key] = value;
         });
-
-        fetch('/api/compradores', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
+    
+        // Captura o CPF/CNPJ
+        const cpfCnpj = document.getElementById('cpf_cnpj').value; // Captura o valor do CPF/CNPJ
+        data.cpf_cnpj = cpfCnpj; // Adiciona ao objeto data
+    
+        // Verificar duplicidade no frontend
+        fetch(`/api/verificar_comprador?cpf_cnpj=${encodeURIComponent(cpfCnpj)}&representante_id=${data.representante_id}`)
+            .then(response => {
+                if (response.ok) {
+                    // Se não houver duplicidade, envia os dados
+                    return fetch('/api/compradores', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                } else {
+                    throw new Error('Comprador já cadastrado com o mesmo CPF/CNPJ e representante.');
+                }
+            })
             .then(response => {
                 if (response.ok) {
                     alert('Comprador cadastrado com sucesso!');
                     $('#modalCadastroComprador').modal('hide');
+    
+                    // Limpar os campos do formulário
+                    this.reset();
+                    select.selectedIndex = 0;
                 } else {
                     alert('Erro ao cadastrar comprador');
                 }
             })
             .catch(error => {
+                alert(error.message); // Mostra a mensagem de erro
                 console.error('Erro:', error);
             });
     });
+    
 });
+
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
     const representanteSelect = document.getElementById('representante');

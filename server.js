@@ -21,7 +21,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys'
+    database: 'sys_test'
 });
 
 // Conectar ao banco de dados
@@ -1979,15 +1979,47 @@ app.post('/api/contagem', async (req, res) => {
     }
 });
 
-// Endpoint para criar um comprador
 app.post('/api/compradores', (req, res) => {
-    const { nome, representante_id } = req.body;
-    const query = 'INSERT INTO compradores (nome, representante_id) VALUES (?, ?)';
-    db.query(query, [nome, representante_id], (err, result) => {
+    const { nome, representante_id, cpf_cnpj } = req.body;
+
+    // Verificar se já existe um comprador com o mesmo CPF/CNPJ e representante
+    const checkQuery = 'SELECT * FROM compradores WHERE cpf_cnpj = ? AND representante_id = ?';
+    db.query(checkQuery, [cpf_cnpj, representante_id], (err, results) => {
         if (err) return res.status(500).send(err);
-        res.status(201).send({ id: result.insertId, nome, representante_id });
+
+        if (results.length > 0) {
+            return res.status(400).send('Comprador com o mesmo CPF/CNPJ e representante já cadastrado.');
+        }
+
+        // Se não houver duplicidade, prosseguir com a inserção
+        const insertQuery = 'INSERT INTO compradores (nome, representante_id, cpf_cnpj) VALUES (?, ?, ?)';
+        db.query(insertQuery, [nome, representante_id, cpf_cnpj], (err, result) => {
+            if (err) return res.status(500).send(err);
+            res.status(201).send({ id: result.insertId, nome, representante_id, cpf_cnpj });
+        });
     });
 });
+
+//verifica duplicidade ao cadastrar comprador
+app.get('/api/verificar_comprador', (req, res) => {
+    const { cpf_cnpj, representante_id } = req.query;
+    const query = 'SELECT * FROM compradores WHERE cpf_cnpj = ? AND representante_id = ?';
+    
+    db.query(query, [cpf_cnpj, representante_id], (err, results) => {
+        if (err) return res.status(500).send(err);
+        
+        // Se houver resultados, significa que existe um comprador com o mesmo CPF/CNPJ e representante
+        if (results.length > 0) {
+            return res.status(400).send('Comprador já cadastrado.');
+        }
+        
+        // Se não houver duplicidade, retorna OK
+        res.sendStatus(200);
+    });
+});
+
+
+
 
 // Endpoint para listar compradores associados a um representante
 app.get('/api/compradores', (req, res) => {
