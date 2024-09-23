@@ -14,7 +14,7 @@ const ExcelJS = require('exceljs');
 
 // Inicializar o Express
 const app = express();
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.PORT || 3001;
 
 // Criação da conexão
 const db = mysql.createConnection({
@@ -448,6 +448,12 @@ app.get('/public/Pecas.html', (req, res) => {
 // Servir o arquivo Financeiro.html
 app.get('/public/Financeiro.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Financeiro.html'));
+});
+
+
+// Servir o arquivo Financeiro.html
+app.get('/public/pecasArchive.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'pecasArchive.html'));
 });
 
 
@@ -1727,13 +1733,14 @@ app.get('/api/pecas/resumo', (req, res) => {
 
     const query = `
         SELECT 
-            r.nome AS representante_nome,
-            SUM(p.quantidade) AS total_pecas,
-            SUM(p.valor) AS valor_total
-        FROM pecas p
-        LEFT JOIN representantes r ON p.representante_id = r.id
-        WHERE p.lote LIKE ?
-        GROUP BY r.nome, p.representante_id;
+    r.nome AS representante_nome,
+    SUM(p.quantidade) AS total_pecas,
+    SUM(p.valor) AS valor_total
+FROM pecas p
+LEFT JOIN representantes r ON p.representante_id = r.id
+WHERE p.lote LIKE ?
+GROUP BY r.nome, p.representante_id;
+
     `;
 
     db.query(query, [lote], (err, results) => {
@@ -2288,8 +2295,244 @@ app.delete('/api/compradores/:id', (req, res) => {
 });
 
 
+// Rota para obter os Npeca com base no representante e lote selecionados
+app.get('/api/pecas', (req, res) => {
+    const representante = req.query.representante;
+    const lote = req.query.lote;
+
+    if (!representante || !lote) {
+        return res.status(400).send('Representante e lote são necessários.');
+    }
+
+    const query = `
+        SELECT DISTINCT npeca
+        FROM pecas
+        WHERE representante_id = ? AND lote = ?
+    `;
+
+    db.query(query, [representante, lote], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar Npdfs:', err);
+            return res.status(500).send('Erro ao buscar Npdfs.');
+        }
+        res.json(results);
+        console.log('Resultado da inserção:', results);
+    });
+});
+
+app.post('/upload/files', upload.fields([
+    { name: 'pdfpecas', maxCount: 200 },
+    { name: 'photopecas', maxCount: 10 }
+]), (req, res) => {
+    const { representanteId, npeca, lote } = req.body;
+    const pdfFiles = req.files['pdfpecas'] || [];
+    const photoFiles = req.files['photopecas'] || [];
+
+    // Verificar se há arquivos
+    if (pdfFiles.length === 0 && photoFiles.length === 0) {
+        return res.status(400).send('Nenhum arquivo enviado.');
+    }
+
+    // Função para salvar arquivos PDF
+    const savePDF = (file) => {
+        const nome_pdf = file.originalname;
+        const data = file.buffer;
+
+        const query = `
+            INSERT INTO pecaspdf (nome_pdf, data, representante_id, npeca, lote)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        db.query(query, [nome_pdf, data, representanteId, npeca, lote], (err) => {
+            if (err) {
+                console.error('Erro ao salvar PDF:', err);
+            }
+        });
+    };
+
+    // Função para salvar fotos
+    const savePhoto = (file) => {
+        const nome_foto = file.originalname;
+        const data = file.buffer;
+
+        const query = `
+            INSERT INTO pecasfoto (nome_foto, data, representante_id, npeca, lote)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        db.query(query, [nome_foto, data, representanteId, npeca, lote], (err) => {
+            if (err) {
+                console.error('Erro ao salvar foto:', err);
+            }
+        });
+    };
+
+    // Salvar todos os arquivos PDF
+    pdfFiles.forEach(savePDF);
+    // Salvar todos os arquivos de foto
+    photoFiles.forEach(savePhoto);
+
+    res.status(201).send('Arquivos salvos com sucesso!');
+});
 
 
+// Rota para exibir o PDF
+app.get('/pecaspdf/:id', (req, res) => {
+    const pdfId = req.params.id;
+    const query = 'SELECT nome_pdf, data FROM pecaspdf WHERE id = ?';
+
+    db.query(query, [pdfId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Arquivo não encontrado.');
+        }
+
+        const pdf = results[0];
+
+        // Configura o cabeçalho para exibir o PDF diretamente no navegador
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline; filename="' + pdf.name + '"');
+
+        // Envia o PDF para exibição no navegador
+        res.send(pdf.data);
+    });
+});
+
+// Rota para exibir a lista de PDFs com links para visualização
+app.get('/pecaspdf', (req, res) => {
+    const representanteId = req.query.representante_id;
+    const loteId = req.query.lote_id;
+
+    let query = 'SELECT * FROM pecaspdf WHERE 1=1';
+    let params = [];
+
+    if (representanteId) {
+        query += ' AND representante_id = ?';
+        params.push(representanteId);
+    }
+
+    if (loteId) {
+        query += ' AND lote = ?';
+        params.push(loteId);
+    }
+
+    db.query(query, params, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar PDFs:', err);
+            return res.status(500).send('Erro ao buscar PDFs.');
+        }
+        res.json(results);
+    });
+});
+
+app.put('/pecaspdf/:id', (req, res) => {
+    const pdfId = req.params.id;
+    const novoNome = req.body.novoNome;
+    const query = 'UPDATE pecaspdf SET nome_pdf = ? WHERE id = ?';
+
+    db.query(query, [novoNome, pdfId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao renomear o arquivo no banco de dados.');
+        }
+
+        res.send('Nome do PDF atualizado com sucesso.');
+    });
+});
+app.delete('/pecaspdf/:id', (req, res) => {
+    const pdfId = req.params.id;
+    const query = 'DELETE FROM pecaspdf WHERE id = ?';
+
+    db.query(query, [pdfId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao deletar o arquivo no banco de dados.');
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('PDF não encontrado.');
+        }
+
+        res.send('PDF deletado com sucesso.');
+    });
+});
+app.get('/download-pecaspdf', async (req, res) => {
+    const representanteIds = req.query.representante_ids ? req.query.representante_ids.split(',') : [];
+    const lote = req.query.lote;
+    const option = req.query.option;
+
+    // Construção da query SQL com ordenação por nome do representante
+    let queryStr = `
+        SELECT p.nome_pdf, p.data, r.nome AS representante_nome 
+        FROM pecaspdf p
+        JOIN representantes r ON p.representante_id = r.id
+        WHERE 1=1
+    `;
+    let queryParams = [];
+
+    // Filtro por representantes
+    if (representanteIds.length > 0) {
+        queryStr += ' AND p.representante_id IN (?)';
+        queryParams.push(representanteIds);
+    }
+
+    // Filtro por lote
+    if (lote) {
+        queryStr += ' AND p.lote = ?';
+        queryParams.push(lote);
+    }
+
+    // Ordenar os PDFs pelo nome do representante
+    queryStr += ' ORDER BY r.nome ASC';
+
+    try {
+        // Executa a query para buscar os PDFs
+        const pdfs = await promisify(db.query).bind(db)(queryStr, queryParams);
+
+        if (option === 'unify') {
+            const mergedPdf = await PDFDocument.create();
+
+            for (const pdf of pdfs) {
+                if (pdf.data && pdf.data.toString('utf-8').startsWith('%PDF-')) {
+                    const pdfDoc = await PDFDocument.load(pdf.data);
+                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                    copiedPages.forEach((page) => mergedPdf.addPage(page));
+                } else {
+                    console.error(`Arquivo inválido ou corrompido: ${pdf.name}`);
+                }
+            }
+
+            const mergedPdfBytes = await mergedPdf.save();
+
+            res.setHeader('Content-Disposition', 'attachment; filename="unified_pdfs.pdf"');
+            res.setHeader('Content-Type', 'application/pdf');
+            res.send(Buffer.from(mergedPdfBytes));
+        } else {
+            const zip = new JSZip();
+            const zipFolder = zip.folder('pdfs');
+
+            for (const pdf of pdfs) {
+                if (pdf.data) {
+                    let buffer = Buffer.isBuffer(pdf.data) ? pdf.data : Buffer.from(pdf.data, 'binary');
+                    zipFolder.file(pdf.name, buffer);
+                }
+            }
+
+            const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+            res.setHeader('Content-Disposition', 'attachment; filename="pdfs.zip"');
+            res.setHeader('Content-Type', 'application/zip');
+            res.send(zipBuffer);
+        }
+    } catch (error) {
+        console.error('Erro ao buscar PDFs:', error);
+        res.status(500).send('Erro ao buscar PDFs do banco de dados.');
+    }
+});
 
 
 

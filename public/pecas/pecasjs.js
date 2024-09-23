@@ -244,11 +244,17 @@ document.getElementById('save-data-btn').addEventListener('click', async functio
         return;
     }
 
+    // Função para substituir vírgulas por pontos
+    function formatarValores(valores) {
+        return valores.map(valor => valor.replace(',', '.'));
+    }
+
     // Associa os representantes e lotes às linhas extraídas
     const dataToSave = {
         ...extractedData,
         representantes: representantesSelecionados,
-        lotes: lotesSelecionados
+        lotes: lotesSelecionados,
+        valor: formatarValores(extractedData.valor) // Formata os valores aqui
     };
 
     try {
@@ -271,6 +277,9 @@ document.getElementById('save-data-btn').addEventListener('click', async functio
     }
 });
 
+function formatarValores(valores) {
+    return valores.map(valor => valor.replace(',', '.'));
+}
 
 let extractedData = {
     tipo: [],

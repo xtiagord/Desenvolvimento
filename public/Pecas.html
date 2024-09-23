@@ -43,6 +43,7 @@
                         <div class="dropdown-menu" aria-labelledby="pecasDropdown">
                             <a class="dropdown-item" href="/public/Pecas.html">Cadastrar Peças</a>
                             <a class="dropdown-item" href="/public/exibirPecas.html">Exibir Peças</a>
+                            <a class="dropdown-item" href="/public/pecasArchive.html">Pdfs e Fotos Peças </a>
                         </div>
                     </li>
                     <li class="nav-item">
@@ -62,9 +63,7 @@
             </div>
         </nav>
     </header>
-    <div class="container mt-5">
-        <h2 class="mb-4">Extrair Dados do PDF</h2>
-        
+    <div class="container mt-5">        
         <!-- Card para o formulário -->
         <div class="card mb-4">
             <div class="card-header">
@@ -78,7 +77,6 @@
                         <label for="pdfFile">Selecione o PDF:</label>
                         <input type="file" class="form-control-file" id="pdfFile" accept="application/pdf">
                     </div>
-    
                    <!-- Botão para iniciar a extração dos dados -->
                    <button type="submit" class="btn btn-primary">Extrair Dados</button>
                    <button type="button" class="btn btn-success" id="save-data-btn">Salvar Dados</button>
@@ -95,8 +93,7 @@
                 <!-- Tabela para exibir os dados extraídos -->
                 <table class="table mt-4">
                     <thead>
-                        <tr>
-                            <th>Lote</th>
+                        <tr>                           
                             <th>Tipo</th>
                             <th>Modelo</th>
                             <th>Código</th>
@@ -104,6 +101,7 @@
                             <th>Valor</th>
                             <th>Clientes</th>
                             <th>Representante</th>
+                            <th>Lote</th>
                         </tr>
                     </thead>
                     <select id="representante" name="representante" style="display: none;">
@@ -116,7 +114,6 @@
             </div>
         </div>
     </div>
-    
     <!-- Scripts JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>

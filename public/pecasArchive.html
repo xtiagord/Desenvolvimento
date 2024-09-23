@@ -1,18 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Upload</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/ArchivePast/archivePast.css">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-
+    <title>Cadastrar Cliente</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/pecas/pecaspdf.css">
 </head>
-
 <body>
     <header>
         <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
@@ -20,17 +15,13 @@
                 <img src="/login/photo/untitled (1).png" width="30" height="30" class="d-inline-block align-top" alt="">
                 Valmarc
             </a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="/public/dashboard.html">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-item nav-link" href="/public/pasta.html">Pastas</a>
+                        <a class="nav-link" href="/public/pasta.html">Pastas</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/public/Cliente.html">Cooperados</a>
@@ -42,12 +33,11 @@
                         <a class="nav-link" href="/public/Cadastro.html">Representante</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/public/ArchivePast.html">PDFs</a>
+                        <a class="nav-link" href="/public/ArchivePast.html">PDFs</a>
                     </li>
                     <!-- Dropdown para "Peças" -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="pecasDropdown" role="button"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle active" href="#" id="pecasDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             Peças
                         </a>
                         <div class="dropdown-menu" aria-labelledby="pecasDropdown">
@@ -58,11 +48,11 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/public/Financeiro.html">Financeiro</a>
-                    </li>
+                     </li>
                 </ul>
+                <!-- Menu Dropdown no final -->
                 <div class="nav-item dropdown ml-auto">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Menu
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
@@ -82,12 +72,12 @@
                 <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="pdfFiles">Escolha os PDFs:</label>
-                        <input type="file" name="pdfFiles" id="pdfFiles" class="form-control" accept="application/pdf"
+                        <input type="file" name="pdfpecas" id="pdfFiles" class="form-control" accept="application/pdf"
                             multiple />
                     </div>
                     <div class="form-group">
                         <label for="photoFiles">Escolha as Fotos:</label>
-                        <input type="file" name="photoFiles" id="photoFiles" class="form-control" accept="image/*"
+                        <input type="file" name="photopecas" id="photoFiles" class="form-control" accept="image/*"
                             multiple />
                     </div>
                     <div class="form-group">
@@ -170,120 +160,123 @@
             </div>
         </div>
     </div>
+      <!-- Modal para exibição de PDF -->
+      <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-fullscreen" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="pdfModalLabel">Visualizador de PDF</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <h6 id="pdfName" class="text-center"></h6> <!-- Nome do PDF -->
+                  <iframe id="pdfViewer" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+              </div>
+              <div class="modal-footer">
+                  <button id="prevPdf" class="btn btn-secondary" onclick="navigatePDF(-1)"
+                      style="display:none;">Anterior</button>
+                  <span id="pdfCount" class="mx-auto"></span> <!-- Contagem do PDF -->
+                  <button id="nextPdf" class="btn btn-secondary" onclick="navigatePDF(1)"
+                      style="display:none;">Próximo</button>
+              </div>
+          </div>
+      </div>
+  </div>
 
-    <!-- Modal para exibição de PDF -->
-    <div class="modal fade" id="pdfModal" tabindex="-1" role="dialog" aria-labelledby="pdfModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-fullscreen" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pdfModalLabel">Visualizador de PDF</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <h6 id="pdfName" class="text-center"></h6> <!-- Nome do PDF -->
-                    <iframe id="pdfViewer" frameborder="0" style="width: 100%; height: 100%;"></iframe>
-                </div>
-                <div class="modal-footer">
-                    <button id="prevPdf" class="btn btn-secondary" onclick="navigatePDF(-1)"
-                        style="display:none;">Anterior</button>
-                    <span id="pdfCount" class="mx-auto"></span> <!-- Contagem do PDF -->
-                    <button id="nextPdf" class="btn btn-secondary" onclick="navigatePDF(1)"
-                        style="display:none;">Próximo</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Modal para seleção e download de PDFs -->
+  <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content custom-modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="downloadModalLabel">Download de PDFs</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body">
+                  <div class="form-group">
+                      <label for="downloadOption">Opção de Download:</label>
+                      <select id="downloadOption" class="form-control" onchange="mostrarCheckboxes()">
+                          <option value="">Selecione uma opção</option>
+                          <option value="zip">Baixar ZIP</option>
+                          <option value="unify">Baixar PDF Unificado</option>
+                      </select>
+                      <div id="representantesCheckboxes" style="display: none;">
+                          <h4>Selecione os Representantes:</h4>
+                          <div id="checkboxContainer" class="row">
+                              <!-- Checkboxes dos representantes serão carregados aqui -->
+                          </div>
+                      </div>
+                  </div>
+                  <div class="form-group">
+                      <label for="loteDownload">Escolha o Lote (Obrigatório):</label>
+                      <select id="loteDownload" class="form-control" required>
+                          <option value="">Selecione um lote</option>
+                          <!-- As opções serão carregadas dinamicamente -->
+                      </select>
+                  </div>
 
-    <!-- Modal para seleção e download de PDFs -->
-    <div class="modal fade" id="downloadModal" tabindex="-1" role="dialog" aria-labelledby="downloadModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content custom-modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="downloadModalLabel">Download de PDFs</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="downloadOption">Opção de Download:</label>
-                        <select id="downloadOption" class="form-control" onchange="mostrarCheckboxes()">
-                            <option value="">Selecione uma opção</option>
-                            <option value="zip">Baixar ZIP</option>
-                            <option value="unify">Baixar PDF Unificado</option>
-                        </select>
-                        <div id="representantesCheckboxes" style="display: none;">
-                            <h4>Selecione os Representantes:</h4>
-                            <div id="checkboxContainer" class="row">
-                                <!-- Checkboxes dos representantes serão carregados aqui -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="loteDownload">Escolha o Lote (Obrigatório):</label>
-                        <select id="loteDownload" class="form-control" required>
-                            <option value="">Selecione um lote</option>
-                            <!-- As opções serão carregadas dinamicamente -->
-                        </select>
-                    </div>
-
-                    <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
+                  <button class="btn btn-primary" onclick="baixarPDFs()">Baixar PDFs</button>
+              </div>
+          </div>
+      </div>
+  </div>
 
 
-    <!-- Modal para visualização de Fotos -->
-    <div class="modal fade" id="photosModal" tabindex="-1" role="dialog" aria-labelledby="photosModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="photosModalLabel">Visualizador de Fotos</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body text-center">
-                    <img id="photosViewer" style="max-width: 100%; max-height: 80vh;" />
-                </div>
-                <div class="modal-footer">
-                    <button id="prevPhoto" class="btn btn-secondary" onclick="navigatePhoto(-1)"
-                        style="display:none;">Anterior</button>
-                    <button id="nextPhoto" class="btn btn-secondary" onclick="navigatePhoto(1)"
-                        style="display:none;">Próximo</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Modal de Confirmação -->
-    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-height: 70vh;">
-            <div class="modal-content" style="height: auto;">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="confirmationModalLabel">Confirmação</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body text-center" style="max-height: 300px; overflow-y: auto;">
-                    <div class="text-success">
-                        <i class="fas fa-check-circle" style="font-size: 48px;"></i>
-                    </div>
-                    <h4 class="mt-3">Dados salvos com sucesso!</h4>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
-                </div>
-            </div>
-        </div>
-    </div>
+  <!-- Modal para visualização de Fotos -->
+  <div class="modal fade" id="photosModal" tabindex="-1" role="dialog" aria-labelledby="photosModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="photosModalLabel">Visualizador de Fotos</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body text-center">
+                  <img id="photosViewer" style="max-width: 100%; max-height: 80vh;" />
+              </div>
+              <div class="modal-footer">
+                  <button id="prevPhoto" class="btn btn-secondary" onclick="navigatePhoto(-1)"
+                      style="display:none;">Anterior</button>
+                  <button id="nextPhoto" class="btn btn-secondary" onclick="navigatePhoto(1)"
+                      style="display:none;">Próximo</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal de Confirmação -->
+  <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" style="max-height: 70vh;">
+          <div class="modal-content" style="height: auto;">
+              <div class="modal-header">
+                  <h5 class="modal-title" id="confirmationModalLabel">Confirmação</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body text-center" style="max-height: 300px; overflow-y: auto;">
+                  <div class="text-success">
+                      <i class="fas fa-check-circle" style="font-size: 48px;"></i>
+                  </div>
+                  <h4 class="mt-3">Dados salvos com sucesso!</h4>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  
+    <script src="/pecas/pecasjs.js"></script>
+    <script src="/pecas/pecaspdf.js"></script>
 
 
     <!-- jQuery -->
@@ -308,9 +301,6 @@
     <!-- Sortable (se necessário) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
-    <!-- Arquivo JavaScript personalizado -->
-    <script src="/ArchivePast/archivePast.js"></script>
-
     <!-- Font Awesome (para ícones) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
@@ -319,5 +309,4 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
 
 </body>
-
 </html>

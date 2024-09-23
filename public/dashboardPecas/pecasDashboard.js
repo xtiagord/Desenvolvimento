@@ -23,7 +23,7 @@ async function loadLote() {
         });
 
         // Defina o lote 29 como selecionado ao carregar a página
-        loteSelect.value = 'lote 29'; // Defina o valor para 29
+        loteSelect.value = 'lote 30'; // Defina o valor para 29
         updateTables(); // Atualiza as tabelas com base no lote 29 selecionado
     } catch (error) {
         console.error('Erro ao carregar lotes:', error);
