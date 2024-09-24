@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Reader</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/dashboard/cssdashboard.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/configuracao/configuracao.css">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+            <a class="navbar-brand" href="#">
+                <img src="/login/photo/untitled (1).png" width="30" height="30" class="d-inline-block align-top" alt="">
+                Valmarc
+            </a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/dashboard.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/pasta.html">Pastas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/Cliente.html">Cooperados</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/Extrator.html">Lançamentos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/Cadastro.html">Representante</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/ArchivePast.html">PDFs</a>
+                    </li>
+                    <!-- Dropdown para "Peças" -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="pecasDropdown" role="button"
+                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Peças
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="pecasDropdown">
+                            <a class="dropdown-item" href="/public/Pecas.html">Cadastrar Peças</a>
+                            <a class="dropdown-item" href="/public/exibirPecas.html">Exibir Peças</a>
+                            <a class="dropdown-item" href="/public/pecasArchive.html">Pdfs e Fotos Peças </a>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/public/Financeiro.html">Financeiro</a>
+                    </li>
+                </ul>
+                <div class="nav-item dropdown ml-auto">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Menu
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="#">Cadastro</a>
+                        <a class="dropdown-item" href="#">Configurações</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Barra Lateral -->
+        <div class="sidebar">
+            <a href="/public/usuariosCadastro.html" id="dashboardLink">Cadastrar Usuarios</a>
+            <a href="#" id="extractionsLink">Configurações Extração</a>
+            <a href="#" id="foldersLink">Configurações Pastas</a>
+            <a href="#" id="cooperadosLink">Configurações Cooperados</a>
+            <a href="#" id="representativesLink">Configurações Representantes</a>
+        </div>
+
+        <!-- Conteúdo Principal -->
+        <div class="container mt-5" style="margin-left: 220px;">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <h2>Cadastro de Usuário</h2>
+                    <form id="userForm">
+                        <div class="form-group">
+                            <label for="username">Nome de Usuário</label>
+                            <input type="text" class="form-control" id="username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Senha</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="access_level">Nível de Acesso</label>
+                            <select class="form-control" id="access_level" required>
+                                <option value="admin">Administrador</option>
+                                <option value="editor">Editor</option>
+                                <option value="viewer">Visualizador</option>
+                                <option value="finance">Financeiro</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cadastrar</button>
+                        <div id="message" class="mt-3"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+    <script src="/usuarioCadastro/userCadastro.js"></script>
+</body>
+
+</html>

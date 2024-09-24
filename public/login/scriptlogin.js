@@ -1,9 +1,10 @@
 document.getElementById('loginForm').addEventListener('submit', function (event) {
-    event.preventDefault();
+    event.preventDefault(); // Previne o envio padrão do formulário
 
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
+    // Enviar dados de login para o servidor
     fetch('/index', {
         method: 'POST',
         headers: {
@@ -14,19 +15,29 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     .then(response => {
         if (response.status === 401) {
             document.getElementById('error').textContent = 'Login não autorizado';
-        } else if (response.status === 200) {
-            return response.json();
+            return; // Interromper a execução se o login não for autorizado
+        } else if (response.ok) { // Verifica se a resposta foi bem-sucedida
+            return response.json(); // Retorna a resposta em formato JSON
+        } else {
+            throw new Error('Erro no login: ' + response.status); // Lida com outros erros de status
         }
     })
     .then(data => {
-        if (data.success) {
-            // Redirecionar para outra página em caso de sucesso
-            window.location.href = '/dashboard.html';
+        if (data && data.success) { // Verificar se a resposta é válida
+            // Armazenar o usuário no sessionStorage para uso futuro
+            sessionStorage.setItem('user', JSON.stringify(data)); // Salvar dados do usuário
+
+            // Redirecionar com base no nível de acesso
+            const accessLevel = data.access_level; 
+            if (accessLevel === 'finance') {
+                window.location.href = '/public/Financeiro.html'; // Redirecionar para a tela financeira
+            } else {
+                window.location.href = '/dashboard.html'; // Redirecionar para o dashboard
+            }
         }
     })
     .catch(error => {
-        console.error('Erro ao enviar dados de login:', error);
+        console.error('Erro ao enviar dados de login:', error); // Exibir erro no console
+        document.getElementById('error').textContent = 'Erro ao processar login. Tente novamente.'; // Mensagem de erro
     });
 });
-
-

@@ -12,6 +12,7 @@ const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
 const ExcelJS = require('exceljs');
 
+
 // Inicializar o Express
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -379,9 +380,10 @@ app.get('/last-10-folders', (req, res) => {
 });
 
 app.use(session({
-    secret: 'seu_segredo_aqui',
+    secret: 'seu_segredo', // Mantenha isso em segredo
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: { secure: false } // Para desenvolvimento, use false; em produção, use true com HTTPS
 }));
 
 app.get('/', (req, res) => {
@@ -446,7 +448,7 @@ app.get('/public/Pecas.html', (req, res) => {
 });
 
 // Servir o arquivo Financeiro.html
-app.get('/public/Financeiro.html', (req, res) => {
+app.get('/public/Financeiro.html', verificarNivelAcesso('finance'), (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'Financeiro.html'));
 });
 
@@ -454,6 +456,11 @@ app.get('/public/Financeiro.html', (req, res) => {
 // Servir o arquivo Financeiro.html
 app.get('/public/pecasArchive.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pecasArchive.html'));
+});
+
+// Servir o arquivo usuarioCadastro.html
+app.get('/public/usuariosCadastro.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'usuariosCadastro.html'));
 });
 
 
@@ -905,11 +912,11 @@ app.post('/index', (req, res) => {
     db.query(query, [username], (err, results) => {
         if (err) {
             console.error('Erro ao buscar usuário:', err);
-            return res.status(500).json({ success: false });
+            return res.status(500).json({ success: false, message: 'Erro interno.' });
         }
 
         if (results.length === 0) {
-            return res.status(401).json({ success: false });
+            return res.status(401).json({ success: false, message: 'Usuário não encontrado.' });
         }
 
         const user = results[0];
@@ -917,18 +924,20 @@ app.post('/index', (req, res) => {
         bcrypt.compare(password, user.password, (err, match) => {
             if (err) {
                 console.error('Erro ao comparar senha:', err);
-                return res.status(500).json({ success: false });
+                return res.status(500).json({ success: false, message: 'Erro interno.' });
             }
 
             if (match) {
-                req.session.userId = user.id;
-                return res.json({ success: true });
+                req.session.user = { id: user.id, access_level: user.access_level }; // Armazenar ID e nível de acesso na sessão
+                return res.json({ success: true, access_level: user.access_level });
             } else {
-                return res.status(401).json({ success: false });
+                return res.status(401).json({ success: false, message: 'Senha incorreta.' });
             }
         });
     });
 });
+
+
 
 //dashboard 
 app.get('/dashboard', (req, res) => {
@@ -2660,6 +2669,52 @@ app.delete('/pecasfoto/:id', (req, res) => {
     });
 });
 
+app.post('/cadastrarUsuario', (req, res) => {
+    const { username, password, access_level } = req.body;
+
+    // Verificar se os campos estão preenchidos
+    if (!username || !password || !access_level) {
+        console.log('Campos não preenchidos:', { username, password, access_level });
+        return res.status(400).json({ success: false, message: 'Preencha todos os campos.' });
+    }
+
+    // Verificar se o nome de usuário já existe
+    const queryCheck = 'SELECT * FROM users WHERE username = ?';
+    db.query(queryCheck, [username], (err, results) => {
+        if (err) {
+            console.error('Erro ao verificar nome de usuário:', err);
+            return res.status(500).json({ success: false, message: 'Erro ao verificar nome de usuário.' });
+        }
+
+        if (results.length > 0) {
+            console.log('Nome de usuário já existe:', username);
+            return res.status(400).json({ success: false, message: 'Nome de usuário já existe.' });
+        }
+
+        const saltRounds = 10; // Ajuste conforme necessário
+
+        // Criptografar a senha
+        bcrypt.hash(password, saltRounds, (err, hash) => {
+            if (err) {
+                console.error('Erro ao criptografar a senha:', err);
+                return res.status(500).json({ success: false, message: 'Erro ao criptografar a senha.' });
+            }
+
+            // Inserir o novo usuário no banco de dados
+            const queryInsert = 'INSERT INTO users (username, password, access_level) VALUES (?, ?, ?)';
+            db.query(queryInsert, [username, hash, access_level], (err, results) => {
+                if (err) {
+                    console.error('Erro ao cadastrar usuário:', err);
+                    return res.status(500).json({ success: false, message: 'Erro ao cadastrar usuário.' });
+                }
+
+                res.status(200).json({ success: true, message: 'Usuário cadastrado com sucesso.' });
+            });
+        });
+    });
+});
+
+
 
 
 // Middleware para tratamento de erros
@@ -2673,4 +2728,21 @@ app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
 
+function verificarNivelAcesso(nivelPermitido) {
+    return (req, res, next) => {
+        // Verifique se o usuário está autenticado
+        if (!req.session.user) {
+            return res.status(401).send('Usuário não autenticado.');
+        }
 
+        // Extraia o nível de acesso do usuário da sessão
+        const { access_level } = req.session.user;
+
+        // Verifique se o nível de acesso do usuário é permitido
+        if (access_level === nivelPermitido || access_level === 'admin') {
+            next(); // Usuário tem permissão
+        } else {
+            res.status(403).send('Acesso negado.'); // Negar acesso se não autorizado
+        }
+    };
+}

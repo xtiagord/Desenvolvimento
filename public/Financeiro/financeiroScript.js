@@ -182,7 +182,7 @@ $(document).ready(function () {
         });
     }
 
-   function toggleEditMode(tr) {
+    function toggleEditMode(tr) {
         const isEditing = tr.hasClass('editing');
 
         if (isEditing) {
@@ -820,17 +820,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Enviar o formulário ao servidor
     document.getElementById('formCadastroComprador').addEventListener('submit', function (event) {
         event.preventDefault();
-    
+
         const formData = new FormData(this);
         const data = {};
         formData.forEach((value, key) => {
             data[key] = value;
         });
-    
+
         // Captura o CPF/CNPJ
         const cpfCnpj = removerFormatacaoCpfCnpj(document.getElementById('cpf_cnpj').value); // Limpa a formatação
         data.cpf_cnpj = cpfCnpj; // Adiciona ao objeto data o valor sem formatação
-    
+
         // Verificar duplicidade no frontend
         fetch(`/api/verificar_comprador?cpf_cnpj=${encodeURIComponent(cpfCnpj)}&representante_id=${data.representante_id}`)
             .then(response => {
@@ -851,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (response.ok) {
                     alert('Comprador cadastrado com sucesso!');
                     $('#modalCadastroComprador').modal('hide');
-    
+
                     // Limpar os campos do formulário
                     this.reset();
                     select.selectedIndex = 0;
@@ -1384,17 +1384,17 @@ function aplicarMascaraCpfCnpj(input) {
         clearIncomplete: true
     });
 }
-    // Função para formatar CPF ou CNPJ para exibição
-    function formatarCpfCnpj(valor) {
-        if (valor.length === 11) {
-            // Formatar como CPF
-            return valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-        } else if (valor.length === 14) {
-            // Formatar como CNPJ
-            return valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-        }
-        return valor; // Caso não tenha o tamanho esperado, retorna como está
+// Função para formatar CPF ou CNPJ para exibição
+function formatarCpfCnpj(valor) {
+    if (valor.length === 11) {
+        // Formatar como CPF
+        return valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    } else if (valor.length === 14) {
+        // Formatar como CNPJ
+        return valor.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
     }
+    return valor; // Caso não tenha o tamanho esperado, retorna como está
+}
 
 
 
@@ -1469,7 +1469,7 @@ function carregarCompradores(representanteId) {
 // Função para adicionar a funcionalidade de pesquisa
 function adicionarFuncaoPesquisa() {
     const searchInput = document.getElementById('searchCompradores');
-    searchInput.addEventListener('input', function() {
+    searchInput.addEventListener('input', function () {
         const filter = this.value.toLowerCase();
         const rows = document.querySelectorAll('#compradoresTableBody tr');
 
@@ -1495,25 +1495,25 @@ function editarComprador(compradorId, novoNome, novoCpf, compradorNomeElem, comp
         },
         body: JSON.stringify({ nome: novoNome, cpf_cnpj: cpfCnpjLimpo }) // Enviar o valor sem formatação
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            compradorNomeElem.textContent = novoNome;
-            compradorNomeElem.style.display = 'inline-block';
-            compradorCpfElem.textContent = novoCpf; // Exibir o CPF/CNPJ com formatação no frontend
-            compradorCpfElem.style.display = 'inline-block';
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                compradorNomeElem.textContent = novoNome;
+                compradorNomeElem.style.display = 'inline-block';
+                compradorCpfElem.textContent = novoCpf; // Exibir o CPF/CNPJ com formatação no frontend
+                compradorCpfElem.style.display = 'inline-block';
 
-            inputEditarElem.style.display = 'none';
-            inputEditarCpfElem.style.display = 'none';
+                inputEditarElem.style.display = 'none';
+                inputEditarCpfElem.style.display = 'none';
 
-            btnEditarElem.textContent = 'Editar';
-        } else {
-            alert('Erro ao salvar os dados do comprador.');
-        }
-    })
-    .catch(error => {
-        console.error('Erro ao editar comprador:', error);
-    });
+                btnEditarElem.textContent = 'Editar';
+            } else {
+                alert('Erro ao salvar os dados do comprador.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao editar comprador:', error);
+        });
 }
 
 
@@ -1522,30 +1522,58 @@ function excluirComprador(compradorId, rowElement) {
         fetch(`/api/compradores/${compradorId}`, {
             method: 'DELETE'
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                rowElement.remove(); // Remove a linha da tabela
-            } else {
-                alert('Erro ao excluir o comprador.');
-            }
-        })
-        .catch(error => {
-            console.error('Erro ao excluir comprador:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    rowElement.remove(); // Remove a linha da tabela
+                } else {
+                    alert('Erro ao excluir o comprador.');
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao excluir comprador:', error);
+            });
     }
 }
 //gambiarra para fechar corretamente o modal de edição de representantes
 $('#editRepresentantesModal').on('hidden.bs.modal', function () {
     $('.modal-backdrop').remove();
-    $('body').removeClass('modal-open'); 
-    $('body').css('padding-right', '');  
+    $('body').removeClass('modal-open');
+    $('body').css('padding-right', '');
 });
 
+      // Supondo que você tenha o nível de acesso do usuário disponível na sessão
+      const user = JSON.parse(sessionStorage.getItem('user')); // Ou qualquer outra forma que você esteja utilizando
 
-
-
-
-
+      // Função para atualizar o menu de navegação com base no nível de acesso
+      function updateNavigation() {
+          const financeLink = document.getElementById('financeLink');
+  
+          // Verifica se o usuário existe e obtém o nível de acesso
+          if (user) {
+              const accessLevel = user.access_level;
+  
+              // Se o nível de acesso for 'finance', mantém apenas o link do financeiro
+              if (accessLevel === 'finance') {
+                  // Limpa todos os links, removendo completamente
+                  document.querySelector('#navLinks').innerHTML = ''; 
+                  const financeiroLink = document.createElement('li');
+                  financeiroLink.className = 'nav-item';
+                  financeiroLink.innerHTML = '<a class="nav-link active" href="/public/Financeiro.html">Financeiro</a>';
+                  document.querySelector('#navLinks').appendChild(financeiroLink);
+              } 
+              // Se o nível de acesso não for 'finance', esconde o link de financeiro
+              else if (accessLevel !== 'admin') { // Se o usuário não for admin, oculta o link financeiro
+                  financeLink.style.display = 'none'; // Torna invisível o link financeiro
+              }
+              // Se o nível de acesso for 'admin', mantém todos os links
+          } else {
+              // Se não houver usuário, pode esconder ou redirecionar
+              document.querySelector('#navLinks').innerHTML = ''; // Pode limpar ou mostrar links de login, etc.
+          }
+      }
+  
+      // Chama a função para atualizar a navegação
+      updateNavigation();
 
 
