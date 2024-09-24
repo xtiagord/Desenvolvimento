@@ -471,7 +471,7 @@ function carregarFotos() {
     const representanteId = document.getElementById('representante').value;
     const loteId = document.getElementById('lote').value;
     const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
-    const url = representanteId ? `/photos?representante_id=${representanteId}&lote_id=${loteId}` : '/photos';
+    const url = representanteId ? `/pecasfoto?representante_id=${representanteId}&lote_id=${loteId}` : '/pecasfoto';
 
     fetch(url)
         .then(response => response.json())
@@ -488,14 +488,23 @@ function carregarFotos() {
                 card.className = `col-md-${12 / pdfsPorLinha} mb-4`;
 
                 card.innerHTML = `
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">${photo.name}</h5>
-                            <button onclick="exibirFOTO('/photos/${photo.id}')" class="btn btn-primary">Ver Foto</button>
-                            <button onclick="renomearFOTO(${photo.id})" class="btn btn-warning edit-button">Renomear</button>
-                            <button onclick="deletarFOTO(${photo.id})" class="btn btn-danger edit-button">Deletar</button>
-                        </div>
-                    </div>
+                   <div class="card">
+    <div class="card-body">
+        <h5 class="card-title">${photo.nome_foto}</h5>
+        <div class="d-flex justify-content-between">
+            <button onclick="exibirFOTO('/pecasfoto/${photo.id}')" class="btn btn-primary btn-md me-2">
+                <i class="fas fa-eye"></i> Ver Foto
+            </button>
+            <button onclick="renomearFOTO(${photo.id})" class="btn btn-warning btn-md me-2 edit-button">
+                <i class="fas fa-edit"></i> 
+            </button>
+            <button onclick="deletarFOTO(${photo.id})" class="btn btn-danger btn-md edit-button">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
                 `;
 
                 listaPhotos.appendChild(card);
@@ -550,13 +559,16 @@ function atualizarDados() {
     carregarFotos();
     carregarPDFs();
 }
+
+
 function exibirFOTO(url) {
-    document.getElementById('photosViewer').setAttribute('src', url);
-    $('#photosModal').modal('show'); // Mostrar o modal
-    // Atualiza a lista de fotos e o índice atual
-    photos = []; // Inicializar ou atualizar com a lista de fotos
+    document.getElementById('photosViewer').setAttribute('src', url); // Define a URL da imagem grande
+    $('#photosModal').modal('show'); // Abre o modal com a imagem grande
+    
+    // Atualiza a lista de fotos e o índice atual, caso tenha várias fotos
     currentPdfIndex = photos.findIndex(photo => photo.url === url);
 }
+
 // Carregar os representantes quando a página carregar
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
 function renomearFOTO(id) {
@@ -569,7 +581,7 @@ function renomearFOTO(id) {
             trimmedNome += '.jgp';
         }
 
-        fetch(`/photos/${id}`, {
+        fetch(`/pecasfoto/${id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -598,7 +610,7 @@ function renomearFOTO(id) {
 
 function deletarFOTO(id) {
     if (confirm("Tem certeza que deseja deletar esta FOTO?")) {
-        fetch(`/photos/${id}`, {
+        fetch(`/pecasfoto/${id}`, {
             method: 'DELETE',
         })
             .then(response => {

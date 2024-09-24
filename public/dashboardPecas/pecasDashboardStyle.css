@@ -62,3 +62,43 @@
     padding: 10px;
     border-radius: 0.25rem;
 }
+ 
+  /* Estilos exclusivos para o modal de PDF */
+#pdfModal .modal-dialog {
+    max-width: 40%; /* Ajuste o tamanho máximo do modal */
+    max-height: 80vh; /* Ajuste a altura máxima */
+  }
+  
+  #pdfModal .modal-content {
+    height: auto; /* Permite altura automática */
+  }
+  
+  #pdfModal .modal-body {
+    padding: 0; /* Remove padding interno para exibir o PDF melhor */
+  }
+  
+  #pdfModal #pdfViewer {
+    width: 100%;
+    height: 500px; /* Altura do iframe para exibir o PDF */
+  }
+  
+  /* Garante que o modal ocupe 100% da altura e remova espaços extras */
+.modal-fullscreen .modal-dialog {
+    margin: 0 !important; /* Remove as margens */
+    height: 100%;         /* Faz o modal ocupar 100% da tela */
+}
+
+.modal-fullscreen .modal-content {
+    height: 100%;         /* Faz o conteúdo do modal ocupar 100% da tela */
+}
+
+.modal-fullscreen .modal-body {
+    flex-grow: 1;
+    overflow-y: auto;     /* Faz o conteúdo da body ser rolável */
+    padding: 0;           /* Remove padding da body */
+}
+
+.modal-fullscreen .modal-header,
+.modal-fullscreen .modal-footer {
+    padding: 10px;        /* Ajusta os espaçamentos do header e footer */
+}

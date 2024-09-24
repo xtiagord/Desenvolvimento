@@ -1706,7 +1706,7 @@ app.get('/api/representantes/:id/pecas', (req, res) => {
     const lote = req.query.lote;
 
     let query = `
-        SELECT clientes, tipo, modelo, codigo, quantidade, valor
+        SELECT npeca, clientes, tipo, modelo, codigo, quantidade, valor
         FROM pecas
         WHERE representante_id = ?
     `;
@@ -2296,29 +2296,53 @@ app.delete('/api/compradores/:id', (req, res) => {
 
 
 // Rota para obter os Npeca com base no representante e lote selecionados
-app.get('/api/pecas', (req, res) => {
-    const representante = req.query.representante;
-    const lote = req.query.lote;
+app.get('/pecaspdf', (req, res) => {
+    const npeca = req.query.npeca; // Captura o npeca da query
+    const representanteId = req.query.representante_id;
+    const loteId = req.query.lote;
 
-    if (!representante || !lote) {
-        return res.status(400).send('Representante e lote são necessários.');
+    let query = 'SELECT nome_pdf, data FROM pecaspdf WHERE 1=1';
+    let params = [];
+
+    if (representanteId) {
+        query += ' AND representante_id = ?';
+        params.push(representanteId);
     }
 
-    const query = `
-        SELECT DISTINCT npeca
-        FROM pecas
-        WHERE representante_id = ? AND lote = ?
-    `;
+    if (loteId) {
+        query += ' AND lote = ?';
+        params.push(loteId);
+    }
 
-    db.query(query, [representante, lote], (err, results) => {
+    if (npeca) {
+        query += ' AND npeca = ?'; // Certifique-se de que npeca está sendo filtrado
+        params.push(npeca);
+    }
+
+    db.query(query, params, (err, results) => {
         if (err) {
-            console.error('Erro ao buscar Npdfs:', err);
-            return res.status(500).send('Erro ao buscar Npdfs.');
+            console.error('Erro ao buscar PDFs:', err);
+            return res.status(500).send('Erro ao buscar PDFs.');
         }
-        res.json(results);
-        console.log('Resultado da inserção:', results);
+
+        // Verifica se existem resultados
+        if (results.length > 0) {
+            const pdfData = results[0].data; // assume que os dados do PDF estão no campo `data`
+
+            if (!pdfData || !Buffer.isBuffer(pdfData)) {
+                return res.status(404).send('PDF não encontrado.');
+            }
+
+            // Configura os cabeçalhos para o PDF
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename="${results[0].nome_pdf}"`);
+            res.send(pdfData); // Envia os dados do PDF
+        } else {
+            res.status(404).send('Nenhum PDF encontrado para os critérios fornecidos.');
+        }
     });
 });
+
 
 app.post('/upload/files', upload.fields([
     { name: 'pdfpecas', maxCount: 200 },
@@ -2405,9 +2429,9 @@ app.get('/pecaspdf/:id', (req, res) => {
 // Rota para exibir a lista de PDFs com links para visualização
 app.get('/pecaspdf', (req, res) => {
     const representanteId = req.query.representante_id;
-    const loteId = req.query.lote_id;
+    const loteId = req.query.lote;
 
-    let query = 'SELECT * FROM pecaspdf WHERE 1=1';
+    let query = 'SELECT nome_pdf, data FROM pecaspdf WHERE 1=1';
     let params = [];
 
     if (representanteId) {
@@ -2425,9 +2449,25 @@ app.get('/pecaspdf', (req, res) => {
             console.error('Erro ao buscar PDFs:', err);
             return res.status(500).send('Erro ao buscar PDFs.');
         }
-        res.json(results);
+
+        // Verifica se existem resultados
+        if (results.length > 0) {
+            const pdfData = results[0].data; // assume que os dados do PDF estão no campo `data`
+
+            if (!pdfData || !Buffer.isBuffer(pdfData)) {
+                return res.status(404).send('PDF não encontrado.');
+            }
+
+            // Configura os cabeçalhos para o PDF
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename="${results[0].nome_pdf}"`);
+            res.send(pdfData); // Envia os dados do PDF
+        } else {
+            res.status(404).send('Nenhum PDF encontrado para os critérios fornecidos.');
+        }
     });
 });
+
 
 app.put('/pecaspdf/:id', (req, res) => {
     const pdfId = req.params.id;
@@ -2532,6 +2572,92 @@ app.get('/download-pecaspdf', async (req, res) => {
         console.error('Erro ao buscar PDFs:', error);
         res.status(500).send('Erro ao buscar PDFs do banco de dados.');
     }
+});
+
+app.get('/pecasfoto', (req, res) => {
+    const representanteId = req.query.representante_id;
+    const loteId = req.query.lote_id;
+
+    let query = 'SELECT * FROM pecasfoto WHERE 1=1';
+    let params = [];
+
+    if (representanteId) {
+        query += ' AND representante_id = ?';
+        params.push(representanteId);
+    }
+
+    if (loteId) {
+        query += ' AND lote = ?';
+        params.push(loteId);
+    }
+
+    db.query(query, params, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar Fotos:', err);
+            return res.status(500).send('Erro ao buscar Fotos.');
+        }
+        res.json(results);
+    });
+});
+
+app.get('/pecasfoto/:id', (req, res) => {
+    const photosId = req.params.id;
+    const query = 'SELECT nome_foto, data FROM pecasfoto WHERE id = ?';
+
+    db.query(query, [photosId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao buscar o arquivo no banco de dados.');
+        }
+
+        if (results.length === 0) {
+            return res.status(404).send('Arquivo não encontrado.');
+        }
+
+        const photos = results[0];
+
+        // Configura o cabeçalho para exibir o PDF diretamente no navegador
+        res.setHeader('Content-Type', 'application/pecasfoto');
+        res.setHeader('Content-Disposition', 'inline; filename="' + photos.nome_foto + '"');
+
+        // Envia o PDF para exibição no navegador
+        res.send(photos.data);
+    });
+});
+
+// Endpoint para renomear uma foto
+app.put('/pecasfoto/:id', (req, res) => {
+    const photosId = req.params.id;
+    const novoNome = req.body.novoNome;
+    const query = 'UPDATE pecasfoto SET nome_foto = ? WHERE id = ?';
+
+    db.query(query, [novoNome, photosId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao renomear o arquivo no banco de dados.');
+        }
+
+        res.send('Nome da FOTO atualizado com sucesso.');
+    });
+});
+
+// Endpoint para deletar uma foto
+app.delete('/pecasfoto/:id', (req, res) => {
+    const fotoId = req.params.id;
+    const query = 'DELETE FROM pecasfoto WHERE id = ?';
+
+    db.query(query, [fotoId], (err, result) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao deletar o arquivo no banco de dados.');
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).send('FOTO não encontrado.');
+        }
+
+        res.send('FOTO deletado com sucesso.');
+    });
 });
 
 

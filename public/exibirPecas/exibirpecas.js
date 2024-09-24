@@ -65,7 +65,7 @@ function loadRepresentantes() {
                 modal.setAttribute('aria-labelledby', `representante${rep.id}ModalLabel`);
                 modal.setAttribute('aria-hidden', 'true');
                 modal.innerHTML = `
-                    <div class="modal-dialog modal-dialog-scrollable" role="document">
+                    <div class="modal-dialog modal-fullscreen" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="representante${rep.id}ModalLabel">Peças de ${rep.nome}</h5>
@@ -162,31 +162,67 @@ function fetchPecasData(id) {
     }
 
     fetch(`/api/representantes/${id}/pecas?lote=${selectedLote}`)
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.getElementById(`modal-rep-pecas-${id}`);
-            tbody.innerHTML = '';
+    .then(response => response.json())
+    .then(data => {
+        console.log('Dados recebidos:', data); // Verifique se npeca está presente
+        const tbody = document.getElementById(`modal-rep-pecas-${id}`);
+        tbody.innerHTML = '';
 
-            data.forEach(peca => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${peca.clientes}</td>
-                    <td>${peca.tipo}</td>
-                    <td>${peca.modelo}</td>
-                    <td>${peca.codigo}</td>
-                    <td>${peca.quantidade}</td>
-                    <td>${peca.valor}</td>
-                `;
-                tbody.appendChild(row);
+        data.forEach(peca => {
+            const row = document.createElement('tr');
+
+            // A partir daqui, garanta que npeca está acessível e é definido
+            row.setAttribute('data-npeca', peca.npeca); // Armazena npeca na linha
+
+            row.innerHTML = `
+                <td>${peca.clientes}</td>
+                <td>${peca.tipo}</td>
+                <td>${peca.modelo}</td>
+                <td>${peca.codigo}</td>
+                <td>${peca.quantidade}</td>
+                <td>${peca.valor}</td>
+            `;
+
+            // Adiciona evento de clique à linha
+            row.addEventListener('click', function() {
+                const npecaValue = this.getAttribute('data-npeca'); // Obtém npeca da linha
+                console.log('Clicou na linha da peça:', npecaValue); // Verifique o valor de npeca
+                openPdfInModal(npecaValue, id, selectedLote); // Passa o valor correto para abrir o PDF
             });
 
-            // Após atualizar os dados, abrir o modal
-            const modal = document.getElementById(`representante${id}Modal`);
-            if (modal) {
-                $(modal).modal('show');
-            }
-        })
-        .catch(error => console.error('Error fetching peças data:', error));
+            tbody.appendChild(row);
+        });
+
+        // Após atualizar os dados, abrir o modal
+        const modal = document.getElementById(`representante${id}Modal`);
+        if (modal) {
+            $(modal).modal('show');
+        }
+    })
+    .catch(error => console.error('Error fetching peças data:', error));
+
+
+}
+
+// Função para abrir o PDF no modal
+function openPdfInModal(npeca, representanteId, lote) {
+    if (!npeca) {
+        console.error('npeca não definido para esta peça');
+        return;
+    }
+    
+    const pdfUrl = `/pecaspdf?npeca=${npeca}&representante_id=${representanteId}&lote=${lote}`;
+    
+    const pdfViewer = document.getElementById('pdfViewer');
+    if (pdfViewer) {
+        pdfViewer.src = pdfUrl; // Define a URL do PDF no iframe
+    } else {
+        console.error('Element pdfViewer não encontrado.');
+        return;
+    }
+
+    // Abre o modal
+    $('#pdfModal').modal('show');
 }
 
 function exportToExcel(representanteId) {
@@ -349,3 +385,9 @@ function exportAllToExcel() {
         })
         .catch(error => console.error('Error fetching representatives data:', error));
 }
+$(document).ready(function() {
+    $("#pdfModal").draggable({
+      handle: ".modal-header"
+    });
+  });
+  
