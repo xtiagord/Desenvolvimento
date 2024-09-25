@@ -1,0 +1,6 @@
+.card {
+    margin-top: 20px; /* Espaçamento acima do card */
+    margin-left: 100px; /* Ajuste a margem esquerda para mover o card para a direita */
+    margin-right: -150px;
+  }
+  

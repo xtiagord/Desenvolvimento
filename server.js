@@ -468,6 +468,12 @@ app.get('/public/envioDados.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'envioDados.html'));
 });
 
+// Servir o arquivo usuarioCadastro.html
+app.get('/configuracaoPage/cadastroLote.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public ', 'cadastroLote.html'));
+});
+
+
 
 app.get('/api/dados', (req, res) => {
     const sql = "SELECT * FROM dados";
@@ -1059,7 +1065,7 @@ app.get('/api/media', (req, res) => {
 // Endpoint para obter lotes
 app.get('/api/lote', async (req, res) => {
     const query = `
-     SELECT nome FROM lote 
+     SELECT id, nome FROM lote 
     `;
 
     db.query(query, (err, results) => {
@@ -2782,3 +2788,39 @@ function verificarNivelAcesso(nivelPermitido) {
         }
     };
 }
+
+// Endpoint para definir o lote padrão
+app.post('/api/setLotePadrao', (req, res) => {
+    const { lotePadrao } = req.body;
+    console.log("Lote Padrão Recebido:", lotePadrao); // Verifique se está recebendo o lote corretamente
+
+    const query = 'INSERT INTO configuracoes (lote_padrao) VALUES (?) ON DUPLICATE KEY UPDATE lote_padrao = ?';
+    db.query(query, [lotePadrao, lotePadrao], (error, results) => {
+        if (error) {
+            console.error('Erro ao salvar lote padrão:', error);
+            return res.status(500).send('Erro ao salvar lote padrão.');
+        }
+        // Retorne o lote padrão salvo
+        res.status(200).json({ message: 'Lote padrão salvo com sucesso!', lote_padrao: lotePadrao });
+    });
+});
+
+
+
+
+
+// Endpoint para buscar o lote padrão
+app.get('/api/lotePadrao', (req, res) => {
+    const query = 'SELECT lote_padrao FROM configuracoes LIMIT 1';
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar lote padrão:', error);
+            return res.status(500).send('Erro ao buscar lote padrão.');
+        }
+        if (results.length > 0) {
+            res.status(200).json(results[0]);
+        } else {
+            res.status(404).send('Lote padrão não encontrado.');
+        }
+    });
+});

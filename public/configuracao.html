@@ -7,7 +7,8 @@
   <title>PDF Reader</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/dashboard/cssdashboard.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="/configuracao/configuracao.css">
 </head>
 
@@ -37,24 +38,26 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/public/ArchivePast.html">PDFs</a>
-        </li>
-                              <!-- Dropdown para "Peças" -->
-                              <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="pecasDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                   Peças
-                                </a>
-                                <div class="dropdown-menu" aria-labelledby="pecasDropdown">
-                                   <a class="dropdown-item" href="/public/Pecas.html">Cadastrar Peças</a>
-                                   <a class="dropdown-item" href="/public/exibirPecas.html">Exibir Peças</a>
-                                   <a class="dropdown-item" href="/public/pecasArchive.html">Pdfs e Fotos Peças </a>
-                                </div>
-                             </li>
-                             <li class="nav-item">
-                                <a class="nav-link" href="/public/Financeiro.html">Financeiro</a>
-                             </li>
+          </li>
+          <!-- Dropdown para "Peças" -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="pecasDropdown" role="button" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              Peças
+            </a>
+            <div class="dropdown-menu" aria-labelledby="pecasDropdown">
+              <a class="dropdown-item" href="/public/Pecas.html">Cadastrar Peças</a>
+              <a class="dropdown-item" href="/public/exibirPecas.html">Exibir Peças</a>
+              <a class="dropdown-item" href="/public/pecasArchive.html">Pdfs e Fotos Peças </a>
+            </div>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/public/Financeiro.html">Financeiro</a>
+          </li>
         </ul>
         <div class="nav-item dropdown ml-auto">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+            aria-haspopup="true" aria-expanded="false">
             Menu
           </a>
           <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
@@ -68,7 +71,7 @@
     <!-- Barra Lateral -->
     <div class="sidebar">
       <a href="#" id="dashboardLink">Configurações Dashboard</a>
-      <a href="#" id="extractionsLink">Configurações Extração</a>
+      <a href="/configuracaoPage/cadastroLote.html" id="extractionsLink">Cadastrar lote</a>
       <a href="#" id="foldersLink">Configurações Pastas</a>
       <a href="#" id="cooperadosLink">Configurações Cooperados</a>
       <a href="#" id="representativesLink">Configurações Representantes</a>
@@ -103,62 +106,36 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
       // Função para mostrar o conteúdo baseado no link clicado
       function showContent(contentId) {
         $('.content-section').removeClass('active');
         $(contentId).addClass('active');
       }
 
-      $('#dashboardLink').click(function() {
+      $('#dashboardLink').click(function () {
         showContent('#dashboardContent');
       });
 
-      $('#extractionsLink').click(function() {
-        showContent('#extractionsContent');
+      $('#extractionsLink').click(function () {
+        $('.content').load('/configuracaoPage/cadastroLote.html');
       });
 
-      $('#foldersLink').click(function() {
+
+      $('#foldersLink').click(function () {
         showContent('#foldersContent');
       });
 
-      $('#cooperadosLink').click(function() {
+      $('#cooperadosLink').click(function () {
         showContent('#cooperadosContent');
       });
 
-      $('#representativesLink').click(function() {
+      $('#representativesLink').click(function () {
         showContent('#representativesContent');
       });
 
       // Opcional: Mostrar conteúdo padrão ao carregar a página
       showContent('#dashboardContent');
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const loteForm = document.getElementById('loteForm');
-      loteForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const nomeLote = document.getElementById('nomeLote').value;
-
-        fetch('/api/lote', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            nome: nomeLote,
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          alert('Lote cadastrado com sucesso!');
-          loteForm.reset();
-        })
-        .catch(error => {
-          console.error('Erro ao cadastrar lote:', error);
-        });
-      });
     });
   </script>
 </body>
