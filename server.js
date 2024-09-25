@@ -463,6 +463,11 @@ app.get('/public/usuariosCadastro.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'usuariosCadastro.html'));
 });
 
+// Servir o arquivo usuarioCadastro.html
+app.get('/public/envioDados.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'envioDados.html'));
+});
+
 
 app.get('/api/dados', (req, res) => {
     const sql = "SELECT * FROM dados";
@@ -1398,6 +1403,15 @@ app.delete('/pdfs/:id', (req, res) => {
 });
 
 
+// Função para ordenar por ordem numérica com base no nome dos PDFs de cada representante
+function sortByNumericOrder(pdfs) {
+    return pdfs.sort((a, b) => {
+        const numA = a.name.match(/\d+/) ? parseInt(a.name.match(/\d+/)[0], 10) : 0;
+        const numB = b.name.match(/\d+/) ? parseInt(b.name.match(/\d+/)[0], 10) : 0;
+        return numA - numB;
+    });
+}
+
 app.get('/download-pdfs', async (req, res) => {
     const representanteIds = req.query.representante_ids ? req.query.representante_ids.split(',') : [];
     const lote = req.query.lote;
@@ -1425,22 +1439,40 @@ app.get('/download-pdfs', async (req, res) => {
     }
 
     // Ordenar os PDFs pelo nome do representante
-    queryStr += ' ORDER BY r.nome ASC';
+    queryStr += ' ORDER BY r.nome ASC, p.name ASC';
 
     try {
         // Executa a query para buscar os PDFs
         const pdfs = await promisify(db.query).bind(db)(queryStr, queryParams);
 
+        // Agrupar PDFs por representante
+        const groupedPdfs = pdfs.reduce((acc, pdf) => {
+            if (!acc[pdf.representante_nome]) {
+                acc[pdf.representante_nome] = [];
+            }
+            acc[pdf.representante_nome].push(pdf);
+            return acc;
+        }, {});
+
         if (option === 'unify') {
             const mergedPdf = await PDFDocument.create();
 
-            for (const pdf of pdfs) {
-                if (pdf.data && pdf.data.toString('utf-8').startsWith('%PDF-')) {
-                    const pdfDoc = await PDFDocument.load(pdf.data);
-                    const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-                    copiedPages.forEach((page) => mergedPdf.addPage(page));
-                } else {
-                    console.error(`Arquivo inválido ou corrompido: ${pdf.name}`);
+            // Unificar os PDFs por representante em ordem numérica
+            for (const representanteNome in groupedPdfs) {
+                const representativePdfs = groupedPdfs[representanteNome];
+
+                // Ordena os PDFs numericamente para cada representante
+                const sortedPdfs = sortByNumericOrder(representativePdfs);
+
+                // Adiciona as páginas dos PDFs ao documento unificado
+                for (const pdf of sortedPdfs) {
+                    if (pdf.data && pdf.data.toString('utf-8').startsWith('%PDF-')) {
+                        const pdfDoc = await PDFDocument.load(pdf.data);
+                        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+                        copiedPages.forEach((page) => mergedPdf.addPage(page));
+                    } else {
+                        console.error(`Arquivo inválido ou corrompido: ${pdf.name}`);
+                    }
                 }
             }
 
@@ -1453,10 +1485,14 @@ app.get('/download-pdfs', async (req, res) => {
             const zip = new JSZip();
             const zipFolder = zip.folder('pdfs');
 
-            for (const pdf of pdfs) {
-                if (pdf.data) {
-                    let buffer = Buffer.isBuffer(pdf.data) ? pdf.data : Buffer.from(pdf.data, 'binary');
-                    zipFolder.file(pdf.name, buffer);
+            for (const representanteNome in groupedPdfs) {
+                const sortedPdfs = sortByNumericOrder(groupedPdfs[representanteNome]);
+
+                for (const pdf of sortedPdfs) {
+                    if (pdf.data) {
+                        let buffer = Buffer.isBuffer(pdf.data) ? pdf.data : Buffer.from(pdf.data, 'binary');
+                        zipFolder.file(pdf.name, buffer);
+                    }
                 }
             }
 

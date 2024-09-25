@@ -1,8 +1,22 @@
 document.addEventListener('DOMContentLoaded', function () {
     const representanteSelect = document.getElementById('representanteSelect');
+
+    // Adiciona o placeholder "Selecione um Representante"
+    const placeholderOption = document.createElement('option');
+    placeholderOption.value = '';
+    placeholderOption.textContent = 'Selecione um Representante';
+    placeholderOption.disabled = true; 
+    placeholderOption.selected = true;  
+    representanteSelect.appendChild(placeholderOption);
+
+    // Faz a requisição para buscar os representantes
     fetch('/api/representantes')
         .then(response => response.json())
         .then(representantes => {
+            // Ordena os representantes por nome em ordem alfabética
+            representantes.sort((a, b) => a.nome.localeCompare(b.nome));
+
+            // Popula o select com os representantes ordenados
             representantes.forEach(representante => {
                 const option = document.createElement('option');
                 option.value = representante.id;
@@ -12,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(error => console.error('Erro ao carregar representantes:', error));
 });
+
 
 document.getElementById('representanteSelect').addEventListener('change', function () {
     const representante = this.options[this.selectedIndex].text; // Usa o nome do representante selecionado
@@ -116,6 +131,8 @@ function carregarRepresentantes() {
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('representante');
+            // Ordena os representantes por nome em ordem alfabética
+            data.sort((a, b) => a.nome.localeCompare(b.nome));
             data.forEach(representante => {
                 const option = document.createElement('option');
                 option.value = representante.id;
@@ -132,7 +149,7 @@ function carregarRepresentantes() {
 function atualizarBarraDeAcoes() {
     const selectedCards = document.querySelectorAll('.card-selected');
     const actionBar = document.getElementById('actionBar');
-    
+
     if (selectedCards.length > 0) {
         actionBar.classList.remove('d-none');
     } else {
@@ -183,6 +200,7 @@ function carregarPDFs() {
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            data.sort((a, b) => parseInt(a.name) - parseInt(b.name));
             pdfs = data; // Salvar a lista de PDFs carregados
             const listaPDFs = document.getElementById('lista-pdfs');
             listaPDFs.innerHTML = '';
@@ -358,6 +376,7 @@ function renomearPDF(id, event) {
             });
     }
 }
+
 function deletarPDF(id, event) {
     event.stopPropagation();
     if (confirm("Tem certeza que deseja deletar este PDF?")) {
@@ -410,6 +429,8 @@ function carregarRepresentantesComoCheckboxes() {
             const checkboxContainer = document.getElementById('checkboxContainer');
             checkboxContainer.innerHTML = ''; // Limpa checkboxes anteriores
 
+            // Ordena os representantes por ordem alfabética do nome
+            data.sort((a, b) => a.nome.localeCompare(b.nome));
             data.forEach(representante => {
                 const checkboxWrapper = document.createElement('div');
                 checkboxWrapper.className = 'col-4'; // Coloca 3 checkboxes por linha
@@ -617,7 +638,7 @@ function deletarFOTO(id) {
     }
 }
 
-document.getElementById('deleteSelected').addEventListener('click', function() {
+document.getElementById('deleteSelected').addEventListener('click', function () {
     const selectedCheckboxes = document.querySelectorAll('.card-checkbox:checked');
     const ids = Array.from(selectedCheckboxes).map(checkbox => checkbox.dataset.id);
 
@@ -631,19 +652,19 @@ document.getElementById('deleteSelected').addEventListener('click', function() {
             fetch(`/pdfs/${id}`, {
                 method: 'DELETE'
             })
-            .then(response => response.text())
-            .then(message => {
-                console.log(message); // Exibe mensagem de sucesso
-                // Remove o card do DOM após a exclusão
-                const card = document.querySelector(`.card-checkbox[data-id="${id}"]`).closest('.card-clickable');
-                card.parentElement.remove();
-            })
-            .catch(error => {
-                console.error('Erro ao excluir o PDF:', error);
-                alert('Erro ao excluir o PDF.');
-            });
+                .then(response => response.text())
+                .then(message => {
+                    console.log(message); // Exibe mensagem de sucesso
+                    // Remove o card do DOM após a exclusão
+                    const card = document.querySelector(`.card-checkbox[data-id="${id}"]`).closest('.card-clickable');
+                    card.parentElement.remove();
+                })
+                .catch(error => {
+                    console.error('Erro ao excluir o PDF:', error);
+                    alert('Erro ao excluir o PDF.');
+                });
         });
-        
+
         // Esconde a barra de ações após a exclusão
         atualizarBarraDeAcoes();
     }
