@@ -684,40 +684,24 @@ function loadLotes() {
             loteSelect.empty(); // Limpar o select antes de preencher
             loteSelect.append('<option value="" disabled selected>Escolha um lote</option>'); // Opção padrão
 
-            // Preencher o select com os lotes
             lotes.forEach(lote => {
-                const option = `<option value="${lote.id}">${lote.nome}</option>`; // Supondo que você use 'id' como valor
+                const option = `<option value="${lote.nome}">${lote.nome}</option>`;
                 loteSelect.append(option);
             });
-
-            // Carregar o lote padrão do banco de dados
-            $.ajax({
-                url: '/api/lotePadrao', // Endpoint para buscar o lote padrão
-                method: 'GET',
-                success: function(config) {
-                    const lotePadrao = config.lote_padrao; // Obtenha o lote padrão
-
-                    // Seleciona o lote padrão se ele existir na lista
-                    if (lotePadrao) {
-                        loteSelect.val(lotePadrao).trigger('change'); // Seleciona o lote padrão e dispara o evento change
-                    }
-                },
-                error: function(err) {
-                    console.error("Erro ao carregar lote padrão:", err);
-                }
-            });
-        },
+         // Defina aqui o lote padrão que você quer selecionar
+         const lotePadrao = 'lote 30'; // Substitua pelo nome do lote que você deseja
+         if (lotes.some(lote => lote.nome === lotePadrao)) {
+             loteSelect.val(lotePadrao).trigger('change'); // Seleciona o lote padrão e dispara o evento change
+         } else if (lotes.length > 0) {
+             // Caso o lote padrão não exista, seleciona o primeiro da lista
+             loteSelect.val(lotes[0].nome).trigger('change');
+         }
+     },
         error: function(err) {
             console.error("Erro ao carregar lotes:", err);
         }
     });
 }
-
-// Carregar lotes ao iniciar a página
-$(document).ready(function() {
-    loadLotes();
-});
-
 
 // Função para exibir informações do representante no modal
 function showRepresentanteInfo(nomeRepresentante) {

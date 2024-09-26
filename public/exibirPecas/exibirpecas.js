@@ -128,49 +128,31 @@ function updateTooltip(repId) {
 
 
 function loadLotes() {
-    // Carregar todos os lotes
     fetch('/api/lote')
         .then(response => response.json())
         .then(lotes => {
             console.log('Lotes recebidos:', lotes);
 
             const selectLote = document.getElementById('select-lote');
-            selectLote.innerHTML = '<option value="">Selecione o lote</option>'; // Opção padrão
+            selectLote.innerHTML = '<option value="">Selecione o lote</option>';
 
-            // Preencher o select com os lotes
             lotes.forEach(lote => {
                 const option = document.createElement('option');
-                option.value = lote.id; // Supondo que você use 'id' como valor
+                option.value = lote.nome;
                 option.textContent = lote.nome;
                 selectLote.appendChild(option);
             });
 
-            // Carregar o lote padrão do banco de dados
-            fetch('/api/lotePadrao')
-                .then(response => response.json())
-                .then(config => {
-                    const lotePadrao = config.lote_padrao; // Obtenha o lote padrão
+            selectLote.addEventListener('change', () => {
+                selectedLote = selectLote.value;
+                console.log(`Lote selecionado: ${selectedLote}`);
 
-                    // Selecionar o lote padrão se ele existir na lista
-                    if (lotePadrao) {
-                        // Tente encontrar o lote correspondente
-                        const loteOption = Array.from(selectLote.options).find(option => option.value === lotePadrao);
-                        if (loteOption) {
-                            selectLote.value = lotePadrao; // Seleciona o lote padrão
-                            console.log(`Lote padrão carregado: ${lotePadrao}`);
-                        }
-                    }
-                })
-                .catch(error => console.error("Erro ao carregar lote padrão:", error));
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.classList.add('d-none');
+            });
         })
         .catch(error => console.error('Erro ao carregar lotes:', error));
 }
-
-// Carregar lotes ao iniciar a página
-document.addEventListener('DOMContentLoaded', function() {
-    loadLotes();
-});
-
 
 function fetchPecasData(id) {
     if (!selectedLote) {

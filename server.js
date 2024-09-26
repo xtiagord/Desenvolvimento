@@ -2346,15 +2346,15 @@ app.delete('/api/compradores/:id', (req, res) => {
 });
 
 
-// Rota para obter os Npeca com base no representante e lote selecionados
 app.get('/pecaspdf', (req, res) => {
     const npeca = req.query.npeca; // Captura o npeca da query
     const representanteId = req.query.representante_id;
     const loteId = req.query.lote;
 
-    let query = 'SELECT nome_pdf, data FROM pecaspdf WHERE 1=1';
+    let query = 'SELECT id, nome_pdf, data FROM pecaspdf WHERE 1=1';
     let params = [];
 
+    // Filtros opcionais
     if (representanteId) {
         query += ' AND representante_id = ?';
         params.push(representanteId);
@@ -2366,7 +2366,7 @@ app.get('/pecaspdf', (req, res) => {
     }
 
     if (npeca) {
-        query += ' AND npeca = ?'; // Certifique-se de que npeca está sendo filtrado
+        query += ' AND npeca = ?'; // Filtro por npeca
         params.push(npeca);
     }
 
@@ -2376,23 +2376,34 @@ app.get('/pecaspdf', (req, res) => {
             return res.status(500).send('Erro ao buscar PDFs.');
         }
 
-        // Verifica se existem resultados
-        if (results.length > 0) {
-            const pdfData = results[0].data; // assume que os dados do PDF estão no campo `data`
+        // Se `npeca` estiver presente, significa que o usuário está solicitando o PDF específico
+        if (npeca) {
+            if (results.length > 0) {
+                const pdfData = results[0].data; // Assume que os dados do PDF estão no campo `data`
 
-            if (!pdfData || !Buffer.isBuffer(pdfData)) {
-                return res.status(404).send('PDF não encontrado.');
+                if (!pdfData || !Buffer.isBuffer(pdfData)) {
+                    return res.status(404).send('PDF não encontrado.');
+                }
+
+                // Configura os cabeçalhos para o PDF
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', `inline; filename="${results[0].nome_pdf}"`);
+                res.send(pdfData); // Envia os dados do PDF
+            } else {
+                res.status(404).send('Nenhum PDF encontrado para os critérios fornecidos.');
             }
-
-            // Configura os cabeçalhos para o PDF
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `inline; filename="${results[0].nome_pdf}"`);
-            res.send(pdfData); // Envia os dados do PDF
         } else {
-            res.status(404).send('Nenhum PDF encontrado para os critérios fornecidos.');
+            // Caso contrário, retorna apenas os metadados
+            const metadados = results.map(row => ({
+                id: row.id,
+                nome_pdf: row.nome_pdf
+            }));
+            res.json(metadados);
         }
     });
 });
+
+
 
 
 app.post('/upload/files', upload.fields([
@@ -2753,6 +2764,28 @@ app.post('/cadastrarUsuario', (req, res) => {
                 res.status(200).json({ success: true, message: 'Usuário cadastrado com sucesso.' });
             });
         });
+    });
+});
+app.get('/api/pecas', (req, res) => {
+    const representanteId = req.query.representante;
+    const lote = req.query.lote;
+
+    if (!representanteId || !lote) {
+        return res.status(400).send('Parâmetros faltando.');
+    }
+
+    // Exemplo de query para buscar peças
+    const query = 'SELECT npeca FROM pecas WHERE representante_id = ? AND lote = ?';
+    db.query(query, [representanteId, lote], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar Npecas:', err);
+            return res.status(500).send('Erro no servidor.');
+        }
+        if (results.length === 0) {
+            return res.status(404).send('Nenhuma peça encontrada.');
+        }
+
+        res.json(results);
     });
 });
 
