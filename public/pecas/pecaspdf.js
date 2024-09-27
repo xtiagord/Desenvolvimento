@@ -188,11 +188,15 @@ function carregarPDFs() {
     const representanteId = document.getElementById('representante').value;
     const loteId = document.getElementById('lote').value;
     const pdfsPorLinha = document.getElementById('pdfsPorLinha').value;
-    const url = representanteId ? `/pecaspdf?representante_id=${representanteId}&lote_id=${loteId}` : '/pdfs';
+    const url = representanteId ? `/pecaspdf?representante_id=${representanteId}&lote_id=${loteId}` : '/pecaspdf';
+
+    // Adicionar log para verificar se a URL está correta
+    console.log('URL para fetch:', url);
 
     fetch(url)
         .then(response => response.json())
         .then(data => {
+            console.log('Dados recebidos:', data); // Verifique se os dados são os esperados
             pdfs = data; // Salvar a lista de PDFs carregados
             const listaPDFs = document.getElementById('lista-pdfs');
             listaPDFs.innerHTML = '';
@@ -207,24 +211,21 @@ function carregarPDFs() {
                             <div class="card-select">
                                 <input type="checkbox" id="select-${pdf.id}" class="card-checkbox" data-id="${pdf.id}">
                             </div>
-                            <!-- Canvas para a miniatura do PDF, centralizado e com tamanho ajustado -->
                             <div style="display: flex; justify-content: center; align-items: center; height: 150px;">
                                 <canvas id="pdf-thumbnail-${pdf.id}" width="350" height="350"></canvas>
                             </div>
                             <h5 class="card-title mt-3">${pdf.nome_pdf}</h5>
                         </div>
-
-                        <!-- Card interno para os botões -->
                         <div class="card mt-2">
                             <div class="card-body d-flex justify-content-between">
                                 <button onclick="exibirPDF(${index})" class="btn btn-primary"> Ver PDF
-                                    <i class="fas fa-eye"></i> <!-- Ícone de visualizar -->
+                                    <i class="fas fa-eye"></i>
                                 </button>
                                 <button onclick="renomearPDF(${pdf.id}, event)" class="btn btn-warning">
-                                    <i class="fas fa-edit"></i> <!-- Ícone de renomear -->
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 <button onclick="deletarPDF(${pdf.id}, event)" class="btn btn-danger">
-                                    <i class="fas fa-trash"></i> <!-- Ícone de lixeira -->
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
@@ -233,10 +234,7 @@ function carregarPDFs() {
 
                 listaPDFs.appendChild(card);
 
-                // Construir a URL do PDF baseado no ID ou caminho no servidor
-                const pdfUrl = `/pecaspdf/${pdf.id}`; // Ajuste isso para o caminho correto do PDF no seu servidor
-
-                // Renderizar a miniatura do PDF usando pdf.js
+                const pdfUrl = `/pecaspdf/${pdf.id}`;
                 renderizarMiniaturaPDF(pdfUrl, `pdf-thumbnail-${pdf.id}`);
             });
         })
@@ -245,6 +243,8 @@ function carregarPDFs() {
             alert('Erro ao carregar a lista de PDFs.');
         });
 }
+
+
 
 function renderizarMiniaturaPDF(pdfUrl, canvasId) {
     const loadingTask = pdfjsLib.getDocument(pdfUrl);
@@ -271,7 +271,6 @@ function renderizarMiniaturaPDF(pdfUrl, canvasId) {
         console.error('Erro ao renderizar o PDF:', error);
     });
 }
-
 
 let pdfs = [];
 let currentPdfIndex = -1;
@@ -441,6 +440,7 @@ function carregarRepresentantesComoCheckboxes() {
             alert('Erro ao carregar a lista de representantes.');
         });
 }
+
 function mostrarCheckboxes() {
     const downloadOption = document.getElementById('downloadOption').value;
     const checkboxContainer = document.getElementById('representantesCheckboxes');
@@ -599,7 +599,7 @@ function renomearFOTO(id) {
             .then(response => {
                 if (response.ok) {
                     alert('Nome da FOTO atualizado com sucesso.');
-                    carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+                    carregarFotos(); // Recarrega a lista de PDFs para refletir a mudança
                 } else {
                     return response.text(); // Para obter a mensagem de erro
                 }
@@ -624,7 +624,7 @@ function deletarFOTO(id) {
             .then(response => {
                 if (response.ok) {
                     alert('FOTO deletado com sucesso.');
-                    carregarPDFs(); // Recarrega a lista de PDFs para refletir a mudança
+                    carregarFotos(); // Recarrega a lista de PDFs para refletir a mudança
                 } else {
                     alert('Erro ao deletar o FOTO.');
                 }

@@ -2349,7 +2349,7 @@ app.delete('/api/compradores/:id', (req, res) => {
 app.get('/pecaspdf', (req, res) => {
     const npeca = req.query.npeca; // Captura o npeca da query
     const representanteId = req.query.representante_id;
-    const loteId = req.query.lote;
+    const loteId = req.query.lote_id;
 
     let query = 'SELECT id, nome_pdf, data FROM pecaspdf WHERE 1=1';
     let params = [];
@@ -2402,9 +2402,6 @@ app.get('/pecaspdf', (req, res) => {
         }
     });
 });
-
-
-
 
 app.post('/upload/files', upload.fields([
     { name: 'pdfpecas', maxCount: 200 },

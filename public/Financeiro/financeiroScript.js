@@ -416,7 +416,7 @@ $(document).ready(function () {
                 $('#nome').val('');
                 $('#associado').val('');
                 loadRepresentantes();
-                $('#modalRepresentante').modal('hide'); // Fechar o modal
+                $('#modalRepresentante').modal('hide'); // Fechar o modal     
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error('Erro ao adicionar representante financeiro:', textStatus, errorThrown);
@@ -1186,6 +1186,12 @@ function loadRepresentantes() {
         success: function (data) {
             const $select = $('#associado');
             $select.empty(); // Limpa opções antigas
+
+            $select.append(new Option('Selecione Um Representante', ''));
+            // Adiciona a opção "Nenhum" no início da lista
+            $select.append(new Option('Sem Associado', ''));
+
+            // Itera sobre os dados e adiciona os representantes
             data.forEach(function (representante) {
                 $select.append(new Option(representante.nome, representante.id));
             });
@@ -1195,6 +1201,7 @@ function loadRepresentantes() {
         }
     });
 }
+
 
 // Mostrar modal e carregar representantes
 $('#modalRepresentante').on('show.bs.modal', function () {

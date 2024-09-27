@@ -7,8 +7,13 @@
     <title>PDF Reader</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="/dashboard/cssdashboard.css">
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/envioDados/envioDados.css">
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Include Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
 
 </head>
 
@@ -71,6 +76,183 @@
             </div>
         </nav>
     </header>
+    <!-- Barra lateral que desliza -->
+    <div class="sidebar" id="mySidebar">
+        <a href="#" id="cadastrarComprador" onclick="openModal()">Cadastrar Comprador</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
+        <!-- Adicione mais links conforme necessário -->
+    </div>
+
+    <!-- Área de ativação com o ícone de seta -->
+    <div class="trigger-area" onclick="toggleSidebar()">
+        <i class="fas fa-chevron-right arrow-icon" id="toggleIcon"></i> <!-- Ícone da seta -->
+    </div>
+
+    </div>
+    <div class="container mt-1">
+        <div class="container mt-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-tile">Registros de Catalisador</h4>
+                </div>
+                <div class="card-body">
+                    <form id="form-registrocatalizador">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <div class="form-group">
+                                        <label for="representante">Representante</label>
+                                        <select class="form-control" id="representante" name="representante_id"
+                                            required>
+                                            <!-- Select com os representnates -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <div class="form-group">
+                                        <label for="comprador">Comprador</label>
+                                        <select class="form-control" id="comprador" name="comprador_id">
+                                            <!-- Select Comprador -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <div class="form-group">
+                                        <label for="data">Data</label>
+                                        <input type="date" class="form-control" id="data" name="data" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <div class="form-group">
+                                        <label for="hora">Hora</label>
+                                        <input type="time" class="form-control" id="hora" name="hora" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-group">
+                                        <label for="apelido">Apelido</label>
+                                        <input type="text" class="form-control" id="apelido" name="apelido">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-group">
+                                        <label for="cpf_cnpj">Cpf/Cnpj</label>
+                                        <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <div class="form-group">
+                                        <label for="rg">Rg</label>
+                                        <input type="text" class="form-control" id="rg" name="rg">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="maquina">Maquina</label>
+                                        <select class="form-control" name="maquina_id" id="maquina"></select>
+                                        <!-- Selecionar máquina -->
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="tipo">Tipo</label>
+                                        <select class="form-control" name="tipo" id="tipo"></select>
+                                        <!-- Selecionar o tipo -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2 mb-2">
+                                    <div class="form-group">
+                                        <label for="cpf_cnpj">KG</label>
+                                        <input type="text" class="form-control" id="kg" name="kg" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="kg">Pd</label>
+                                        <input type="text" class="form-control" id="pd" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mr-0">
+                                    <div class="form-group">
+                                        <label for="kg">Pt</label>
+                                        <input class="form-control" id="pt" type="text" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mr-0">
+                                    <div class="form-group">
+                                        <label for="kg">Rh</label>
+                                        <input class="form-control" id="rh" type="text" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mr-0">
+                                    <div class="form-group">
+                                        <label for="kg">Valor KG</label>
+                                        <input class="form-control" id="valor_kg" type="text" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 mr-0">
+                                    <div class="form-group">
+                                        <label for="kg">Valor</label>
+                                        <input class="form-control" id="valor" type="text" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-success">Enviar Dados</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for registering buyer -->
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCadastroCompradorLabel">Cadastrar Comprador</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="formCadastroComprador">
+                    <div class="form-group">
+                        <label for="representante_select">Representante</label>
+                        <select class="form-control" id="representante_select" name="representante_id" required>
+                            <!-- Options will be filled dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="comprador_nome">Nome do Comprador</label>
+                        <input type="text" class="form-control" id="comprador_nome" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cpf_cnpj">CPF/CNPJ</label>
+                        <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rg">RG</label>
+                        <input type="text" class="form-control" id="rg" name="rg" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="comprador_apelido">Apelido</label>
+                        <input type="text" class="form-control" id="comprador_apelido" name="apelido" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salvar Comprador</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

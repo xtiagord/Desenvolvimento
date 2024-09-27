@@ -181,7 +181,8 @@
                               <a class="btn btn-info" data-toggle="modal" data-target="#modalForm">Gerar PDF</a>
                               <a class="btn btn-danger" href="#" data-bs-toggle="modal"
                                  data-bs-target="#relatorioDiarioModal">Relatório Diário</a>
-                                 <button type="button" class="btn btn-warning" onclick="downloadExcel()">Baixar Excel</button>
+                              <button type="button" class="btn btn-warning" onclick="downloadExcel()">Baixar
+                                 Excel</button>
                            </div>
                         </div>
                      </div>
@@ -261,8 +262,7 @@
             </div>
          </div>
       </div>
-
-
+      
       <!-- Tabelas para listar representantes e registros financeiros -->
       <!-- Tabela de Representantes -->
       <div class="container mt-4">
@@ -350,38 +350,44 @@
       </div>
 
       <!-- Modal para cadastro de comprador -->
-      <div class="modal fade" id="modalCadastroComprador" tabindex="-1" role="dialog"
-         aria-labelledby="modalCadastroCompradorLabel" aria-hidden="true">
-         <div class="modal-dialog" role="document">
-            <div class="modal-content">
-               <div class="modal-header">
-                  <h5 class="modal-title" id="modalCadastroCompradorLabel">Cadastrar Comprador</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                     <span aria-hidden="true">&times;</span>
-                  </button>
-               </div>
-               <div class="modal-body">
-                  <form id="formCadastroComprador">
+      <div class="modal fade" id="myModal">
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h5 class="modal-title" id="modalCadastroCompradorLabel">Cadastrar Comprador</h5>
+                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span class="close" onclick="closeModal()">&times;</span>
+                 </button>
+             </div>
+             <div class="modal-body">
+                 <form id="formCadastroComprador">
                      <div class="form-group">
-                        <label for="representante_select">Representante</label>
-                        <select class="form-control" id="representante_select" name="representante_id" required>
-                           <!-- Options serão preenchidas dinamicamente -->
-                        </select>
+                         <label for="representante_select">Representante</label>
+                         <select class="form-control" id="representante_select" name="representante_id" required>
+                             <!-- Options serão preenchidas dinamicamente -->
+                         </select>
                      </div>
                      <div class="form-group">
-                        <label for="comprador_nome">Nome do Comprador</label>
-                        <input type="text" class="form-control" id="comprador_nome" name="nome" required>
+                         <label for="comprador_nome">Nome do Comprador</label>
+                         <input type="text" class="form-control" id="comprador_nome" name="nome" required>
                      </div>
                      <div class="form-group">
-                        <label for="cpf_cnpj">CPF/CNPJ</label>
-                        <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" required>
+                         <label for="cpf_cnpj">CPF/CNPJ</label>
+                         <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" required>
+                     </div>
+                     <div class="form-group">
+                         <label for="rg">RG</label>
+                         <input type="text" class="form-control" id="rg" name="rg" required>
+                     </div>
+                     <div class="form-group">
+                         <label for="comprador_apelido">Apelido</label>
+                         <input type="text" class="form-control" id="comprador_apelido" name="apelido" required>
                      </div>
                      <button type="submit" class="btn btn-primary">Salvar Comprador</button>
-                  </form>
-               </div>
-            </div>
+                 </form>
+             </div>
          </div>
-      </div>
+     </div>
+     
       <!-- Modal para Edição de Representantes -->
       <div class="modal fade" id="editRepresentantesModal" tabindex="-1" aria-labelledby="editRepresentantesModalLabel"
          aria-hidden="true">

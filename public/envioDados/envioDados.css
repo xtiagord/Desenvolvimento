@@ -1,0 +1,92 @@
+/* Estilo da barra lateral */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #343a40;
+    overflow-x: hidden;
+    transition: width 0.5s;
+    padding-top: 60px;
+    z-index: 0;
+}
+
+/* Links dentro da barra lateral */
+.sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #f8f9fa;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    color: #f1f1f1;
+}
+
+/* Área de ativação no lado esquerdo */
+.trigger-area {
+    height: 100%;
+    width: 20px; /* Largura maior para incluir o ícone */
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: transparent; /* Invisível */
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Estilo do ícone da seta */
+.arrow-icon {
+    font-size: 20px;
+    color: #343a40; /* Cor do ícone (mesma cor da barra lateral) */
+    transition: transform 0.3s, color 0.3s;
+}
+
+.trigger-area:hover .arrow-icon {
+    color: #007bff; /* Cor da seta ao passar o mouse */
+}
+
+.sidebar-open .arrow-icon {
+    transform: rotate(360deg); /* Rotaciona a seta quando a barra está aberta */
+}
+
+
+.modal {
+    display: none; /* Ocultar o modal por padrão */
+    position: fixed; /* Ficar em posição fixa */
+    z-index: 1; /* Ficar em cima de outros conteúdos */
+    left: 0;
+    top: 0;
+    width: 100%; /* Largura total */
+    height: 100%; /* Altura total */
+    overflow: auto; /* Habilitar rolagem se necessário */
+    background-color: rgb(0,0,0); /* Fundo preto */
+    background-color: rgba(0,0,0,0.4); /* Fundo preto com opacidade */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% do topo e centralizado */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Largura do modal */
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
