@@ -63,19 +63,27 @@ document.getElementById('loteSelect').addEventListener('change', function () {
     const representante = document.getElementById('representanteSelect').options[document.getElementById('representanteSelect').selectedIndex].text;
     const lote = this.value;
     const npdfSelect = document.getElementById('npdfSelect');
+    
     npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
+    
     fetch(`/api/npdfs?representante=${encodeURIComponent(representante)}&lote=${encodeURIComponent(lote)}`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar Npdfs');
+            }
+            return response.json();
+        })
         .then(npdfs => {
             npdfs.forEach(npdf => {
                 const option = document.createElement('option');
-                option.value = npdf.Npdf;
-                option.textContent = npdf.Npdf;
+                option.value = npdf.Npdf;  // Valor será o identificador da peça
+                option.textContent = npdf.Npdf; // Texto será o nome ou identificador
                 npdfSelect.appendChild(option);
             });
         })
         .catch(error => console.error('Erro ao carregar Npdfs:', error));
 });
+
 document.getElementById('uploadForm').addEventListener('submit', async function (event) {
     event.preventDefault();
 

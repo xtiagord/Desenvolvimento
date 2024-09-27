@@ -1573,7 +1573,7 @@ app.get('/api/lotes', (req, res) => {
 
 
 
-// Rota para obter os Npdfs com base no representante e lote selecionados
+// Rota para obter os Npdfs com base no representante e lote selecionados,
 app.get('/api/npdfs', (req, res) => {
     const representante = req.query.representante;
     const lote = req.query.lote;
@@ -1582,20 +1582,45 @@ app.get('/api/npdfs', (req, res) => {
         return res.status(400).send('Representante e lote são necessários.');
     }
 
-    const query = `
-        SELECT DISTINCT Npdf
-        FROM dados
-        WHERE representante = ? AND lote = ?
-    `;
+    // Primeiro, buscar o ID do representante com base no nome
+    const representanteQuery = 'SELECT id FROM representantes WHERE nome = ?';
 
-    db.query(query, [representante, lote], (err, results) => {
+    db.query(representanteQuery, [representante], (err, representanteResult) => {
         if (err) {
-            console.error('Erro ao buscar Npdfs:', err);
-            return res.status(500).send('Erro ao buscar Npdfs.');
+            console.error('Erro ao buscar representante:', err);
+            return res.status(500).send('Erro ao buscar representante.');
         }
-        res.json(results);
+
+        if (representanteResult.length === 0) {
+            return res.status(404).send('Representante não encontrado.');
+        }
+
+        const representanteId = representanteResult[0].id;
+
+        // Consulta para buscar os Npdfs que ainda não foram salvos na tabela pdfs
+        const npdfQuery = `
+            SELECT DISTINCT d.Npdf
+            FROM dados d
+            LEFT JOIN pdfs p ON d.Npdf = p.Npdf AND p.representante_id = ?
+            WHERE d.representante = ? AND d.lote = ? AND p.Npdf IS NULL
+        `;
+
+        db.query(npdfQuery, [representanteId, representante, lote], (err, results) => {
+            if (err) {
+                console.error('Erro ao buscar Npdfs:', err);
+                return res.status(500).send('Erro ao buscar Npdfs.');
+            }
+
+            if (results.length === 0) {
+                return res.status(404).send('Nenhum Npdf encontrado.');
+            }
+
+            res.json(results);
+        });
     });
 });
+
+
 
 // Endpoint para obter uma foto
 app.get('/photos/:id', (req, res) => {
