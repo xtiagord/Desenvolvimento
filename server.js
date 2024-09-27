@@ -2767,24 +2767,29 @@ app.get('/api/pecas', (req, res) => {
     const representanteId = req.query.representante;
     const lote = req.query.lote;
 
+    // Verifica se os parâmetros estão presentes
     if (!representanteId || !lote) {
-        return res.status(400).send('Parâmetros faltando.');
+        return res.status(400).json({ error: 'Parâmetros faltando.' });
     }
 
-    // Exemplo de query para buscar peças
+    // Exemplo de consulta para buscar peças
     const query = 'SELECT npeca FROM pecas WHERE representante_id = ? AND lote = ?';
     db.query(query, [representanteId, lote], (err, results) => {
         if (err) {
             console.error('Erro ao buscar Npecas:', err);
-            return res.status(500).send('Erro no servidor.');
+            return res.status(500).json({ error: 'Erro no servidor ao buscar Npecas.' });
         }
+        
+        // Verifica se não há resultados
         if (results.length === 0) {
-            return res.status(404).send('Nenhuma peça encontrada.');
+            return res.status(404).json({ error: 'Nenhuma peça encontrada.' });
         }
 
-        res.json(results);
+        // Retorna os resultados no formato desejado
+        res.json(results.map(row => ({ npeca: row.npeca })));
     });
 });
+
 
 
 

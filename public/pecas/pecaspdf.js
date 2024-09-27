@@ -54,11 +54,16 @@ document.getElementById('loteSelect').addEventListener('change', function () {
     fetch(`/api/pecas?representante=${representanteId}&lote=${encodeURIComponent(lote)}`)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Erro ao carregar Npdfs');
+                throw new Error('Erro ao carregar Npdfs: ' + response.statusText);
             }
             return response.json();
         })
         .then(npdfs => {
+            // Verifica se o array retornado está vazio
+            if (npdfs.length === 0) {
+                throw new Error('Nenhuma peça encontrada.');
+            }
+            
             npdfs.forEach(npdf => {
                 const option = document.createElement('option');
                 option.value = npdf.npeca;  // Valor será o identificador da peça
@@ -66,7 +71,10 @@ document.getElementById('loteSelect').addEventListener('change', function () {
                 npdfSelect.appendChild(option);
             });
         })
-        .catch(error => console.error('Erro ao carregar Npdfs:', error));
+        .catch(error => {
+            console.error('Erro ao carregar Npdfs:', error.message);
+            alert('Erro ao carregar Npdfs: ' + error.message); // Mostrar erro ao usuário
+        });
 });
 
 
