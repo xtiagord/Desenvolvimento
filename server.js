@@ -473,7 +473,10 @@ app.get('/configuracaoPage/cadastroLote.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public ', 'cadastroLote.html'));
 });
 
-
+// Servir o arquivo validacao.html
+app.get('/public/validacao.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'validacao.html'));
+});
 
 app.get('/api/dados', (req, res) => {
     const sql = "SELECT * FROM dados";
@@ -1265,55 +1268,55 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
                 return res.status(500).send('Erro ao obter o nome do representante.');
             }
 
-        let queries = [];
-        let queryParams = [];
+            let queries = [];
+            let queryParams = [];
 
-        pdfFiles.forEach(file => {
-            const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
-            queries.push('INSERT INTO pdfs (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
-            queryParams.push([newFilename, file.buffer, representanteId, npdf, lote]);
-        });
-
-        photoFiles.forEach(file => {
-            queries.push('INSERT INTO photos (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
-            queryParams.push([file.originalname, file.buffer, representanteId, npdf, lote]);
-        });
-
-        // Função para executar a query de inserção
-        const saveFile = (query, params, callback) => {
-            db.query(query, params, (err, result) => {
-                if (err) {
-                    return callback(err);
-                }
-                callback(null, result);
+            pdfFiles.forEach(file => {
+                const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
+                queries.push('INSERT INTO pdfs (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
+                queryParams.push([newFilename, file.buffer, representanteId, npdf, lote]);
             });
-        };
 
-        // Executar todas as queries
-        let completedQueries = 0;
-        const totalQueries = queries.length;
+            photoFiles.forEach(file => {
+                queries.push('INSERT INTO photos (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)');
+                queryParams.push([file.originalname, file.buffer, representanteId, npdf, lote]);
+            });
 
-        const onQueryComplete = (err) => {
-            if (err) {
-                console.error('Erro ao salvar arquivos:', err);
-                return res.status(500).send('Erro ao salvar os arquivos.');
+            // Função para executar a query de inserção
+            const saveFile = (query, params, callback) => {
+                db.query(query, params, (err, result) => {
+                    if (err) {
+                        return callback(err);
+                    }
+                    callback(null, result);
+                });
+            };
+
+            // Executar todas as queries
+            let completedQueries = 0;
+            const totalQueries = queries.length;
+
+            const onQueryComplete = (err) => {
+                if (err) {
+                    console.error('Erro ao salvar arquivos:', err);
+                    return res.status(500).send('Erro ao salvar os arquivos.');
+                }
+
+                completedQueries++;
+                if (completedQueries === totalQueries) {
+                    res.send('Arquivos salvos com sucesso.');
+                }
+            };
+
+            if (totalQueries === 0) {
+                return res.send('Nenhum arquivo para salvar.');
             }
 
-            completedQueries++;
-            if (completedQueries === totalQueries) {
-                res.send('Arquivos salvos com sucesso.');
-            }
-        };
-
-        if (totalQueries === 0) {
-            return res.send('Nenhum arquivo para salvar.');
-        }
-
-        queries.forEach((query, index) => {
-            saveFile(query, queryParams[index], onQueryComplete);
+            queries.forEach((query, index) => {
+                saveFile(query, queryParams[index], onQueryComplete);
+            });
         });
     });
-});
 });
 
 
@@ -1574,6 +1577,7 @@ app.get('/api/lotes', (req, res) => {
 
 
 // Rota para obter os Npdfs com base no representante e lote selecionados,
+// filtrando apenas os Npdf que ainda não foram salvos na tabela 'pdfs'.
 app.get('/api/npdfs', (req, res) => {
     const representante = req.query.representante;
     const lote = req.query.lote;
@@ -1582,44 +1586,22 @@ app.get('/api/npdfs', (req, res) => {
         return res.status(400).send('Representante e lote são necessários.');
     }
 
-    // Primeiro, buscar o ID do representante com base no nome
-    const representanteQuery = 'SELECT id FROM representantes WHERE nome = ?';
+    // Query para buscar os Npdf da tabela 'dados' que ainda não estão na tabela 'pdfs'
+    const query = `
+        SELECT DISTINCT d.Npdf
+        FROM dados d
+        LEFT JOIN pdfs p ON d.Npdf = p.Npdf
+        WHERE d.representante = ? AND d.lote = ?
+    `;
 
-    db.query(representanteQuery, [representante], (err, representanteResult) => {
+    db.query(query, [representante, lote], (err, results) => {
         if (err) {
-            console.error('Erro ao buscar representante:', err);
-            return res.status(500).send('Erro ao buscar representante.');
+            console.error('Erro ao buscar Npdfs:', err);
+            return res.status(500).send('Erro ao buscar Npdfs.');
         }
-
-        if (representanteResult.length === 0) {
-            return res.status(404).send('Representante não encontrado.');
-        }
-
-        const representanteId = representanteResult[0].id;
-
-        // Consulta para buscar os Npdfs que ainda não foram salvos na tabela pdfs
-        const npdfQuery = `
-            SELECT DISTINCT d.Npdf
-            FROM dados d
-            LEFT JOIN pdfs p ON d.Npdf = p.Npdf AND p.representante_id = ?
-            WHERE d.representante = ? AND d.lote = ? AND p.Npdf IS NULL
-        `;
-
-        db.query(npdfQuery, [representanteId, representante, lote], (err, results) => {
-            if (err) {
-                console.error('Erro ao buscar Npdfs:', err);
-                return res.status(500).send('Erro ao buscar Npdfs.');
-            }
-
-            if (results.length === 0) {
-                return res.status(404).send('Nenhum Npdf encontrado.');
-            }
-
-            res.json(results);
-        });
+        res.json(results);
     });
 });
-
 
 
 // Endpoint para obter uma foto
@@ -2091,15 +2073,15 @@ app.post('/api/compradores', (req, res) => {
 app.get('/api/verificar_comprador', (req, res) => {
     const { cpf_cnpj, representante_id } = req.query;
     const query = 'SELECT * FROM compradores WHERE cpf_cnpj = ? AND representante_id = ?';
-    
+
     db.query(query, [cpf_cnpj, representante_id], (err, results) => {
         if (err) return res.status(500).send(err);
-        
+
         // Se houver resultados, significa que existe um comprador com o mesmo CPF/CNPJ e representante
         if (results.length > 0) {
             return res.status(400).send('Comprador já cadastrado.');
         }
-        
+
         // Se não houver duplicidade, retorna OK
         res.sendStatus(200);
     });
@@ -2326,7 +2308,7 @@ app.get('/api/pdf', (req, res) => {
         FROM pdfs
         WHERE representante_id = ? AND lote = ? AND Npdf = ?
     `;
-    
+
     db.query(query, [representante_id, lote_id, npdf], (err, results) => {
         if (err) {
             console.error('Erro ao buscar o PDF:', err);
@@ -2372,14 +2354,20 @@ app.delete('/api/compradores/:id', (req, res) => {
 
 
 app.get('/pecaspdf', (req, res) => {
-    const npeca = req.query.npeca; // Captura o npeca da query
     const representanteId = req.query.representante_id;
-    const loteId = req.query.lote_id;
+    const loteId = req.query.lote;
+    const npeca = req.query.npeca;
 
-    let query = 'SELECT id, nome_pdf, data FROM pecaspdf WHERE 1=1';
+    console.log(`Consulta com npeca: ${npeca}, representanteId: ${representanteId}, loteId: ${loteId}`);
+
+    let query = 'SELECT nome_pdf, data FROM pecaspdf WHERE 1=1';
     let params = [];
 
-    // Filtros opcionais
+    if (npeca) {
+        query += ' AND npeca = ?';
+        params.push(npeca);
+    }
+
     if (representanteId) {
         query += ' AND representante_id = ?';
         params.push(representanteId);
@@ -2390,43 +2378,29 @@ app.get('/pecaspdf', (req, res) => {
         params.push(loteId);
     }
 
-    if (npeca) {
-        query += ' AND npeca = ?'; // Filtro por npeca
-        params.push(npeca);
-    }
-
     db.query(query, params, (err, results) => {
         if (err) {
             console.error('Erro ao buscar PDFs:', err);
             return res.status(500).send('Erro ao buscar PDFs.');
         }
 
-        // Se `npeca` estiver presente, significa que o usuário está solicitando o PDF específico
-        if (npeca) {
-            if (results.length > 0) {
-                const pdfData = results[0].data; // Assume que os dados do PDF estão no campo `data`
+        if (results.length > 0) {
+            const pdfData = results[0].data; // assume que os dados do PDF estão no campo `data`
 
-                if (!pdfData || !Buffer.isBuffer(pdfData)) {
-                    return res.status(404).send('PDF não encontrado.');
-                }
-
-                // Configura os cabeçalhos para o PDF
-                res.setHeader('Content-Type', 'application/pdf');
-                res.setHeader('Content-Disposition', `inline; filename="${results[0].nome_pdf}"`);
-                res.send(pdfData); // Envia os dados do PDF
-            } else {
-                res.status(404).send('Nenhum PDF encontrado para os critérios fornecidos.');
+            if (!pdfData || !Buffer.isBuffer(pdfData)) {
+                return res.status(404).send('PDF não encontrado.');
             }
+
+            // Configura os cabeçalhos para o PDF
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename="${results[0].nome_pdf}"`);
+            res.send(pdfData); // Envia os dados do PDF
         } else {
-            // Caso contrário, retorna apenas os metadados
-            const metadados = results.map(row => ({
-                id: row.id,
-                nome_pdf: row.nome_pdf
-            }));
-            res.json(metadados);
+            res.status(404).send('Nenhum PDF encontrado para os critérios fornecidos.');
         }
     });
 });
+
 
 app.post('/upload/files', upload.fields([
     { name: 'pdfpecas', maxCount: 200 },
@@ -2804,7 +2778,7 @@ app.get('/api/pecas', (req, res) => {
             console.error('Erro ao buscar Npecas:', err);
             return res.status(500).json({ error: 'Erro no servidor ao buscar Npecas.' });
         }
-        
+
         // Verifica se não há resultados
         if (results.length === 0) {
             return res.status(404).json({ error: 'Nenhuma peça encontrada.' });
@@ -2814,10 +2788,6 @@ app.get('/api/pecas', (req, res) => {
         res.json(results.map(row => ({ npeca: row.npeca })));
     });
 });
-
-
-
-
 
 // Middleware para tratamento de erros
 app.use((err, req, res, next) => {
@@ -2865,10 +2835,6 @@ app.post('/api/setLotePadrao', (req, res) => {
     });
 });
 
-
-
-
-
 // Endpoint para buscar o lote padrão
 app.get('/api/lotePadrao', (req, res) => {
     const query = 'SELECT lote_padrao FROM configuracoes LIMIT 1';
@@ -2884,3 +2850,418 @@ app.get('/api/lotePadrao', (req, res) => {
         }
     });
 });
+
+// Rota para salvar comprador
+app.post('/api/comprador-representante', (req, res) => {
+    const { representante_id, nome, cpf_cnpj, rg, apelido } = req.body;
+    console.log('Dados recebidos:', req.body);
+
+    const query = `INSERT INTO representantes_compradores (representante_id, nome_comprador, cpf_cnpj, rg, apelido) VALUES (?, ?, ?, ?, ?)`;
+
+    db.query(query, [representante_id, nome, cpf_cnpj, rg, apelido], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erro ao salvar o comprador' });
+        }
+        res.status(200).json({ message: 'Comprador salvo com sucesso!' });
+    });
+});
+
+
+// Endpoint para buscar compradores associados a um representante
+app.get('/api/representantes_compradores/:representante_id', (req, res) => {
+    const { representante_id } = req.params;
+
+    const query = `
+        SELECT rc.id, rc.nome_comprador, rc.cpf_cnpj, rc.rg, rc.apelido
+        FROM representantes_compradores rc
+        WHERE rc.representante_id = ?`;
+
+    db.query(query, [representante_id], (error, results) => {
+        if (error) {
+            console.error('Erro na consulta SQL:', error);
+            return res.status(500).json({ error: 'Erro ao buscar compradores.' });
+        }
+        res.json(results);
+    });
+});
+
+// Endpoint para buscar informações de um comprador específico
+app.get('/api/comprador/:comprador_id', (req, res) => {
+    const { comprador_id } = req.params;
+
+    const query = `
+        SELECT rc.apelido, rc.cpf_cnpj, rc.rg
+        FROM representantes_compradores rc
+        WHERE rc.id = ?`;
+
+    db.query(query, [comprador_id], (error, results) => {
+        if (error) {
+            console.error('Erro na consulta SQL:', error);
+            return res.status(500).json({ error: 'Erro ao buscar informações do comprador.' });
+        }
+        
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Comprador não encontrado.' });
+        }
+
+        res.json(results[0]); // Retorna o primeiro resultado
+    });
+});
+
+// Endpoint para buscar máquinas associadas a um representante
+app.get('/api/maquinas_representante/:representante_id', (req, res) => {
+    const { representante_id } = req.params;
+
+    const query = `
+        SELECT e.idequipamentos AS id_maquina, e.nomeequipamento AS nome_maquina
+        FROM representante_equipamentos re
+        JOIN equipamentos e ON re.id_equipamento = e.idequipamentos
+        WHERE re.id_representante = ?`;
+
+    db.query(query, [representante_id], (error, results) => {
+        if (error) {
+            console.error('Erro na consulta SQL:', error);
+            return res.status(500).json({ error: 'Erro ao buscar máquinas.' });
+        }
+        res.json(results);
+    });
+});
+
+// Endpoint para cadastrar um novo tipo
+app.post('/api/tipos', (req, res) => {
+    const { numeroTipo, valorPd, valorPt, valorRh, tipoMoeda, valorMoeda } = req.body; // Inclua tipoMoeda aqui
+
+    const query = `
+        INSERT INTO tipos (numero_tipo, valor_pd, valor_pt, valor_rh, tipo_moeda, valor_moeda)
+        VALUES (?, ?, ?, ?, ?, ?)`;
+
+    db.query(query, [numeroTipo, valorPd, valorPt, valorRh, tipoMoeda, valorMoeda], (error, results) => {
+        if (error) {
+            console.error('Erro ao cadastrar tipo:', error);
+            return res.status(500).json({ error: 'Erro ao cadastrar tipo.' });
+        }
+        res.status(201).json({ message: 'Tipo cadastrado com sucesso!', id: results.insertId });
+    });
+});
+
+// Endpoint para buscar o tipo
+app.get('/api/tipos', (req, res) => {
+    const query = 'SELECT numero_tipo FROM tipos';
+    db.query(query, (error, results) => {
+        if (error) {
+            console.error('Erro ao buscar tipo:', error);
+            return res.status(500).send('Erro ao buscar tipo.');
+        }
+        if (results.length > 0) {
+            res.status(200).json(results); // Retorne todos os resultados
+        } else {
+            res.status(404).send('Tipo não encontrado.');
+        }
+    });
+});
+
+app.post('/api/upload-provisorio', (req, res) => {
+    console.log(req.body); // Veja os dados recebidos
+
+    const { comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo, linhas } = req.body;
+
+    // Inserindo os dados principais na tabela_provisoria
+    const sql = 'INSERT INTO tabela_provisoria (comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    
+    db.query(sql, [comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo], (err, result) => {
+        if (err) {
+            console.error('Erro ao salvar no banco de dados:', err);
+            return res.status(500).json({ message: 'Erro ao salvar no banco de dados: ' + err.message });
+        }
+
+        const provisorio_id = result.insertId; // ID da tabela provisória
+
+        // Inserindo as linhas, se fornecidas
+        if (linhas) {
+            let linhasData;
+            try {
+                linhasData = JSON.parse(linhas); // Converte as linhas que vêm no body para JSON
+            } catch (parseError) {
+                console.error('Erro ao analisar linhas:', parseError);
+                return res.status(400).json({ message: 'Erro ao analisar linhas: ' + parseError.message });
+            }
+
+            // Verifique se linhasData é um array
+            if (!Array.isArray(linhasData) || linhasData.length === 0) {
+                return res.status(400).json({ message: 'As linhas devem ser um array válido.' });
+            }
+
+            // Inserindo as linhas na tabela de linhas_provisorias
+            const linhasArray = linhasData.map(linha => [provisorio_id, linha.numeroLinha, linha.kg, linha.pd, linha.pt, linha.rh, linha.valor_kg, linha.valor]);
+            const sqlLinhas = 'INSERT INTO linhas_provisorias (provisorio_id, numeroLinha, kg, pd, pt, rh, valor_kg, valor) VALUES ?';
+
+            db.query(sqlLinhas, [linhasArray], (err, result) => {
+                if (err) {
+                    console.error('Erro ao salvar linhas no banco de dados:', err);
+                    return res.status(500).json({ message: 'Erro ao salvar linhas no banco de dados: ' + err.message });
+                }
+
+                res.json({ message: 'Dados e linhas enviados com sucesso!' });
+            });
+        } else {
+            res.json({ message: 'Dados enviados com sucesso, mas nenhuma linha foi fornecida.' });
+        }
+    });
+});
+
+
+// Endpoint para buscar todos os envios
+app.get('/api/envios', (req, res) => {
+    const query = `
+        SELECT
+            tp.id AS envio_id,
+            tp.comprador_id,
+            rp.nome AS nome_representante,
+            tp.data AS data_envio,
+            tp.hora AS hora_envio,
+            tp.apelido,
+            tp.cpf_cnpj,
+            tp.rg,
+            tp.maquina_id,
+            tp.tipo,
+            lp.numeroLinha,
+            lp.kg,
+            lp.pd,
+            lp.pt,
+            lp.rh,
+            lp.valor_kg,
+            lp.valor,
+            ip.imagem
+        FROM
+            tabela_provisoria tp
+        LEFT JOIN
+            linhas_provisorias lp ON tp.id = lp.provisorio_id
+        LEFT JOIN
+            imagens_provisorias ip ON lp.id = ip.linha_id
+        LEFT JOIN
+            representantes rp ON tp.representante_id = rp.id
+        ORDER BY
+            tp.data DESC, tp.hora DESC;
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar dados:', err);
+            return res.status(500).json({ error: 'Erro ao buscar dados' });
+        }
+
+        const envios = {};
+        results.forEach(row => {
+            if (!envios[row.envio_id]) {
+                envios[row.envio_id] = {
+                    envio_id: row.envio_id,
+                    comprador_id: row.comprador_id,
+                    representante_id: row.representante_id,
+                    nome_representante: row.nome_representante,
+                    data_envio: row.data_envio,
+                    hora_envio: row.hora_envio,
+                    apelido: row.apelido,
+                    cpf_cnpj: row.cpf_cnpj,
+                    rg: row.rg,
+                    maquina_id: row.maquina_id,
+                    tipo: row.tipo,
+                    linhas: [] // Inicializa o array de linhas
+                };
+            }
+
+            // Adiciona linhas apenas se existirem
+            if (row.numeroLinha !== null) { // Verifica se existe um número de linha
+                envios[row.envio_id].linhas.push({
+                    numeroLinha: row.numeroLinha,
+                    kg: row.kg,
+                    pd: row.pd,
+                    pt: row.pt,
+                    rh: row.rh,
+                    valor_kg: row.valor_kg,
+                    valor: row.valor,
+                    imagem: row.imagem
+                });
+            }
+        });
+
+        const enviosArray = Object.values(envios);
+        res.json(enviosArray);
+    });
+});
+
+
+app.get('/api/envios/:envioId', (req, res) => {
+    const envioId = req.params.envioId;
+
+    const query = `
+        SELECT
+            tp.id AS envio_id,
+            rp.nome AS nome_representante,
+            rc.nome_comprador,  -- Nome do comprador
+            eq.nomeequipamento,  -- Nome da máquina
+            tp.data AS data_envio,
+            tp.hora AS hora_envio,
+            tp.apelido,
+            tp.cpf_cnpj,
+            tp.rg,
+            tp.tipo,
+            lp.numeroLinha,
+            lp.kg,
+            lp.pd,
+            lp.pt,
+            lp.rh,
+            lp.valor_kg,
+            lp.valor,
+            ip.imagem
+        FROM
+            tabela_provisoria tp
+        LEFT JOIN
+            linhas_provisorias lp ON tp.id = lp.provisorio_id
+        LEFT JOIN
+            imagens_provisorias ip ON lp.id = ip.linha_id
+        LEFT JOIN
+            representantes rp ON tp.representante_id = rp.id
+        LEFT JOIN
+            representantes_compradores rc ON tp.comprador_id = rc.id  -- Adiciona join para o comprador
+        LEFT JOIN
+            equipamentos eq ON tp.maquina_id = eq.idequipamentos  -- Adiciona join para a máquina
+        WHERE
+            tp.id = ?; -- Filtra pelo envioId
+    `;
+
+    db.query(query, [envioId], (err, results) => {
+        if (err) {
+            console.error('Erro ao buscar dados do envio:', err);
+            return res.status(500).json({ error: 'Erro ao buscar dados do envio' });
+        }
+
+        // Se não encontrar nenhum envio, retorne um erro 404
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Envio não encontrado' });
+        }
+
+        const envio = results[0]; // Assume que o envio é único (id é único)
+        const linhas = results.map(row => ({
+            numeroLinha: row.numeroLinha,
+            kg: row.kg,
+            pd: row.pd,
+            pt: row.pt,
+            rh: row.rh,
+            valor_kg: row.valor_kg,
+            valor: row.valor,
+            imagem: row.imagem
+        })).filter(linha => linha.numeroLinha !== null); // Filtra linhas sem número
+
+        // Adiciona as linhas ao objeto de retorno
+        envio.linhas = linhas;
+
+        // Adiciona o nome do comprador e o nome da máquina ao objeto de retorno
+        envio.comprador = envio.nome_comprador || 'Não disponível';
+        envio.maquina = envio.nomeequipamento || 'Não disponível';
+
+        // Retorna os dados do envio
+        res.json(envio);
+    });
+});
+
+
+const obterIdDoRepresentante = (representanteNome) => {
+    return new Promise((resolve, reject) => {
+        const query = 'SELECT id FROM representantes WHERE nome = ?';
+        
+        db.query(query, [representanteNome], (err, results) => {
+            if (err) {
+                return reject(err);
+            }
+            if (results.length === 0) {
+                return reject(new Error('Representante não encontrado'));
+            }
+            resolve(results[0].id);
+        });
+    });
+};
+// Função para buscar o último Npdf associado ao representante
+const getLastNpdf = (representante) => {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT MAX(Npdf) AS lastNpdf FROM dados WHERE representante = ?`;
+        db.query(query, [representante], (err, results) => {
+            if (err) {
+                return reject(err);
+            }
+            const lastNpdf = results[0].lastNpdf || 0;
+            resolve(lastNpdf);
+        });
+    });
+};
+
+// Endpoint para processar os dados
+app.post('/api/envios/conferir', async (req, res) => {
+    const { linhas, representante, dataEnvio, horaEnvio, fornecedor, sn, lote, tipo } = req.body;
+
+    if (!linhas || linhas.length === 0) {
+        return res.status(400).json({ error: 'Nenhuma linha fornecida' });
+    }
+
+    try {
+        const representanteId = await obterIdDoRepresentante(representante);
+        
+        // Buscar o último Npdf associado ao representante
+        const lastNpdf = await getLastNpdf(representante);  // Passar o ID do representante aqui
+        let nextNpdf = lastNpdf + 1;
+
+        // Inserir cada linha na tabela dados com o novo Npdf
+        const query = `
+            INSERT INTO dados (Npdf, kg, pd, pt, rh, valorkg, Valor, data, hora, representante, fornecedor, sn, lote, tipo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `;
+
+        for (const linha of linhas) {
+            const { kg, pd, pt, rh, valorkg, Valor } = linha;
+
+            await new Promise((resolve, reject) => {
+                db.query(query, [
+                    nextNpdf, kg, pd, pt, rh, valorkg, Valor, dataEnvio, horaEnvio, representante, fornecedor, sn, lote, tipo
+                ], (err, results) => {
+                    if (err) {
+                        console.error('Erro ao inserir dados:', err);
+                        return reject(err);
+                    }
+                    resolve(results);
+                });
+            });
+
+            // Incrementa o Npdf para a próxima linha
+            nextNpdf++;
+        }
+
+        // Excluir os dados das tabelas provisórias
+        const deleteQuery = `
+            DELETE lp, tp
+            FROM linhas_provisorias lp
+            JOIN tabela_provisoria tp ON lp.provisorio_id = tp.id
+            WHERE tp.representante_id = ?; -- Altere a condição conforme necessário
+        `;
+
+        await new Promise((resolve, reject) => {
+            db.query(deleteQuery, [representanteId], (err) => {  // Passar o ID do representante aqui
+                if (err) {
+                    console.error('Erro ao excluir dados provisórios:', err);
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Erro ao processar a requisição:', err);
+        res.status(500).json({ error: 'Erro ao processar os dados' });
+    }
+});
+
+
+
+
+
+
+

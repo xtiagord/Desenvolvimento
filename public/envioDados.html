@@ -7,7 +7,8 @@
     <title>PDF Reader</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="/dashboard/cssdashboard.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="/envioDados/envioDados.css">
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -79,7 +80,7 @@
     <!-- Barra lateral que desliza -->
     <div class="sidebar" id="mySidebar">
         <a href="#" id="cadastrarComprador" onclick="openModal()">Cadastrar Comprador</a>
-        <a href="#">Link 2</a>
+        <a href="#" id="cadastraTipo" class="btn btn-primary" data-toggle="modal" data-target="#cadastrarTipoModal">Cadastrar Tipo</a>
         <a href="#">Link 3</a>
         <!-- Adicione mais links conforme necessário -->
     </div>
@@ -97,7 +98,7 @@
                     <h4 class="card-tile">Registros de Catalisador</h4>
                 </div>
                 <div class="card-body">
-                    <form id="form-registrocatalizador">
+                    <form id="form-registrocatalizador"  enctype="multipart/form-data">
                         <div class="container">
                             <div class="row">
                                 <div class="col-md-3 mb-2">
@@ -166,45 +167,57 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md-2 mb-2">
-                                    <div class="form-group">
-                                        <label for="cpf_cnpj">KG</label>
-                                        <input type="text" class="form-control" id="kg" name="kg" required>
+                            
+                            <div id="inputContainer">
+                                <div class="row input-row mb-1">
+                                    <div class="col-md-1">
+                                        <label>Nº</label>
+                                        <input type="text" class="form-control" id="numeroLinha" value="1" readonly>
+                                    </div>
+                                    <div class="col-md-1  mb-2">
+                                        <div class="form-group">
+                                            <label for="kg">KG</label>
+                                            <input type="text" class="form-control format-input" id="kg" name="kg" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <div class="form-group">
+                                            <label for="pd">Pd</label>
+                                            <input type="text" class="form-control format-input" id="pd" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <div class="form-group">
+                                            <label for="pt">Pt</label>
+                                            <input class="form-control format-input" id="pt" type="text" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <div class="form-group">
+                                            <label for="rh">Rh</label>
+                                            <input class="form-control format-input" id="rh" type="text" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <div class="form-group">
+                                            <label for="valor_kg">Valor KG</label>
+                                            <input class="form-control format-input" id="valor_kg" type="text" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <div class="form-group">
+                                            <label for="valor">Valor</label>
+                                            <input class="form-control format-input" id="valor" type="text" required>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="kg">Pd</label>
-                                        <input type="text" class="form-control" id="pd" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mr-0">
-                                    <div class="form-group">
-                                        <label for="kg">Pt</label>
-                                        <input class="form-control" id="pt" type="text" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mr-0">
-                                    <div class="form-group">
-                                        <label for="kg">Rh</label>
-                                        <input class="form-control" id="rh" type="text" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mr-0">
-                                    <div class="form-group">
-                                        <label for="kg">Valor KG</label>
-                                        <input class="form-control" id="valor_kg" type="text" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mr-0">
-                                    <div class="form-group">
-                                        <label for="kg">Valor</label>
-                                        <input class="form-control" id="valor" type="text" required>
-                                    </div>
-                                </div>
+                                
+                            </div>
                                 <div class="form-group">
-                                    <button type="submit" class="btn btn-success">Enviar Dados</button>
+                                    <button id="addRow" class="btn btn-primary mt-2">Adicionar Linha</button>
+                                    <label for="uploadImage" class="btn btn-warning mt-3">Selecionar Imagem</label>
+                                    <input type="file" id="uploadImage" name="imagem" multiple style="display: none;">
+                                    <button type="button" id="submitButton" class="btn btn-success mt-2">Enviar Dados</button>
                                 </div>
                             </div>
                         </div>
@@ -237,33 +250,87 @@
                     </div>
                     <div class="form-group">
                         <label for="cpf_cnpj">CPF/CNPJ</label>
-                        <input type="text" class="form-control" id="cpf_cnpj" name="cpf_cnpj" required>
+                        <input type="text" class="form-control" id="cpf_cnpj_mod" name="cpf_cnpj" required pattern="(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2})" title="Formato: 123.456.789-01 ou 12.345.678/9012-34">
                     </div>
                     <div class="form-group">
                         <label for="rg">RG</label>
-                        <input type="text" class="form-control" id="rg" name="rg" required>
+                        <input type="text" class="form-control" id="rg_mod" name="rg" required pattern="\d{1,2}\.\d{3}\.\d{3}-\d" title="Formato: 12.345.678-9">
                     </div>
+                    
                     <div class="form-group">
                         <label for="comprador_apelido">Apelido</label>
                         <input type="text" class="form-control" id="comprador_apelido" name="apelido" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Salvar Comprador</button>
                 </form>
+                
             </div>
         </div>
     </div>
-
+<!-- Modal CADASTRO TIPO -->
+ 
+<div class="modal fade" id="cadastrarTipoModal" tabindex="-1" role="dialog" aria-labelledby="cadastrarTipoModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cadastrarTipoModalLabel">Cadastrar Tipo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="tipoForm">
+                    <div class="form-group">
+                        <label for="numeroTipo">Número do Tipo</label>
+                        <input type="number" class="form-control" id="numeroTipo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorPd">Valor PD</label>
+                        <input type="number" class="form-control" id="valorPd" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorPt">Valor PT</label>
+                        <input type="number" class="form-control" id="valorPt" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="valorRh">Valor RH</label>
+                        <input type="number" class="form-control" id="valorRh" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipoMoeda">Valor Moeda</label>
+                        <div class="input-group">
+                            <select class="form-control" id="tipoMoeda" required>
+                                <option value="">Selecione uma moeda</option>
+                                <option value="BRL">R$ - Real</option>
+                                <option value="USD">US$ - Dólar</option>
+                                <option value="PYG">Gs - Guarani</option>
+                            </select>
+                            <input type="number" class="form-control" id="valorMoeda" placeholder="Digite o valor" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="salvarTipo">Salvar Tipo</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="/envioDados/envioDados.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script src="/userAcess.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cleave.js/dist/cleave.min.js"></script>
+
+
 </body>
 
 </html>

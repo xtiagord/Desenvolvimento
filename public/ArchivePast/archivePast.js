@@ -67,21 +67,34 @@ document.getElementById('loteSelect').addEventListener('change', function () {
     npdfSelect.innerHTML = '';  // Limpar opções anteriores de Npdfs
     
     fetch(`/api/npdfs?representante=${encodeURIComponent(representante)}&lote=${encodeURIComponent(lote)}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao carregar Npdfs');
-            }
-            return response.json();
-        })
-        .then(npdfs => {
+    .then(response => {
+        if (response.status === 404) {
+            // Se a API retornar 404, mostre a mensagem "Nenhum Npdf disponível"
+            const option = document.createElement('option');
+            option.textContent = 'Nenhum Npdf disponível';
+            npdfSelect.appendChild(option);
+            return; // Retorna para não processar mais nada
+        } else if (!response.ok) {
+            throw new Error('Erro ao carregar Npdfs');
+        }
+        return response.json();
+    })
+    .then(npdfs => {
+        if (npdfs.length === 0) {
+            // Se a resposta JSON estiver vazia, adicione a mensagem
+            const option = document.createElement('option');
+            option.textContent = 'Nenhum Npdf disponível';
+            npdfSelect.appendChild(option);
+        } else {
             npdfs.forEach(npdf => {
                 const option = document.createElement('option');
                 option.value = npdf.Npdf;  // Valor será o identificador da peça
                 option.textContent = npdf.Npdf; // Texto será o nome ou identificador
                 npdfSelect.appendChild(option);
             });
-        })
-        .catch(error => console.error('Erro ao carregar Npdfs:', error));
+        }
+    })
+    .catch(error => console.error('Erro ao carregar Npdfs:', error));
 });
 
 document.getElementById('uploadForm').addEventListener('submit', async function (event) {

@@ -90,3 +90,8 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+ /* Remove o fundo escuro do modal */
+ .modal-backdrop {
+    display: none;
+}
