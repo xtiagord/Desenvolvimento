@@ -2184,6 +2184,7 @@ LEFT JOIN (
         SUM(p.valor) AS valor_total_pecas
     FROM 
         pecas p
+    ${lote ? 'WHERE p.lote = ?' : '1=1'}
     GROUP BY 
         p.representante_id
 ) AS pecas_soma ON r.id = pecas_soma.representante_id
@@ -2195,15 +2196,12 @@ GROUP BY
     adiantamentos_soma.saldo_adiantamentos
 ORDER BY
     r.nome;
-
-
-
-
     `;
 
     const params = [];
     if (lote) {
         params.push(lote);
+        params.push(lote); // Adiciona o lote duas vezes, pois é usado em duas subconsultas
     }
 
     db.query(query, params, (err, results) => {
@@ -2222,6 +2220,7 @@ ORDER BY
         res.json(adjustedResults);
     });
 });
+
 
 // Rota para obter o associado baseado no representante_id
 app.get('/api/associado/:representanteId', (req, res) => {
