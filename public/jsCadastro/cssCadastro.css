@@ -257,3 +257,15 @@ body {
     height: 300px; /* Ajuste a altura conforme necessário */
     overflow: auto; /* Adiciona rolagem se o conteúdo exceder a altura */
 }
+
+.draggable {
+    cursor: move; /* Muda o cursor quando o mouse passa sobre a linha */
+}
+
+.saldo-positivo {
+    background-color: #dff0d8; /* Verde claro para saldo positivo */
+}
+
+.saldo-negativo {
+    background-color: #f2dede; /* Vermelho claro para saldo negativo */
+}

@@ -2898,7 +2898,7 @@ app.get('/api/comprador/:comprador_id', (req, res) => {
             console.error('Erro na consulta SQL:', error);
             return res.status(500).json({ error: 'Erro ao buscar informações do comprador.' });
         }
-        
+
         if (results.length === 0) {
             return res.status(404).json({ error: 'Comprador não encontrado.' });
         }
@@ -2966,7 +2966,7 @@ app.post('/api/upload-provisorio', (req, res) => {
 
     // Inserindo os dados principais na tabela_provisoria
     const sql = 'INSERT INTO tabela_provisoria (comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-    
+
     db.query(sql, [comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo], (err, result) => {
         if (err) {
             console.error('Erro ao salvar no banco de dados:', err);
@@ -3167,7 +3167,7 @@ app.get('/api/envios/:envioId', (req, res) => {
 const obterIdDoRepresentante = (representanteNome) => {
     return new Promise((resolve, reject) => {
         const query = 'SELECT id FROM representantes WHERE nome = ?';
-        
+
         db.query(query, [representanteNome], (err, results) => {
             if (err) {
                 return reject(err);
@@ -3203,7 +3203,7 @@ app.post('/api/envios/conferir', async (req, res) => {
 
     try {
         const representanteId = await obterIdDoRepresentante(representante);
-        
+
         // Buscar o último Npdf associado ao representante
         const lastNpdf = await getLastNpdf(representante);  // Passar o ID do representante aqui
         let nextNpdf = lastNpdf + 1;
@@ -3257,6 +3257,48 @@ app.post('/api/envios/conferir', async (req, res) => {
         res.status(500).json({ error: 'Erro ao processar os dados' });
     }
 });
+
+
+app.get('/api/movimentacao-financeira', (req, res) => {
+    const loteId = req.query.lote;
+
+    console.log("Recebendo requisição para lote:", loteId);
+
+    const sql = `
+      SELECT 
+          representante,
+          lote,
+          SUM(kg * COALESCE(pd, 0)) AS total_pd_calculado,
+          SUM(kg) AS total_kg,
+          SUM(kg * COALESCE(pt, 0)) AS total_pt_calculado,
+          SUM(kg * COALESCE(rh, 0)) AS total_rh_calculado,
+          SUM(kg * COALESCE(pd, 0)) / NULLIF(SUM(kg), 0) AS media_pd_por_kg,
+          SUM(kg * COALESCE(pt, 0)) / NULLIF(SUM(kg), 0) AS media_pt_por_kg,
+          SUM(kg * COALESCE(rh, 0)) / NULLIF(SUM(kg), 0) AS media_rh_por_kg,
+          SUM(COALESCE(Valor, 0)) AS valor_total,
+          (SUM(kg * COALESCE(pd, 0)) / NULLIF(SUM(kg), 0)) * (SUM(kg) / 1000) AS resultado_pd,
+          (SUM(kg * COALESCE(pt, 0)) / NULLIF(SUM(kg), 0)) * (SUM(kg) / 1000) AS resultado_pt,
+          (SUM(kg * COALESCE(rh, 0)) / NULLIF(SUM(kg), 0)) * (SUM(kg) / 1000) AS resultado_rh
+      FROM 
+          dados
+      WHERE 
+          lote = ?  -- Removendo o filtro de representante
+      GROUP BY 
+          representante, lote;
+    `;
+
+    db.query(sql, [loteId], (err, results) => {
+        if (err) {
+            console.error("Erro ao buscar dados:", err);
+            return res.status(500).send("Erro ao buscar dados do banco de dados.");
+        }
+
+        console.log("Resultados da consulta:", results);
+        res.json(results);
+    });
+});
+
+
 
 
 

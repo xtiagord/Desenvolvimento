@@ -1,184 +1,184 @@
-$(document).ready(function() {
-$('#salvarCadastro').click(function() {
-    // Aqui você pode processar os dados do formulário
+$(document).ready(function () {
+    $('#salvarCadastro').click(function () {
+        // Aqui você pode processar os dados do formulário
+        const nome = $('#nome').val();
+        const maquina = $('#maquina').val();
+
+        // Exemplo de como você pode usar os dados (enviar para o servidor, etc.)
+        console.log("Nome:", nome);
+        console.log("Máquina:", maquina);
+
+        // Limpar os campos do formulário após salvar
+        $('#nome').val('');
+        $('#maquina').val('');
+
+        // Fechar o modal após salvar
+        $('#cadastroModal').modal('hide');
+    });
+});
+$(document).ready(function () {
+    // Função para enviar dados de cadastro de equipamento via AJAX
+    $('#saveMaquinaButton').click(function () {
+        const nomeequipamento = $('#equipamentoNome').val();
+        const porcentagemPt = $('#equipamentoPt').val();
+        const porcentagemRh = $('#equipamentoRh').val();
+        const porcentagemPd = $('#equipamentoPd').val();
+
+        $.ajax({
+            url: '/api/equipamentos',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ nomeequipamento, porcentagemPt, porcentagemRh, porcentagemPd }),
+            success: function (response) {
+                alert(response); // Exibir mensagem de sucesso
+                $('#maquinaModal').modal('hide'); // Fechar modal após sucesso
+
+
+                $('#equipamentoNome').val('');
+                $('#equipamentoPt').val('');
+                $('#equipamentoRh').val('');
+                $('#equipamentoPd').val('');
+                carregarOpcoesEquipamentos();
+            },
+            error: function (err) {
+                console.error("Erro ao cadastrar equipamento:", err);
+                alert("Erro ao cadastrar equipamento");
+            }
+        });
+    });
+
+    // Função para carregar opções de equipamentos no select
+    function carregarOpcoesEquipamentos() {
+        $.ajax({
+            url: '/api/equipamentos',
+            method: 'GET',
+            success: function (data) {
+                const selectMaquina = $('#maquina');
+                selectMaquina.empty(); // Limpar opções existentes
+
+                data.forEach(item => {
+                    selectMaquina.append(`<option value="${item.idequipamentos}">${item.nomeequipamento}</option>`);
+                });
+            },
+            error: function (err) {
+                console.error("Erro ao carregar equipamentos:", err);
+            }
+        });
+    }
+
+    carregarOpcoesEquipamentos();
+    // Submeter o formulário de cadastro de representante
+    $('#cadastroForm').submit(function (event) {
+        event.preventDefault();
+
+        const formData = $(this).serialize();
+
+        $.ajax({
+            url: '/api/representantes',
+            method: 'POST',
+            data: formData,
+            success: function (response) {
+                console.log('Representante cadastrado com sucesso:', response);
+                // Limpar formulário ou fazer outras operações após o cadastro
+            },
+            error: function (err) {
+                console.error('Erro ao cadastrar representante:', err);
+                // Tratar erros ou informar ao usuário
+            }
+        });
+    });
+});
+$('#salvarCadastro').click(function () {
     const nome = $('#nome').val();
     const maquina = $('#maquina').val();
-
-    // Exemplo de como você pode usar os dados (enviar para o servidor, etc.)
-    console.log("Nome:", nome);
-    console.log("Máquina:", maquina);
-
     // Limpar os campos do formulário após salvar
     $('#nome').val('');
     $('#maquina').val('');
 
     // Fechar o modal após salvar
     $('#cadastroModal').modal('hide');
-});
-});
-$(document).ready(function() {
-// Função para enviar dados de cadastro de equipamento via AJAX
-$('#saveMaquinaButton').click(function() {
-    const nomeequipamento = $('#equipamentoNome').val();
-    const porcentagemPt = $('#equipamentoPt').val();
-    const porcentagemRh = $('#equipamentoRh').val();
-    const porcentagemPd = $('#equipamentoPd').val();
-
-    $.ajax({
-        url: '/api/equipamentos',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ nomeequipamento, porcentagemPt, porcentagemRh, porcentagemPd }),
-        success: function(response) {
-            alert(response); // Exibir mensagem de sucesso
-            $('#maquinaModal').modal('hide'); // Fechar modal após sucesso
-            
-            
-            $('#equipamentoNome').val('');
-        $('#equipamentoPt').val('');
-        $('#equipamentoRh').val('');
-        $('#equipamentoPd').val('');
-            carregarOpcoesEquipamentos();
-        },
-        error: function(err) {
-            console.error("Erro ao cadastrar equipamento:", err);
-            alert("Erro ao cadastrar equipamento");
-        }
-    });
-});
-
-// Função para carregar opções de equipamentos no select
-function carregarOpcoesEquipamentos() {
-$.ajax({
-    url: '/api/equipamentos',
-    method: 'GET',
-    success: function(data) {
-        const selectMaquina = $('#maquina');
-        selectMaquina.empty(); // Limpar opções existentes
-
-        data.forEach(item => {
-            selectMaquina.append(`<option value="${item.idequipamentos}">${item.nomeequipamento}</option>`);
-        });
-    },
-    error: function(err) {
-        console.error("Erro ao carregar equipamentos:", err);
-    }
-});
-}
-
-carregarOpcoesEquipamentos();
-// Submeter o formulário de cadastro de representante
-$('#cadastroForm').submit(function(event) {
-    event.preventDefault();
-    
-    const formData = $(this).serialize();
 
     $.ajax({
         url: '/api/representantes',
         method: 'POST',
-        data: formData,
-        success: function(response) {
-            console.log('Representante cadastrado com sucesso:', response);
-            // Limpar formulário ou fazer outras operações após o cadastro
+        contentType: 'application/json',
+        data: JSON.stringify({ nome, maquina }),
+        success: function (response) {
+            alert(response);
+            $('#cadastroModal').modal('hide');
         },
-        error: function(err) {
-            console.error('Erro ao cadastrar representante:', err);
-            // Tratar erros ou informar ao usuário
+        error: function (err) {
+            console.error("Erro ao cadastrar representante:", err);
+            alert("Erro ao cadastrar representante");
         }
     });
 });
-});
-$('#salvarCadastro').click(function() {
-const nome = $('#nome').val();
-const maquina = $('#maquina').val();
-// Limpar os campos do formulário após salvar
-$('#nome').val('');
-$('#maquina').val('');
-
-// Fechar o modal após salvar
-$('#cadastroModal').modal('hide');
-
-$.ajax({
-url: '/api/representantes',
-method: 'POST',
-contentType: 'application/json',
-data: JSON.stringify({ nome, maquina }),
-success: function(response) {
-    alert(response);
-    $('#cadastroModal').modal('hide');
-},
-error: function(err) {
-    console.error("Erro ao cadastrar representante:", err);
-    alert("Erro ao cadastrar representante");
-}
-});
-});
-$(document).ready(function() {
+$(document).ready(function () {
     // Função para carregar opções de fornecedores e exibir botões
     $.ajax({
         url: '/api/representantes', // Endpoint para buscar representantes
         method: 'GET',
-        success: function(data) {
+        success: function (data) {
             const fornecedoresButtons = $('#fornecedoresButtons');
             fornecedoresButtons.empty(); // Limpar botões existentes
 
             let row;
             data.forEach((item, index) => {
-if (index % 50 === 0) {
-row = $('<div class="row mb-3"></div>'); 
-fornecedoresButtons.append(row);
-}
-const button = `
+                if (index % 50 === 0) {
+                    row = $('<div class="row mb-3"></div>');
+                    fornecedoresButtons.append(row);
+                }
+                const button = `
  <div class="col-md-2 mt-3">
                 <button type="button" class="btn btn-primary btn-lg btn-uniform w-100 btn-custom" data-representante-id="${item.id}">${item.nome}</button>
             </div>
 `;
-row.append(button);
+                row.append(button);
 
 
                 // Adicionar um evento de clique para cada botão de fornecedor
-                $(`button[data-representante-id="${item.id}"]`).click(function() {
+                $(`button[data-representante-id="${item.id}"]`).click(function () {
                     const idRepresentante = $(this).data('representante-id');
                     loadRepresentanteInfo(item.nome);
                 });
             });
         },
-        error: function(err) {
+        error: function (err) {
             console.error("Erro ao carregar fornecedores:", err);
         }
     });
 
 
 });
-document.getElementById('exportToXLS').addEventListener('click', function() {
-// Seleciona a tabela dentro do modal pelo ID
-const table = document.getElementById('tableData');
+document.getElementById('exportToXLS').addEventListener('click', function () {
+    // Seleciona a tabela dentro do modal pelo ID
+    const table = document.getElementById('tableData');
 
-// Array para armazenar os dados da tabela
-const data = [];
+    // Array para armazenar os dados da tabela
+    const data = [];
 
-// Itera pelas linhas da tabela
-for (let i = 0; i < table.rows.length; i++) {
-    const row = [];
-    const cells = table.rows[i].cells;
-    
-    // Itera pelas células de cada linha
-    for (let j = 0; j < cells.length; j++) {
-        row.push(cells[j].innerText.trim()); // Adiciona o conteúdo da célula ao array da linha
+    // Itera pelas linhas da tabela
+    for (let i = 0; i < table.rows.length; i++) {
+        const row = [];
+        const cells = table.rows[i].cells;
+
+        // Itera pelas células de cada linha
+        for (let j = 0; j < cells.length; j++) {
+            row.push(cells[j].innerText.trim()); // Adiciona o conteúdo da célula ao array da linha
+        }
+
+        data.push(row); // Adiciona a linha ao array de dados
     }
-    
-    data.push(row); // Adiciona a linha ao array de dados
-}
 
-// Cria a folha de trabalho XLS
-const ws = XLSX.utils.aoa_to_sheet(data);
-const wb = XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb, ws, 'Planilha1');
+    // Cria a folha de trabalho XLS
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Planilha1');
 
-// Baixa o arquivo XLS com os dados
-XLSX.writeFile(wb, 'dados.xlsx');
+    // Baixa o arquivo XLS com os dados
+    XLSX.writeFile(wb, 'dados.xlsx');
 });
-document.getElementById('exportAllToExcel').addEventListener('click', function() {
+document.getElementById('exportAllToExcel').addEventListener('click', function () {
     const loteSelecionado = document.getElementById('loteSelect').value.trim();
 
     if (!loteSelecionado) {
@@ -189,252 +189,252 @@ document.getElementById('exportAllToExcel').addEventListener('click', function()
     document.getElementById('loteAlert').style.display = 'none';
 
     fetch(`/api/exportarRepresentantes?lote=${encodeURIComponent(loteSelecionado)}`)
-    .then(response => response.json())
-    .then(data => {
-        // Dados obtidos, vamos agrupar por representante
-        const groupedData = data.reduce((acc, item) => {
-            const representante = item.representante; // Ajuste de acordo com o nome da propriedade que contém o representante
-            if (!acc[representante]) {
-                acc[representante] = [];
-            }
-            // Remover a coluna 'iddados'
-            const { iddados, ...filteredItem } = item;
-            acc[representante].push(filteredItem);
-            return acc;
-        }, {});
+        .then(response => response.json())
+        .then(data => {
+            // Dados obtidos, vamos agrupar por representante
+            const groupedData = data.reduce((acc, item) => {
+                const representante = item.representante; // Ajuste de acordo com o nome da propriedade que contém o representante
+                if (!acc[representante]) {
+                    acc[representante] = [];
+                }
+                // Remover a coluna 'iddados'
+                const { iddados, ...filteredItem } = item;
+                acc[representante].push(filteredItem);
+                return acc;
+            }, {});
 
-        // Criar uma nova planilha
-        const wb = XLSX.utils.book_new();
+            // Criar uma nova planilha
+            const wb = XLSX.utils.book_new();
 
-        // Adicionar uma aba para cada representante
-        Object.keys(groupedData).forEach(representante => {
-            // Ordenar os dados por Npdf numericamente
-            const sortedData = groupedData[representante].sort((a, b) => {
-                const numA = parseFloat(a.Npdf) || 0;
-                const numB = parseFloat(b.Npdf) || 0;
-                return numA - numB;
-            });
-
-            // Calcular o total dos valores
-            const totalValor = sortedData.reduce((total, item) => total + parseFloat(item.Valor) || 0, 0);
-            const totalKg = sortedData.reduce((total, item) => total + parseFloat(item.kg) || 0, 0);
-            const totalPd = sortedData.reduce((total, item) => total + parseFloat(item.pd) || 0, 0);
-            const totalPt = sortedData.reduce((total, item) => total + parseFloat(item.pt) || 0, 0);
-            const totalRh = sortedData.reduce((total, item) => total + parseFloat(item.rh) || 0, 0);
-
-            // Adicionar a linha de total no final dos dados
-            sortedData.push({
-                npdf: 'Total Geral',
-                fornecedor: '',
-                equipamento: '',
-                valor: totalValor, // Total dos valores
-                pgto: '',
-                plan: '',
-                hedge: '',
-                pag: '',
-                kg: totalKg,
-                pd: totalPd,
-                pt: totalPt,
-                rh: totalRh
-            });
-
-            // Criar a planilha para o representante
-            const ws = XLSX.utils.json_to_sheet(sortedData);
-            XLSX.utils.book_append_sheet(wb, ws, representante);
-        });
-
-        // Exportar o arquivo Excel
-        XLSX.writeFile(wb, 'representantes_por_representante.xlsx');
-    })
-    .catch(error => {
-        console.error('Erro ao exportar dados:', error);
-        alert('Erro ao exportar dados. Por favor, tente novamente.');
-    });
-});
-
-
-document.getElementById('exportaOnderExcell').addEventListener('click', function() {
-    const loteSelecionado = document.getElementById('loteSelect').value.trim();
-
-    if (!loteSelecionado) {
-        document.getElementById('loteAlert').style.display = 'block';
-        return;
-    }
-
-    document.getElementById('loteAlert').style.display = 'none';
-
-    fetch(`/api/exportarRepresentantes?lote=${encodeURIComponent(loteSelecionado)}`)
-    .then(response => response.json())
-    .then(data => {
-        const groupedData = data.reduce((acc, item) => {
-            const representante = item.representante;
-            if (!acc[representante]) {
-                acc[representante] = [];
-            }
-            acc[representante].push(item);
-            return acc;
-        }, {});
-
-        let globalCounter = 1;
-
-        const formatFornecedor = (fornecedor) => {
-            const nomePartes = fornecedor.trim().split(' ');
-            if (nomePartes.length > 1) {
-                const primeiroNome = nomePartes[0];
-                const primeiraLetraSobrenome = nomePartes[1].charAt(0);
-                return `${primeiroNome} ${primeiraLetraSobrenome}c`;
-            }
-            return fornecedor;
-        };
-
-        let totalGlobalValor = 0;
-        let totalGlobalKg = 0;
-        let totalGlobalPd = 0;
-        let totalGlobalPt = 0;
-        let totalGlobalRh = 0;
-
-        const formattedData = Object.keys(groupedData)
-            .sort()
-            .flatMap(representante => {
-                const sortedItems = groupedData[representante].sort((a, b) => {
+            // Adicionar uma aba para cada representante
+            Object.keys(groupedData).forEach(representante => {
+                // Ordenar os dados por Npdf numericamente
+                const sortedData = groupedData[representante].sort((a, b) => {
                     const numA = parseFloat(a.Npdf) || 0;
                     const numB = parseFloat(b.Npdf) || 0;
                     return numA - numB;
                 });
 
-                let previousNpdf = null;
+                // Calcular o total dos valores
+                const totalValor = sortedData.reduce((total, item) => total + parseFloat(item.Valor) || 0, 0);
+                const totalKg = sortedData.reduce((total, item) => total + parseFloat(item.kg) || 0, 0);
+                const totalPd = sortedData.reduce((total, item) => total + parseFloat(item.pd) || 0, 0);
+                const totalPt = sortedData.reduce((total, item) => total + parseFloat(item.pt) || 0, 0);
+                const totalRh = sortedData.reduce((total, item) => total + parseFloat(item.rh) || 0, 0);
 
-                const rows = sortedItems.map(item => {
-                    let npdfValue;
-                    if (item.Npdf === previousNpdf) {
-                        npdfValue = '';
-                    } else {
-                        npdfValue = globalCounter++;
-                    }
-                    previousNpdf = item.Npdf;
+                // Adicionar a linha de total no final dos dados
+                sortedData.push({
+                    npdf: 'Total Geral',
+                    fornecedor: '',
+                    equipamento: '',
+                    valor: totalValor, // Total dos valores
+                    pgto: '',
+                    plan: '',
+                    hedge: '',
+                    pag: '',
+                    kg: totalKg,
+                    pd: totalPd,
+                    pt: totalPt,
+                    rh: totalRh
+                });
 
-                    const equipamento = item.sn;
-                    const lastThreeDigits = item.sn.slice(-3);
-                    
-                    let formattedEquipamento;
-                    if (representante === "ANDERSON") {
-                        formattedEquipamento = `CAMBE ${lastThreeDigits}`;
-                    } else if (representante === "DEPÓSITO") {
-                        formattedEquipamento = `MARCIO ${lastThreeDigits}`;
-                    } else if (representante === "JOSE") {
-                        formattedEquipamento = `JUAN ${lastThreeDigits}`;
-                    } else if (representante === "LUCAS") {
-                        formattedEquipamento = `GOIANIA ${lastThreeDigits}`;
-                    } else if (representante === "ARIEL") {
-                        if (equipamento.startsWith("ARG")) {
-                            formattedEquipamento = `ARG ${lastThreeDigits}`;
-                        } else if (equipamento.startsWith("SN-")) {
-                            formattedEquipamento = `ARIEL ${lastThreeDigits}`;
+                // Criar a planilha para o representante
+                const ws = XLSX.utils.json_to_sheet(sortedData);
+                XLSX.utils.book_append_sheet(wb, ws, representante);
+            });
+
+            // Exportar o arquivo Excel
+            XLSX.writeFile(wb, 'representantes_por_representante.xlsx');
+        })
+        .catch(error => {
+            console.error('Erro ao exportar dados:', error);
+            alert('Erro ao exportar dados. Por favor, tente novamente.');
+        });
+});
+
+
+document.getElementById('exportaOnderExcell').addEventListener('click', function () {
+    const loteSelecionado = document.getElementById('loteSelect').value.trim();
+
+    if (!loteSelecionado) {
+        document.getElementById('loteAlert').style.display = 'block';
+        return;
+    }
+
+    document.getElementById('loteAlert').style.display = 'none';
+
+    fetch(`/api/exportarRepresentantes?lote=${encodeURIComponent(loteSelecionado)}`)
+        .then(response => response.json())
+        .then(data => {
+            const groupedData = data.reduce((acc, item) => {
+                const representante = item.representante;
+                if (!acc[representante]) {
+                    acc[representante] = [];
+                }
+                acc[representante].push(item);
+                return acc;
+            }, {});
+
+            let globalCounter = 1;
+
+            const formatFornecedor = (fornecedor) => {
+                const nomePartes = fornecedor.trim().split(' ');
+                if (nomePartes.length > 1) {
+                    const primeiroNome = nomePartes[0];
+                    const primeiraLetraSobrenome = nomePartes[1].charAt(0);
+                    return `${primeiroNome} ${primeiraLetraSobrenome}c`;
+                }
+                return fornecedor;
+            };
+
+            let totalGlobalValor = 0;
+            let totalGlobalKg = 0;
+            let totalGlobalPd = 0;
+            let totalGlobalPt = 0;
+            let totalGlobalRh = 0;
+
+            const formattedData = Object.keys(groupedData)
+                .sort()
+                .flatMap(representante => {
+                    const sortedItems = groupedData[representante].sort((a, b) => {
+                        const numA = parseFloat(a.Npdf) || 0;
+                        const numB = parseFloat(b.Npdf) || 0;
+                        return numA - numB;
+                    });
+
+                    let previousNpdf = null;
+
+                    const rows = sortedItems.map(item => {
+                        let npdfValue;
+                        if (item.Npdf === previousNpdf) {
+                            npdfValue = '';
+                        } else {
+                            npdfValue = globalCounter++;
+                        }
+                        previousNpdf = item.Npdf;
+
+                        const equipamento = item.sn;
+                        const lastThreeDigits = item.sn.slice(-3);
+
+                        let formattedEquipamento;
+                        if (representante === "ANDERSON") {
+                            formattedEquipamento = `CAMBE ${lastThreeDigits}`;
+                        } else if (representante === "DEPÓSITO") {
+                            formattedEquipamento = `MARCIO ${lastThreeDigits}`;
+                        } else if (representante === "JOSE") {
+                            formattedEquipamento = `JUAN ${lastThreeDigits}`;
+                        } else if (representante === "LUCAS") {
+                            formattedEquipamento = `GOIANIA ${lastThreeDigits}`;
+                        } else if (representante === "ARIEL") {
+                            if (equipamento.startsWith("ARG")) {
+                                formattedEquipamento = `ARG ${lastThreeDigits}`;
+                            } else if (equipamento.startsWith("SN-")) {
+                                formattedEquipamento = `ARIEL ${lastThreeDigits}`;
+                            } else {
+                                formattedEquipamento = `${representante} ${lastThreeDigits}`;
+                            }
                         } else {
                             formattedEquipamento = `${representante} ${lastThreeDigits}`;
                         }
-                    } else {
-                        formattedEquipamento = `${representante} ${lastThreeDigits}`;
-                    }
 
-                    totalGlobalValor += parseFloat(item.Valor) || 0;
-                    totalGlobalKg += parseFloat(item.kg) || 0;
-                    totalGlobalPd += parseFloat(item.pd) || 0;
-                    totalGlobalPt += parseFloat(item.pt) || 0;
-                    totalGlobalRh += parseFloat(item.rh) || 0;
+                        totalGlobalValor += parseFloat(item.Valor) || 0;
+                        totalGlobalKg += parseFloat(item.kg) || 0;
+                        totalGlobalPd += parseFloat(item.pd) || 0;
+                        totalGlobalPt += parseFloat(item.pt) || 0;
+                        totalGlobalRh += parseFloat(item.rh) || 0;
 
-                    return {
-                        npdf: npdfValue,
-                        fornecedor: formatFornecedor(item.fornecedor),
-                        equipamento: formattedEquipamento,
-                        valor: parseFloat(item.Valor) || 0,
-                        pgto: item.pgto,
-                        plan: item.tipo,
-                        hedge: item.hedge,
-                        pag: item.pag,
-                        kg: parseFloat(item.kg) || 0,
-                        pd: parseFloat(item.pd) || 0,
-                        pt: parseFloat(item.pt) || 0,
-                        rh: parseFloat(item.rh) || 0
-                    };
+                        return {
+                            npdf: npdfValue,
+                            fornecedor: formatFornecedor(item.fornecedor),
+                            equipamento: formattedEquipamento,
+                            valor: parseFloat(item.Valor) || 0,
+                            pgto: item.pgto,
+                            plan: item.tipo,
+                            hedge: item.hedge,
+                            pag: item.pag,
+                            kg: parseFloat(item.kg) || 0,
+                            pd: parseFloat(item.pd) || 0,
+                            pt: parseFloat(item.pt) || 0,
+                            rh: parseFloat(item.rh) || 0
+                        };
+                    });
+
+                    return rows;
                 });
 
-                return rows;
+            formattedData.push({
+                npdf: 'Total Geral',
+                fornecedor: '',
+                equipamento: '',
+                valor: totalGlobalValor,
+                pgto: '',
+                plan: '',
+                hedge: '',
+                pag: '',
+                kg: totalGlobalKg,
+                pd: totalGlobalPd,
+                pt: totalGlobalPt,
+                rh: totalGlobalRh
             });
 
-        formattedData.push({
-            npdf: 'Total Geral',
-            fornecedor: '',
-            equipamento: '',
-            valor: totalGlobalValor,
-            pgto: '',
-            plan: '',
-            hedge: '',
-            pag: '',
-            kg: totalGlobalKg,
-            pd: totalGlobalPd,
-            pt: totalGlobalPt,
-            rh: totalGlobalRh
-        });
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(formattedData);
 
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(formattedData);
-
-        // Aplicar formatação para valores e colunas com 4 casas decimais
-        Object.keys(ws).forEach(key => {
-            if (key[0] === 'D') { // Coluna "valor" é a quarta (D)
-                ws[key].z = 'R$ #,##0.00';
-            } else if (['I','J', 'K', 'L'].includes(key[0])) { // Colunas de quantidade (kg, pd, pt, rh)
-                ws[key].z = '#,##0.0000';
-            }
-        });
-
-        // Ajuste de largura automática de colunas
-        const maxLength = formattedData.reduce((acc, row) => {
-            Object.keys(row).forEach((key, index) => {
-                const value = row[key]?.toString() || '';
-                acc[index] = Math.max(acc[index] || 0, value.length);
+            // Aplicar formatação para valores e colunas com 4 casas decimais
+            Object.keys(ws).forEach(key => {
+                if (key[0] === 'D') { // Coluna "valor" é a quarta (D)
+                    ws[key].z = 'R$ #,##0.00';
+                } else if (['I', 'J', 'K', 'L'].includes(key[0])) { // Colunas de quantidade (kg, pd, pt, rh)
+                    ws[key].z = '#,##0.0000';
+                }
             });
-            return acc;
-        }, []);
-        ws['!cols'] = maxLength.map(len => ({ wch: len + 2 })); // Adicionando +2 para uma margem de segurança
 
-        XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
-        XLSX.writeFile(wb, `representantes_${loteSelecionado}_formatados.xlsx`);
-    })
-    .catch(error => {
-        console.error('Erro ao exportar dados:', error);
-        alert('Erro ao exportar dados. Por favor, tente novamente.');
-    });
+            // Ajuste de largura automática de colunas
+            const maxLength = formattedData.reduce((acc, row) => {
+                Object.keys(row).forEach((key, index) => {
+                    const value = row[key]?.toString() || '';
+                    acc[index] = Math.max(acc[index] || 0, value.length);
+                });
+                return acc;
+            }, []);
+            ws['!cols'] = maxLength.map(len => ({ wch: len + 2 })); // Adicionando +2 para uma margem de segurança
+
+            XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
+            XLSX.writeFile(wb, `representantes_${loteSelecionado}_formatados.xlsx`);
+        })
+        .catch(error => {
+            console.error('Erro ao exportar dados:', error);
+            alert('Erro ao exportar dados. Por favor, tente novamente.');
+        });
 });
 
 // Event listener para o botão "Cliente: EDITAR/EXCLUIR"
-document.querySelector('.btn-danger').addEventListener('click', function() {
-// Limpa a lista de representantes para evitar duplicações
-const listaRepresentantes = document.getElementById('listaRepresentantes');
-listaRepresentantes.innerHTML = '';
+document.querySelector('.btn-danger').addEventListener('click', function () {
+    // Limpa a lista de representantes para evitar duplicações
+    const listaRepresentantes = document.getElementById('listaRepresentantes');
+    listaRepresentantes.innerHTML = '';
 
-// Busca os representantes do backend e adiciona à lista
-fetch('/api/representantes')
-.then(response => response.json())
-.then(data => {
-    data.forEach(representante => {
-        const listItem = document.createElement('div');
-        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-        listItem.innerHTML = `
+    // Busca os representantes do backend e adiciona à lista
+    fetch('/api/representantes')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(representante => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
             <span>${representante.nome}</span>
             <div>
                 <button type="button" class="btn btn-primary btn-sm mr-2" onclick="editarRepresentante(${representante.id})">Editar</button>
                 <button type="button" class="btn btn-danger btn-sm" onclick="excluirRepresentante(${representante.id})">Excluir</button>
             </div>
         `;
-        listaRepresentantes.appendChild(listItem);
-    });
-})
-.catch(error => {
-    console.error('Erro ao carregar representantes:', error);
-    alert('Erro ao carregar representantes. Por favor, tente novamente.');
-});
+                listaRepresentantes.appendChild(listItem);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar representantes:', error);
+            alert('Erro ao carregar representantes. Por favor, tente novamente.');
+        });
 });
 
 // Função para editar representante
@@ -456,62 +456,62 @@ function editarRepresentante(idRepresentante) {
 
 // Função para excluir representante
 function excluirRepresentante(representanteId) {
-if (confirm('Tem certeza que deseja excluir este Representante?')) {
-fetch(`/api/representantes/${representanteId}`, {
-    method: 'DELETE',
-})
-.then(response => {
-    if (!response.ok) {
-        throw new Error('Erro ao excluir representante');
+    if (confirm('Tem certeza que deseja excluir este Representante?')) {
+        fetch(`/api/representantes/${representanteId}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erro ao excluir representante');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Representante excluído com sucesso');
+                // Atualiza a lista de representantes
+                atualizarListaRepresentantes();
+            })
+            .catch(error => {
+                console.error('Erro ao excluir representante:', error);
+                alert('Erro ao excluir representante. Por favor, tente novamente.');
+            });
     }
-    return response.json();
-})
-.then(data => {
-    alert('Representante excluído com sucesso');
-    // Atualiza a lista de representantes
-    atualizarListaRepresentantes();
-})
-.catch(error => {
-    console.error('Erro ao excluir representante:', error);
-    alert('Erro ao excluir representante. Por favor, tente novamente.');
-});
-}
 }
 
 // Função para atualizar a lista de representantes na página
 function atualizarListaRepresentantes() {
-const listaRepresentantes = document.getElementById('listaRepresentantes');
-listaRepresentantes.innerHTML = ''; // Limpa a lista atual
+    const listaRepresentantes = document.getElementById('listaRepresentantes');
+    listaRepresentantes.innerHTML = ''; // Limpa a lista atual
 
-// Recarrega a lista de representantes do backend
-fetch('/api/representantes')
-.then(response => response.json())
-.then(data => {
-    data.forEach(representante => {
-        const listItem = document.createElement('div');
-        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-        listItem.innerHTML = `
+    // Recarrega a lista de representantes do backend
+    fetch('/api/representantes')
+        .then(response => response.json())
+        .then(data => {
+            data.forEach(representante => {
+                const listItem = document.createElement('div');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.innerHTML = `
             <span>${representante.nome}</span>
             <div>
                 <button type="button" class="btn btn-primary btn-sm mr-2" onclick="editarRepresentante(${representante.id})">Editar</button>
                 <button type="button" class="btn btn-danger btn-sm" onclick="excluirRepresentante(${representante.id})">Excluir</button>
             </div>
         `;
-        listaRepresentantes.appendChild(listItem);
-    });
-})
-.catch(error => {
-    console.error('Erro ao carregar representantes:', error);
-    alert('Erro ao carregar representantes. Por favor, tente novamente.');
-});
+                listaRepresentantes.appendChild(listItem);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao carregar representantes:', error);
+            alert('Erro ao carregar representantes. Por favor, tente novamente.');
+        });
 }
 
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM fully loaded and parsed');
 
     // Listar itens do lote
-    document.getElementById('listLotesButton').addEventListener('click', function() {
+    document.getElementById('listLotesButton').addEventListener('click', function () {
         console.log('Listar Itens do Lote button clicked');
 
         const loteId = prompt('Digite o ID do lote para listar os itens:');
@@ -519,43 +519,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (loteId) {
             fetch(`/api/lote/${loteId}/dados`)
-            .then(response => {
-                console.log('Fetch response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Data received:', data);
+                .then(response => {
+                    console.log('Fetch response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Data received:', data);
 
-                const tableBody = document.querySelector('#loteItemsTable tbody');
-                tableBody.innerHTML = ''; // Limpa a tabela
+                    const tableBody = document.querySelector('#loteItemsTable tbody');
+                    tableBody.innerHTML = ''; // Limpa a tabela
 
-                data.forEach(item => {
-                    const row = tableBody.insertRow();
-                    row.insertCell(0).textContent = item.iddados; // ID
-                    row.insertCell(1).textContent = item.npdf; // Nº PDF
-                    row.insertCell(2).textContent = item.kg; // KG
-                    row.insertCell(3).textContent = item.pd; // PD
-                    row.insertCell(4).textContent = item.pt; // PT
-                    row.insertCell(5).textContent = item.rh; // RH
-                    row.insertCell(6).textContent = item.Valor;
-                    row.insertCell(6).textContent = item.tipo; // Valor
-                    row.insertCell(7).textContent = item.representante; // Representante
-                    row.insertCell(8).textContent = item.fornecedor; // Fornecedor
-                    row.insertCell(9).textContent = item.sn; // SN
-                    row.insertCell(10).textContent = item.lote; // Lote
+                    data.forEach(item => {
+                        const row = tableBody.insertRow();
+                        row.insertCell(0).textContent = item.iddados; // ID
+                        row.insertCell(1).textContent = item.npdf; // Nº PDF
+                        row.insertCell(2).textContent = item.kg; // KG
+                        row.insertCell(3).textContent = item.pd; // PD
+                        row.insertCell(4).textContent = item.pt; // PT
+                        row.insertCell(5).textContent = item.rh; // RH
+                        row.insertCell(6).textContent = item.Valor;
+                        row.insertCell(6).textContent = item.tipo; // Valor
+                        row.insertCell(7).textContent = item.representante; // Representante
+                        row.insertCell(8).textContent = item.fornecedor; // Fornecedor
+                        row.insertCell(9).textContent = item.sn; // SN
+                        row.insertCell(10).textContent = item.lote; // Lote
+                    });
+                    // Abre o modal
+                    document.getElementById('loteModal').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Erro ao listar dados do lote:', error);
+                    alert('Erro ao listar dados do lote. Tente novamente.');
                 });
-                // Abre o modal
-                document.getElementById('loteModal').style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Erro ao listar dados do lote:', error);
-                alert('Erro ao listar dados do lote. Tente novamente.');
-            });
         }
     });
 
     // Fechar o modal
-    document.querySelector('.close').addEventListener('click', function() {
+    document.querySelector('.close').addEventListener('click', function () {
         console.log('Modal close button clicked');
         document.getElementById('loteModal').style.display = 'none';
     });
@@ -636,22 +636,23 @@ function disableEditing(table) {
     });
 });*/
 $(document).ready(function() {
-    // Carregar a lista de representantes e lotes ao carregar a página
-    loadRepresentantes();
+    // Carrega os lotes ao iniciar
     loadLotes();
 
-    // Adicionar um listener ao botão para carregar informações
-    $('#loadInfoButton').click(function() {
-        loadRepresentanteInfo();
+    // Evento ao selecionar um lote
+    $('#loteSelect').change(function() {
+        const loteId = $(this).val(); // Obtém o lote selecionado
+        buscarDados(loteId); // Chama a função de busca com o lote selecionado
     });
 });
+
 
 // Função para carregar a lista de representantes
 function loadRepresentantes() {
     $.ajax({
         url: '/api/representantes', // Endpoint para buscar representantes
         method: 'GET',
-        success: function(representantes) {
+        success: function (representantes) {
             // Ordenar os representantes por nome
             representantes.sort((a, b) => a.nome.localeCompare(b.nome));
 
@@ -667,7 +668,7 @@ function loadRepresentantes() {
                 representantesList.append(button);
             });
         },
-        error: function(err) {
+        error: function (err) {
             console.error("Erro ao carregar representantes:", err);
         }
     });
@@ -679,7 +680,7 @@ function loadLotes() {
     $.ajax({
         url: '/api/lote', // Endpoint para buscar lotes
         method: 'GET',
-        success: function(lotes) {
+        success: function (lotes) {
             const loteSelect = $('#loteSelect');
             loteSelect.empty(); // Limpar o select antes de preencher
             loteSelect.append('<option value="" disabled selected>Escolha um lote</option>'); // Opção padrão
@@ -688,16 +689,16 @@ function loadLotes() {
                 const option = `<option value="${lote.nome}">${lote.nome}</option>`;
                 loteSelect.append(option);
             });
-         // Defina aqui o lote padrão que você quer selecionar
-         const lotePadrao = 'lote 30'; // Substitua pelo nome do lote que você deseja
-         if (lotes.some(lote => lote.nome === lotePadrao)) {
-             loteSelect.val(lotePadrao).trigger('change'); // Seleciona o lote padrão e dispara o evento change
-         } else if (lotes.length > 0) {
-             // Caso o lote padrão não exista, seleciona o primeiro da lista
-             loteSelect.val(lotes[0].nome).trigger('change');
-         }
-     },
-        error: function(err) {
+            // Defina aqui o lote padrão que você quer selecionar
+            const lotePadrao = 'lote 30'; // Substitua pelo nome do lote que você deseja
+            if (lotes.some(lote => lote.nome === lotePadrao)) {
+                loteSelect.val(lotePadrao).trigger('change'); // Seleciona o lote padrão e dispara o evento change
+            } else if (lotes.length > 0) {
+                // Caso o lote padrão não exista, seleciona o primeiro da lista
+                loteSelect.val(lotes[0].nome).trigger('change');
+            }
+        },
+        error: function (err) {
             console.error("Erro ao carregar lotes:", err);
         }
     });
@@ -721,7 +722,7 @@ function loadRepresentanteInfo(nomeRepresentante) {
     $.ajax({
         url: `/dados/${encodeURIComponent(nomeRepresentante)}?lote=${encodeURIComponent(loteSelecionado)}`,
         method: 'GET',
-        success: function(dados) {
+        success: function (dados) {
             console.log('Dados recebidos:', dados);
 
             $('#modalDataBody').empty();
@@ -759,16 +760,16 @@ function loadRepresentanteInfo(nomeRepresentante) {
                 });
 
                 // Adiciona um evento de clique à linha para mostrar o PDF
-                $('.clickable-row').on('click', function() {
+                $('.clickable-row').on('click', function () {
                     const npdf = $(this).find('td:eq(0)').text(); // Ajuste o índice conforme necessário
                     mostrarPdf(npdf, nomeRepresentante, loteSelecionado); // Passa todos os parâmetros necessários
                 });
-                
+
             }
 
             $('#detalhesModal').modal('show');
         },
-        error: function(err) {
+        error: function (err) {
             console.error("Erro ao carregar dados do representante:", err);
         }
     });
@@ -782,7 +783,7 @@ function formatarNomeFornecedor(nome) {
 
 
 // Função para carregar informações do representante baseado no nome e lote
-document.getElementById('saveRepresentanteButton').addEventListener('click', function() {
+document.getElementById('saveRepresentanteButton').addEventListener('click', function () {
     const modalEdicao = document.getElementById('modalEdicaoRepresentante');
     const idRepresentante = modalEdicao.getAttribute('data-idrepresentante');
     const nome = modalEdicao.querySelector('#inputNome').value.trim();
@@ -799,28 +800,28 @@ document.getElementById('saveRepresentanteButton').addEventListener('click', fun
         },
         body: JSON.stringify({ nome })
     })
-    .then(response => {
-        console.log('Resposta do servidor:', response); // Adicionado para depuração
-        return response.json(); // Tente converter a resposta para JSON
-    })
-    .then(data => {
-        console.log('Dados recebidos do servidor:', data); // Adicionado para depuração
-        if (data.success) {
-            alert(data.message);
-            $('#modalEdicaoRepresentante').modal('hide');
-            // Atualize a lista de representantes ou recarregue a página, conforme necessário
-        } else {
-            alert(data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Erro ao atualizar o representante:', error);
-        alert('Erro ao atualizar o representante. Por favor, tente novamente.');
-    });
+        .then(response => {
+            console.log('Resposta do servidor:', response); // Adicionado para depuração
+            return response.json(); // Tente converter a resposta para JSON
+        })
+        .then(data => {
+            console.log('Dados recebidos do servidor:', data); // Adicionado para depuração
+            if (data.success) {
+                alert(data.message);
+                $('#modalEdicaoRepresentante').modal('hide');
+                // Atualize a lista de representantes ou recarregue a página, conforme necessário
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao atualizar o representante:', error);
+            alert('Erro ao atualizar o representante. Por favor, tente novamente.');
+        });
 });
 
 //iniciar o tooltip se tudo der certo!!
-$(document).ready(function() {
+$(document).ready(function () {
     // Inicializar todos os tooltips
     $('[data-toggle="tooltip"]').tooltip();
 });
@@ -836,13 +837,13 @@ function excluirLinha(id) {
     fetch(`/api/dados/${id}`, {
         method: 'DELETE'
     })
-    .then(response => response.text())
-    .then(message => {
-        console.log(message);
-        // Atualizar a interface do usuário após a exclusão
-        document.querySelector(`tr[data-id="${id}"]`).remove();
-    })
-    .catch(error => console.error('Erro ao excluir item:', error));
+        .then(response => response.text())
+        .then(message => {
+            console.log(message);
+            // Atualizar a interface do usuário após a exclusão
+            document.querySelector(`tr[data-id="${id}"]`).remove();
+        })
+        .catch(error => console.error('Erro ao excluir item:', error));
 }
 
 let idToDelete = null; // Variável global para armazenar o ID do item a ser excluído
@@ -855,18 +856,18 @@ function excluirLinha(id) {
 }
 
 // Função chamada quando o usuário confirma a exclusão
-$('#confirmDeleteButton').click(function() {
+$('#confirmDeleteButton').click(function () {
     if (idToDelete !== null) {
         $.ajax({
             url: `/api/dados/${idToDelete}`,
             method: 'DELETE',
-            success: function(response) {
+            success: function (response) {
                 console.log('Item excluído com sucesso:', response);
                 // Atualizar a tabela ou exibir uma mensagem de sucesso
                 $('#modalDataBody').find(`tr[data-id="${idToDelete}"]`).remove();
                 $('#confirmDeleteModal').modal('hide');
             },
-            error: function(err) {
+            error: function (err) {
                 console.error('Erro ao excluir item:', err);
             }
         });
@@ -885,7 +886,7 @@ function editarLinha(id) {
                 $.ajax({
                     url: '/api/lote',
                     method: 'GET',
-                    success: function(lotes) {
+                    success: function (lotes) {
                         let options = '';
                         lotes.forEach(lote => {
                             options += `<option value="${lote.nome}" ${text === lote.nome ? 'selected' : ''}>${lote.nome}</option>`;
@@ -897,7 +898,7 @@ function editarLinha(id) {
                             </select>
                         `);
                     },
-                    error: function(err) {
+                    error: function (err) {
                         console.error('Erro ao carregar lotes:', err);
                         $(cell).html('<select class="form-control"><option value="">Erro ao carregar lotes</option></select>');
                     }
@@ -941,10 +942,10 @@ function salvarLinha(id) {
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify(updatedData),
-        success: function() {
+        success: function () {
             alert('Dado atualizado com sucesso');
             // Atualizar a linha com os novos valores
-            row.find('td').each(function(index) {
+            row.find('td').each(function (index) {
                 const input = $(this).find('input');
                 const select = $(this).find('select');
                 if (input.length) {
@@ -957,71 +958,141 @@ function salvarLinha(id) {
             // Mudar o botão de volta para "Editar"
             row.find('button.btn-success').text('Editar').attr('onclick', `editarLinha(${id})`).removeClass('btn-success').addClass('btn-warning');
         },
-        error: function(err) {
+        error: function (err) {
             console.error('Erro ao atualizar dado:', err);
             alert('Erro ao atualizar dado');
         }
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Carrega os lotes ao carregar a página
+document.addEventListener('DOMContentLoaded', function () {
     loadLotes();
 
-    // Adiciona o evento de mudança no select de lotes
-    $('#loteSelect').on('change', function() {
-        const lote = $(this).val(); // Obtém o valor do lote selecionado
+    $('#loteSelect').on('change', function () {
+        const lote = $(this).val();
 
         if (!lote) {
-            $('#loteAlert').show(); // Exibe o alerta se nenhum lote for selecionado
+            $('#loteAlert').show();
             return;
         }
 
-        $('#loteAlert').hide(); // Esconde o alerta
+        $('#loteAlert').hide();
 
-        // Faz a requisição para buscar os dados filtrados por lote
         $.ajax({
-            url: `/api/representantes_financeiros/geral?lote=${lote}`, // Endpoint que retorna os representantes filtrados
+            url: `/api/representantes_financeiros/geral?lote=${lote}`,
             method: 'GET',
-            success: function(data) {
+            success: function (data) {
                 const tabela = $('#tabela-representantes');
-                tabela.empty(); // Limpa a tabela antes de inserir os novos dados
+                tabela.empty();
 
                 data.forEach(item => {
-                    // Converte os valores para números e formata como moeda real
                     const compraCatalisador = parseFloat(item.compra_catalisador) || 0;
                     const saldoAdiantamentos = item.saldo_adiantamentos === '-' ? 0 : parseFloat(item.saldo_adiantamentos);
                     const totalValorPecas = parseFloat(item.total_valor_pecas) || 0;
-
-                    // Calcula o saldo total como a subtração de Compra Catalisador e Saldo Adiantamentos
                     const saldoTotal = compraCatalisador + totalValorPecas - saldoAdiantamentos;
-
-                    // Define a classe CSS com base no valor do saldo total
                     const saldoClass = saldoTotal >= 0 ? 'saldo-positivo' : 'saldo-negativo';
 
-                    const compraCatalisadorFormatado = compraCatalisador.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    const saldoAdiantamentosFormatado = saldoAdiantamentos === 0 ? '-' : saldoAdiantamentos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    const totalValorPecasFormatado = totalValorPecas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    const saldoTotalFormatado = saldoTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
                     const row = `
-                        <tr>
+                        <tr class="draggable" data-representante="${item.representante}">
                             <td>${item.representante}</td>
                             <td>${item.total_kg}</td>
-                            <td class="compra-catalisador">${compraCatalisadorFormatado}</td>
-                            <td class="saldo-adiantamentos">${saldoAdiantamentosFormatado}</td>
-                            <td class="total-valor-pecas">${totalValorPecasFormatado}</td>
-                            <td class="${saldoClass}">${saldoTotalFormatado}</td>
+                            <td class="compra-catalisador">${compraCatalisador.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                            <td class="saldo-adiantamentos">${saldoAdiantamentos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                            <td class="total-valor-pecas">${totalValorPecas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                            <td class="${saldoClass}">${saldoTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                         </tr>
                     `;
                     tabela.append(row);
                 });
+
+                // Adiciona a funcionalidade de arrastar e soltar
+                makeRowsDraggable();
             },
-            error: function(err) {
+            error: function (err) {
                 console.error("Erro ao carregar dados dos representantes:", err);
             }
         });
     });
+
+    function makeRowsDraggable() {
+        $('.draggable').draggable({
+            revert: 'invalid',
+            helper: 'clone',
+            start: function () {
+                $(this).addClass('dragging'); // Marca a linha que está sendo arrastada
+            },
+            stop: function () {
+                $(this).removeClass('dragging'); // Remove a marcação quando o arrasto parar
+            }
+        });
+
+        $('.draggable').droppable({
+            accept: '.draggable',
+            drop: function (event, ui) {
+                const draggedRow = ui.draggable;
+                const droppedRow = $(this);
+
+                // Obtém os representantes da linha arrastada e da linha solta
+                const representante1 = draggedRow.data('representante');
+                const representante2 = droppedRow.data('representante');
+
+                // Array para armazenar os representantes
+                let representantes = [representante1, representante2];
+
+                // Verifica se a linha solta já foi unificada
+                if (droppedRow.hasClass('unified')) {
+                    const existingRepresentantes = droppedRow.data('representantes').split(' / ');
+                    representantes = [...new Set([...representantes, ...existingRepresentantes])]; // Adiciona representantes existentes
+                }
+
+                // Garante que não tenha mais de 4 representantes
+                if (representantes.length > 4) {
+                    alert('Você pode unir no máximo 4 representantes.');
+                    return;
+                }
+
+                // Remove representantes duplicados
+                representantes = [...new Set(representantes)];
+
+                // Soma os valores das colunas
+                const totalKg = parseFloat(draggedRow.children().eq(1).text()) + parseFloat(droppedRow.children().eq(1).text());
+                const compraCatalisador = parseFloat(draggedRow.children().eq(2).text().replace('R$', '').replace('.', '').replace(',', '.')) +
+                    parseFloat(droppedRow.children().eq(2).text().replace('R$', '').replace('.', '').replace(',', '.'));
+                const saldoAdiantamentos = parseFloat(draggedRow.children().eq(3).text().replace('R$', '').replace('.', '').replace(',', '.')) +
+                    parseFloat(droppedRow.children().eq(3).text().replace('R$', '').replace('.', '').replace(',', '.'));
+                const totalValorPecas = parseFloat(draggedRow.children().eq(4).text().replace('R$', '').replace('.', '').replace(',', '.')) +
+                    parseFloat(droppedRow.children().eq(4).text().replace('R$', '').replace('.', '').replace(',', '.'));
+
+                // Calcula o saldo total
+                const saldoTotal = compraCatalisador + totalValorPecas - saldoAdiantamentos;
+                const saldoClass = saldoTotal >= 0 ? 'saldo-positivo' : 'saldo-negativo';
+                const saldoTotalFormatado = saldoTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                // Cria a nova linha unificada
+                const newRow = `
+                    <tr class="unified" data-representantes="${representantes.join(' / ')}">
+                        <td>${representantes.join(' / ')}</td>
+                        <td>${totalKg}</td>
+                        <td class="compra-catalisador">${compraCatalisador.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                        <td class="saldo-adiantamentos">${saldoAdiantamentos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                        <td class="total-valor-pecas">${totalValorPecas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                        <td class="${saldoClass}">${saldoTotalFormatado}</td>
+                    </tr>
+                `;
+
+                // Remove a linha arrastada e a linha solta
+                draggedRow.remove();
+                droppedRow.remove();
+
+                // Adiciona a nova linha unificada à tabela
+                $('#tabela-representantes-geral').append(newRow);
+                makeRowsDraggable(); // Reaplica a funcionalidade draggable
+
+                // Adiciona um efeito visual
+                $(newRow).hide().fadeIn(200);
+            }
+        });
+    }
 });
 
 function mostrarPdf(npdf, representanteNome, loteId) {
@@ -1040,7 +1111,7 @@ function mostrarPdf(npdf, representanteNome, loteId) {
     $.ajax({
         url: `/api/representante-id?nome=${encodeURIComponent(representanteNome)}`,
         method: 'GET',
-        success: function(response) {
+        success: function (response) {
             const representanteId = response.id;
 
             console.log('ID do representante encontrado:', representanteId);
@@ -1052,7 +1123,7 @@ function mostrarPdf(npdf, representanteNome, loteId) {
                 xhrFields: {
                     responseType: 'blob'  // Define o tipo de resposta como 'blob' para arquivos binários
                 },
-                success: function(pdfData) {
+                success: function (pdfData) {
                     console.log('PDF carregado com sucesso.');
 
                     // Cria um URL temporário para o PDF recebido e exibe no modal
@@ -1065,23 +1136,88 @@ function mostrarPdf(npdf, representanteNome, loteId) {
                     // Mostra o modal com o PDF
                     $('#pdfModal').modal('show');
                 },
-                error: function(err) {
+                error: function (err) {
                     console.error('Erro ao carregar o PDF:', err);
                     alert('Erro ao carregar o PDF');
                 }
             });
         },
-        error: function(err) {
+        error: function (err) {
             console.error('Erro ao buscar o ID do representante:', err);
             alert('Erro ao buscar o ID do representante');
         }
     });
 }
 
-
-$(document).ready(function() {
+$(document).ready(function () {
     // Habilita o arrasto para o modal
     $('#pdfModal').draggable({
         handle: '.modal-header' // Faz com que a área de arrasto seja o cabeçalho do modal
     });
 });
+
+
+// Função para buscar dados
+function buscarDados(loteId) {
+    console.log("Buscando dados para o lote:", loteId);
+    fetch(`/api/movimentacao-financeira?lote=${loteId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Dados recebidos:", data);
+            const tabelaRepresentantes = document.getElementById('tabela-representantes-geral');
+            tabelaRepresentantes.innerHTML = ''; // Limpar a tabela antes de preencher
+
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(representante => {
+                    adicionarLinha(representante); // Adiciona as linhas na tabela
+                });
+            } else {
+                console.error("Os dados recebidos não estão no formato esperado ou estão vazios.");
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao buscar dados:", error);
+        });
+}
+// Função para adicionar uma linha na tabela
+function adicionarLinha(representante) {
+    const tabelaRepresentantes = document.getElementById('tabela-representantes-geral');
+    const row = document.createElement('tr');
+
+    // Extraindo valores do objeto representante
+    const totalKg = parseFloat(representante.total_kg);
+    const mediaPd = parseFloat(representante.media_pd_por_kg); // Ajustado para pegar a média correta
+    const mediaPt = parseFloat(representante.media_pt_por_kg); // Ajustado para pegar a média correta
+    const mediaRh = parseFloat(representante.media_rh_por_kg); // Ajustado para pegar a média correta
+    const valorTotal = parseFloat(representante.valor_total);
+    const resultadoPd = parseFloat(representante.resultado_pd);
+    const resultadoPt = parseFloat(representante.resultado_pt);
+    const resultadoRh = parseFloat(representante.resultado_rh);
+
+    // Verificar se os valores são válidos antes de adicionar
+    console.log("Valores do representante:", {
+        representante: representante.representante,
+        totalKg,
+        resultadoPd,
+        resultadoPt,
+        resultadoRh,
+        valorTotal,
+    }); // Log para depuração
+
+    row.innerHTML = `
+        <td>${representante.representante}</td>
+        <td>${totalKg.toFixed(2)}</td>
+        <td>${resultadoPd.toFixed(2)}</td> <!-- Usando resultado_pd -->
+        <td>${resultadoPt.toFixed(2)}</td> <!-- Usando resultado_pt -->
+        <td>${resultadoRh.toFixed(2)}</td> <!-- Usando resultado_rh -->
+        <td>R$ ${valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td>${(totalKg / 1000).toFixed(2)}</td> <!-- Exemplo de média KG -->
+    `;
+    tabelaRepresentantes.appendChild(row);
+}
+
