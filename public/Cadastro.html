@@ -149,33 +149,110 @@
             </div>
         </div>
     </div>
-
-    <!-- Tabela geral -->
-    <div class="container mt-4">
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Geral</h2>
-            </div>
-            <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Representante</th>
-                            <th>Total KG</th>
-                            <th>MEDIA PD</th> 
-                            <th>Media PT</th> 
-                            <th>Media RH</th> 
-                            <th>Valor Total</th> 
-                            <th>Média Kg</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-representantes-geral">
-                        <!-- Dados serão inseridos aqui pelo JavaScript -->
-                    </tbody>
-                </table>
+<!-- Tabela geral -->
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Geral</h2>
+        </div>
+        <div class="card-body">
+            <table class="table tabela-representantes">
+                <thead>
+                    <tr>
+                        <th>Representante</th>
+                        <th>Total KG</th>
+                        <th>Media PD</th> 
+                        <th>Media PT</th> 
+                        <th>Media RH</th> 
+                        <th>Valor Total</th> 
+                        <th>Média Kg</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-representantes-geral">
+                    <!-- Dados serão inseridos aqui pelo JavaScript -->
+                </tbody>
+            </table>
+            
+            <!-- Nova linha para as duas tabelas adicionais -->
+            <div class="row mt-4">
+                <!-- Tabela de Média Total -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Média Total</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table tabela-media">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medias-pd-pt-rh">
+                                   <!-- Dados Médias serão inseridos aqui -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tabela de Valor Total e Média Total de KG -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Valor e Média KG</h3>
+                        </div>
+                        <div class="card-body">
+                            <table class="table tabela-media">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="valor-media-total">
+                                    <!-- Dados valor e media-->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
+
+<!-- MODAL CALCULOS MEDIAS GERAIS-->
+<div class="modal fade" id="modalCalculos" tabindex="-1" aria-labelledby="modalCalculosLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCalculosLabel">Cálculos do Representante</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tipo Do Cálculo</th>
+                            <th>Valor</th>
+                            <th>Descrição</th>
+                        </tr>
+                    </thead>
+                    <tbody id="calculosRepresentante">
+                        <!-- Dados dos cálculos serão inseridos aqui pelo JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
     <div class="modal fade" id="detalhesModal" tabindex="-1" role="dialog" aria-labelledby="detalhesModalLabel"
         aria-hidden="true">

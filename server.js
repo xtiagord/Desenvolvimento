@@ -3258,33 +3258,55 @@ app.post('/api/envios/conferir', async (req, res) => {
     }
 });
 
-
+//Calculos materiais
 app.get('/api/movimentacao-financeira', (req, res) => {
     const loteId = req.query.lote;
 
     console.log("Recebendo requisição para lote:", loteId);
 
     const sql = `
-      SELECT 
-          representante,
-          lote,
-          SUM(kg * COALESCE(pd, 0)) AS total_pd_calculado,
-          SUM(kg) AS total_kg,
-          SUM(kg * COALESCE(pt, 0)) AS total_pt_calculado,
-          SUM(kg * COALESCE(rh, 0)) AS total_rh_calculado,
-          SUM(kg * COALESCE(pd, 0)) / NULLIF(SUM(kg), 0) AS media_pd_por_kg,
-          SUM(kg * COALESCE(pt, 0)) / NULLIF(SUM(kg), 0) AS media_pt_por_kg,
-          SUM(kg * COALESCE(rh, 0)) / NULLIF(SUM(kg), 0) AS media_rh_por_kg,
-          SUM(COALESCE(Valor, 0)) AS valor_total,
-          (SUM(kg * COALESCE(pd, 0)) / NULLIF(SUM(kg), 0)) * (SUM(kg) / 1000) AS resultado_pd,
-          (SUM(kg * COALESCE(pt, 0)) / NULLIF(SUM(kg), 0)) * (SUM(kg) / 1000) AS resultado_pt,
-          (SUM(kg * COALESCE(rh, 0)) / NULLIF(SUM(kg), 0)) * (SUM(kg) / 1000) AS resultado_rh
-      FROM 
-          dados
-      WHERE 
-          lote = ?  -- Removendo o filtro de representante
-      GROUP BY 
-          representante, lote;
+SELECT 
+    d.representante,
+    r.nome AS nome_representante,
+    d.lote,
+    NULL AS equipamento_sn,  -- NULL para a coluna de número de série do equipamento
+    SUM(d.kg) AS total_kg,
+    SUM(d.pd) AS total_pd,
+    SUM(d.pt) AS total_pt,
+    SUM(d.rh) AS total_rh,
+    AVG(COALESCE(e.porcentagemPd, 0)) AS porcentagem_pd,
+    AVG(COALESCE(e.porcentagemPT, 0)) AS porcentagem_pt,
+    AVG(COALESCE(e.porcentagemRh, 0)) AS porcentagem_rh,
+    SUM((d.kg * COALESCE(d.pd, 0))) AS total_pd_calculado,
+    SUM((d.kg * COALESCE(d.pt, 0))) AS total_pt_calculado,
+    SUM((d.kg * COALESCE(d.rh, 0))) AS total_rh_calculado,
+    SUM((d.kg * COALESCE(d.pd, 0)) - ((d.kg * COALESCE(d.pd, 0)) * (COALESCE(e.porcentagemPd, 0) / 100))) AS total_pd_ajustado,
+    SUM((d.kg * COALESCE(d.pt, 0)) - ((d.kg * COALESCE(d.pt, 0)) * (COALESCE(e.porcentagemPT, 0) / 100))) AS total_pt_ajustado,
+    SUM((d.kg * COALESCE(d.rh, 0)) - ((d.kg * COALESCE(d.rh, 0)) * (COALESCE(e.porcentagemRh, 0) / 100))) AS total_rh_ajustado,
+    SUM(COALESCE(d.Valor, 0)) AS valor_total,
+    -- Cálculos dividindo os valores ajustados pelo total_kg
+    (SUM((d.kg * COALESCE(d.pd, 0)) - ((d.kg * COALESCE(d.pd, 0)) * (COALESCE(e.porcentagemPd, 0) / 100))) / NULLIF(SUM(d.kg), 0)) AS media_pd_ajustada,
+    (SUM((d.kg * COALESCE(d.pt, 0)) - ((d.kg * COALESCE(d.pt, 0)) * (COALESCE(e.porcentagemPT, 0) / 100))) / NULLIF(SUM(d.kg), 0)) AS media_pt_ajustada,
+    (SUM((d.kg * COALESCE(d.rh, 0)) - ((d.kg * COALESCE(d.rh, 0)) * (COALESCE(e.porcentagemRh, 0) / 100))) / NULLIF(SUM(d.kg), 0)) AS media_rh_ajustada,
+    -- Cálculos das médias multiplicadas por total_kg / 1000
+    ((SUM((d.kg * COALESCE(d.pd, 0)) - ((d.kg * COALESCE(d.pd, 0)) * (COALESCE(e.porcentagemPd, 0) / 100))) / NULLIF(SUM(d.kg), 0)) * SUM(d.kg) / 1000) AS resultado_pd,
+    ((SUM((d.kg * COALESCE(d.pt, 0)) - ((d.kg * COALESCE(d.pt, 0)) * (COALESCE(e.porcentagemPT, 0) / 100))) / NULLIF(SUM(d.kg), 0)) * SUM(d.kg) / 1000) AS resultado_pt,
+    ((SUM((d.kg * COALESCE(d.rh, 0)) - ((d.kg * COALESCE(d.rh, 0)) * (COALESCE(e.porcentagemRh, 0) / 100))) / NULLIF(SUM(d.kg), 0)) * SUM(d.kg) / 1000) AS resultado_rh,
+    -- Cálculo da média kg (valor_total / total_kg)
+    (SUM(COALESCE(d.Valor, 0)) / NULLIF(SUM(d.kg), 0)) AS media_kg
+FROM 
+    dados d
+JOIN 
+    representantes r ON d.representante = r.nome
+JOIN 
+    equipamentos e ON d.sn = e.nomeequipamento
+WHERE 
+    d.lote = ?
+GROUP BY 
+    d.representante, r.nome, d.lote;
+
+
+
     `;
 
     db.query(sql, [loteId], (err, results) => {
@@ -3298,11 +3320,62 @@ app.get('/api/movimentacao-financeira', (req, res) => {
     });
 });
 
+//Calculo soma dos totais dos metais
+app.get('/api/movimentacao-financeira-total', (req, res) => {
+    const loteId = req.query.lote;
+
+    console.log("Recebendo requisição para lote:", loteId);
+
+    const sql = `
+SELECT 
+    SUM(resultado_pd) AS total_resultado_pd,
+    SUM(resultado_pt) AS total_resultado_pt,
+    SUM(resultado_rh) AS total_resultado_rh
+FROM (
+    SELECT 
+        ((SUM((d.kg * COALESCE(d.pd, 0)) - ((d.kg * COALESCE(d.pd, 0)) * (COALESCE(e.porcentagemPd, 0) / 100))) / NULLIF(SUM(d.kg), 0)) * SUM(d.kg) / 1000) AS resultado_pd,
+        ((SUM((d.kg * COALESCE(d.pt, 0)) - ((d.kg * COALESCE(d.pt, 0)) * (COALESCE(e.porcentagemPT, 0) / 100))) / NULLIF(SUM(d.kg), 0)) * SUM(d.kg) / 1000) AS resultado_pt,
+        ((SUM((d.kg * COALESCE(d.rh, 0)) - ((d.kg * COALESCE(d.rh, 0)) * (COALESCE(e.porcentagemRh, 0) / 100))) / NULLIF(SUM(d.kg), 0)) * SUM(d.kg) / 1000) AS resultado_rh
+    FROM 
+        dados d
+    JOIN 
+        representantes r ON d.representante = r.nome
+    JOIN 
+        equipamentos e ON d.sn = e.nomeequipamento
+    WHERE 
+        d.lote = ?
+    GROUP BY 
+        d.representante, r.nome, d.lote
+) AS subquery;
 
 
+    `;
 
+    db.query(sql, [loteId], (err, results) => {
+        if (err) {
+            console.error("Erro ao buscar dados:", err);
+            return res.status(500).send("Erro ao buscar dados do banco de dados.");
+        }
 
+        console.log("Resultados da consulta:", results);
+        res.json(results);
+    });
+});
 
+app.get('/api/calcular-media/:loteId', (req, res) => {
+    const loteId = req.params.loteId;
 
+    db.query('CALL calcular_media_valor_total(?)', [loteId], (err, results) => {
+        if (err) {
+            console.error('Erro ao chamar a stored procedure:', err);
+            return res.status(500).json({ error: 'Erro ao calcular a média.' });
+        }
+        
+        // Verificando se não há resultados
+        if (!results[0] || results[0].length === 0) {
+            return res.status(404).json({ message: 'Nenhum dado encontrado para o lote fornecido.' });
+        }
 
-
+        res.json(results[0]); // Retornando o resultado da stored procedure
+    });
+});

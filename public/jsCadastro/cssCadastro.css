@@ -269,3 +269,163 @@ body {
 .saldo-negativo {
     background-color: #f2dede; /* Vermelho claro para saldo negativo */
 }
+/* Estilo para o cabeçalho da tabela */
+.tabela-representantes thead {
+    background-color: #001264; /* Preto escuro */
+    color: white; /* Texto branco */
+}
+
+/* Estilo para as linhas da tabela */
+.tabela-representantes tbody tr:nth-child(odd) {
+    background-color: rgba(0, 153, 255, 0.205);/* Cinza mais forte */
+    color: rgb(0, 0, 0); /* Texto branco */
+}
+
+.tabela-representantes tbody tr:nth-child(even) {
+    background-color:rgba(0, 153, 255, 0.336); /* Cinza mais fraco */
+    color: rgb(0, 0, 0); /* Texto branco */
+}
+
+.bg-amarelo {
+    background-color: rgba(0, 153, 255, 0.527); 
+    color: black; /* Cor do texto (opcional, para melhor contraste) */
+}
+
+/*Estilos para o modal de infoprmações de cálculos do representnate*/
+#modalCalculos .modal-content {
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* Estilo para a tabela dentro do modal */
+#modalCalculos .table th,
+#modalCalculos .table td {
+    width: 33.33%; /* Largura igual para todas as colunas */
+    text-align: center; /* Centraliza o texto em todas as células */
+    vertical-align: middle; /* Centraliza verticalmente o conteúdo */
+    padding: 10px; /* Espaçamento interno */
+}
+
+/* Estilo para o cabeçalho da tabela */
+#modalCalculos .table thead th {
+    background-color: #f8f9fa; /* Cor de fundo para o cabeçalho */
+    font-weight: bold; /* Texto em negrito */
+}
+
+/* Estilo para as linhas alternadas */
+#modalCalculos .table tbody tr:nth-child(even) {
+    background-color: #f2f2f2; /* Cor de fundo para linhas pares */
+}
+
+/* Efeito para destacar a linha ao passar o mouse */
+#calculosRepresentante tr:hover {
+    background-color: rgba(173, 216, 230, 0.3); /* Cor mais clara */
+}
+
+/* Efeito para destacar a coluna ao passar o mouse */
+#calculosRepresentante td:hover,
+#calculosRepresentante th:hover {
+    background-color: rgba(173, 216, 230, 0.5); /* Cor para a célula específica */
+}
+
+/* Destaque para as células na coluna */
+#calculosRepresentante td:hover::before,
+#calculosRepresentante th:hover::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(173, 216, 230, 0.3); /* Cor para a coluna */
+    z-index: -1;
+    pointer-events: none;
+    transform: scaleX(10);
+}
+
+
+/* Efeito apenas para tabelas com a classe tabela-representantes */
+.tabela-representantes tbody tr:hover {
+    background-color: rgba(19, 2, 255, 0.507); /* Cor de fundo para a linha ao passar o mouse */
+}
+
+/* Estilo para as células da coluna correspondente */
+.tabela-representantes tbody tr:hover td {
+    background-color: rgba(63, 94, 196, 0.692); /* Cor para as células da coluna correspondente ao passar o mouse */
+}
+
+/* Efeito de hover para as colunas, que podem estar em uma linha */
+.tabela-representantes tbody tr td:hover {
+    background-color:#001264 ;/* Cor que você escolher para o efeito hover */
+    color: white;
+}
+.bg-amarelo:hover {
+    background-color:  rgba(104, 195, 255, 0.527)/* Cor que você escolher para o efeito hover */
+}
+
+
+/* Efeito apenas para tabelas com a classe tabela-media */
+.tabela-media tbody tr:hover {
+    background-color: rgba(19, 2, 255, 0.507); /* Cor de fundo para a linha ao passar o mouse */
+}
+
+/* Estilo para as células da coluna correspondente na tabela média */
+.tabela-media tbody tr:hover td {
+    background-color: rgba(63, 94, 196, 0.692); /* Cor para as células da coluna correspondente ao passar o mouse */
+}
+
+/* Efeito de hover para as colunas, que podem estar em uma linha na tabela média */
+.tabela-media tbody tr td:hover {
+    background-color: #001264; /* Cor que você escolher para o efeito hover */
+    color: white; /* Cor do texto ao passar o mouse */
+}
+
+/* Estilo para o cabeçalho da tabela média */
+.tabela-media thead {
+    background-color: #001264; /* Preto escuro */
+    color: white; /* Texto branco */
+}
+
+/* Estilo para as linhas da tabela média */
+.tabela-media tbody tr:nth-child(odd) {
+    background-color: rgba(0, 153, 255, 0.205); /* Cinza mais forte */
+    color: rgb(0, 0, 0); /* Texto branco */
+}
+
+.tabela-media tbody tr:nth-child(even) {
+    background-color: rgba(0, 153, 255, 0.336); /* Cinza mais fraco */
+    color: rgb(0, 0, 0); /* Texto branco */
+}
+
+/* Efeito apenas para tabelas com a classe valor-media-total */
+#valor-media-total tr:hover {
+    background-color: rgba(19, 2, 255, 0.507); /* Cor de fundo para a linha ao passar o mouse */
+}
+
+/* Estilo para as células da coluna correspondente na tabela valor-media-total */
+#valor-media-total tr:hover td {
+    background-color: rgba(63, 94, 196, 0.692); /* Cor para as células da coluna correspondente ao passar o mouse */
+}
+
+/* Efeito de hover para as colunas, que podem estar em uma linha na tabela valor-media-total */
+#valor-media-total tr td:hover {
+    background-color: #001264; /* Cor que você escolher para o efeito hover */
+    color: white; /* Cor do texto ao passar o mouse */
+}
+
+/* Estilo para o cabeçalho da tabela de valor-media-total */
+.table-striped thead {
+    background-color: #001264; /* Preto escuro */
+    color: white; /* Texto branco */
+}
+
+/* Estilo para as linhas da tabela de valor-media-total */
+#valor-media-total tr:nth-child(odd) {
+    background-color: rgba(0, 153, 255, 0.205); /* Cinza mais forte */
+    color: rgb(0, 0, 0); /* Texto branco */
+}
+
+#valor-media-total tr:nth-child(even) {
+    background-color: rgba(0, 153, 255, 0.336); /* Cinza mais fraco */
+    color: rgb(0, 0, 0); /* Texto branco */
+}

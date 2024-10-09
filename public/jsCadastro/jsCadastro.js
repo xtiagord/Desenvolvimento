@@ -635,17 +635,28 @@ function disableEditing(table) {
         });
     });
 });*/
-$(document).ready(function() {
-    // Carrega os lotes ao iniciar
+$(document).ready(function () {
+    // Carregar a lista de representantes e lotes ao carregar a página
+    loadRepresentantes();
     loadLotes();
 
-    // Evento ao selecionar um lote
-    $('#loteSelect').change(function() {
+    // Adicionar um listener ao botão para carregar informações
+    $('#loadInfoButton').click(function () {
+        loadRepresentanteInfo();
+    });
+    $('#loteSelect').change(function () {
         const loteId = $(this).val(); // Obtém o lote selecionado
         buscarDados(loteId); // Chama a função de busca com o lote selecionado
     });
+    $('#loteSelect').change(function () {
+        const loteId = $(this).val(); // Obtém o lote selecionado
+        mediaDados(loteId); // Chama a função de busca com o lote selecionado
+    });
+    $('#loteSelect').change(function () {
+        const loteId = $(this).val(); // Obtém o lote selecionado
+        valorMediaTotal(loteId); // Chama a função de busca com o lote selecionado
+    });
 });
-
 
 // Função para carregar a lista de representantes
 function loadRepresentantes() {
@@ -1085,7 +1096,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 droppedRow.remove();
 
                 // Adiciona a nova linha unificada à tabela
-                $('#tabela-representantes-geral').append(newRow);
+                $('#tabela-representantes').append(newRow);
                 makeRowsDraggable(); // Reaplica a funcionalidade draggable
 
                 // Adiciona um efeito visual
@@ -1157,7 +1168,7 @@ $(document).ready(function () {
 });
 
 
-// Função para buscar dados
+// Função para buscar dados do servidor com base no lote selecionado
 function buscarDados(loteId) {
     console.log("Buscando dados para o lote:", loteId);
     fetch(`/api/movimentacao-financeira?lote=${loteId}`)
@@ -1184,40 +1195,269 @@ function buscarDados(loteId) {
             console.error("Erro ao buscar dados:", error);
         });
 }
+
 // Função para adicionar uma linha na tabela
 function adicionarLinha(representante) {
     const tabelaRepresentantes = document.getElementById('tabela-representantes-geral');
     const row = document.createElement('tr');
 
-    // Extraindo valores do objeto representante
-    const totalKg = parseFloat(representante.total_kg);
-    const mediaPd = parseFloat(representante.media_pd_por_kg); // Ajustado para pegar a média correta
-    const mediaPt = parseFloat(representante.media_pt_por_kg); // Ajustado para pegar a média correta
-    const mediaRh = parseFloat(representante.media_rh_por_kg); // Ajustado para pegar a média correta
-    const valorTotal = parseFloat(representante.valor_total);
-    const resultadoPd = parseFloat(representante.resultado_pd);
-    const resultadoPt = parseFloat(representante.resultado_pt);
-    const resultadoRh = parseFloat(representante.resultado_rh);
-
-    // Verificar se os valores são válidos antes de adicionar
-    console.log("Valores do representante:", {
-        representante: representante.representante,
-        totalKg,
-        resultadoPd,
-        resultadoPt,
-        resultadoRh,
-        valorTotal,
-    }); // Log para depuração
+    const totalKg = parseFloat(representante.total_kg) || 0;
+    const resultadoPd = parseFloat(representante.resultado_pd) || 0;
+    const resultadoPt = parseFloat(representante.resultado_pt) || 0;
+    const resultadoRh = parseFloat(representante.resultado_rh) || 0;
+    const valorTotal = parseFloat(representante.valor_total) || 0;
+    const mediaTotal = parseFloat(representante.media_kg) || 0;
 
     row.innerHTML = `
         <td>${representante.representante}</td>
-        <td>${totalKg.toFixed(2)}</td>
-        <td>${resultadoPd.toFixed(2)}</td> <!-- Usando resultado_pd -->
-        <td>${resultadoPt.toFixed(2)}</td> <!-- Usando resultado_pt -->
-        <td>${resultadoRh.toFixed(2)}</td> <!-- Usando resultado_rh -->
+        <td>${totalKg.toFixed(4)}</td>
+        <td>${resultadoPd.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+        <td>${resultadoPt.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+        <td>${resultadoRh.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
         <td>R$ ${valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-        <td>${(totalKg / 1000).toFixed(2)}</td> <!-- Exemplo de média KG -->
+        <td class="bg-amarelo">${mediaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
     `;
+
+    // Adiciona o evento de clique à linha
+    row.addEventListener('click', () => {
+        mostrarCalculos(representante);
+    });
+
     tabelaRepresentantes.appendChild(row);
 }
 
+function mostrarCalculos(representante) {
+    console.log(representante); // Verifica o conteúdo do objeto
+
+    // Seleciona o elemento do título do modal
+    const tituloModal = document.getElementById('modalCalculosLabel');
+    // Atualiza o título com o nome do representante
+    tituloModal.textContent = `Cálculos do Representante: ${representante.nome_representante}`;
+
+
+    const calculosRepresentante = document.getElementById('calculosRepresentante');
+    calculosRepresentante.innerHTML = ''; // Limpar o conteúdo anterior
+
+    // Adicionar os dados do representante ao modal
+    calculosRepresentante.innerHTML += `
+        <tr>
+            <td>Total KG</td>
+            <td>${(parseFloat(representante.total_kg) || 0).toFixed(4)}</td>
+            <td>Aqui é calculado todos os kgs do representante</td>
+        </tr>
+        <tr>
+            <td>Valor Total</td>
+            <td>R$ ${(parseFloat(representante.valor_total) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td>Soma Valor total dos materiais</td>
+        </tr>
+        <tr>
+            <td>Total Pd</td>
+            <td>${(parseFloat(representante.total_pd) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Soma todos os valores do material Pd (PALÁDIO)</td>
+        </tr>
+        <tr>
+            <td>Total Pd</td>
+            <td>${(parseFloat(representante.total_pt) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Soma todos os valores do material Pt (PLATINA)</td>
+        </tr>
+        <tr>
+            <td>Total Rh</td>
+            <td>${(parseFloat(representante.total_rh) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Soma todos os valores do material Rh (RÓDIO)</td>
+        </tr>
+        <tr>
+            <td>Total PD Ajustado pela Porcentagem</td>
+            <td>${(parseFloat(representante.porcentagem_Pd) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Porcentagem da maquina Pd</td>
+        </tr>
+        <tr>
+            <td>Total PT Ajustado pela Porcentagem</td>
+            <td>${(parseFloat(representante.porcentagem_Pt) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Porcentagem da maquina Pt</td>
+        </tr>
+        <tr>
+            <td>Total RH Ajustado pela Porcentagem</td>
+            <td>${(parseFloat(representante.porcentagem_rh) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Porcentagem da maquina Rh</td>
+        </tr>
+        <tr>
+            <td>Cálculo total PD pela Porcentagem</td>
+            <td>${(parseFloat(representante.total_pd_ajustado) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Calcula o total de pd, ajustado pela porcentagem porcentagemPd. O ajuste é feito subtraindo a parte correspondente a porcentagemPd. Fórmula do cálculo (Pd-(pd*PorcentagemPd))</td>
+        </tr>
+        <tr>
+            <td>Cálculo total Pt pela Porcentagem</td>
+            <td>${(parseFloat(representante.total_pt_ajustado) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Calcula o total de pt, ajustado pela porcentagem porcentagemPt. O ajuste é feito subtraindo a parte correspondente a porcentagemPt. Fórmula do cálculo (Pt-(pt*PorcentagemPt))</td>
+        </tr>
+        <tr>
+            <td>Cálculo Total RH pela Porcentagem</td>
+            <td>${(parseFloat(representante.total_rh_ajustado) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Calcula o total de rh, ajustado pela porcentagem porcentagemRh. O ajuste é feito subtraindo a parte correspondente a porcentagemRh. Fórmula do cálculo (Rh-(rh*PorcentagemRh))</td>
+        </tr>
+        <tr>
+            <td>Média PD Total</td>
+            <td>${(parseFloat(representante.media_pd_ajustada) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Calcula a Média Total do pd ajustada pela porcentagem. Fórmula Pd Ajustada pela Porcentagem / Total de Kg</td>
+        </tr>
+        <tr>
+            <td>Média PT Total</td>
+            <td>${(parseFloat(representante.media_pt_ajustada) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+             <td>Calcula a Média Total do pt ajustada pela porcentagem. Fórmula Pt Ajustada pela Porcentagem / Total de Kg</td>
+        </tr>
+        <tr>
+            <td>Média RH Total</td>
+            <td>${(parseFloat(representante.media_rh_ajustada) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Calcula a Média Total do rh ajustada pela porcentagem. Fórmula RH Ajustada pela Porcentagem / Total de Kg</td>
+        </tr>
+         <tr>
+            <td>Resultado final PD</td>
+            <td>${(parseFloat(representante.resultado_pd) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Aqui temos o resultado final de Pd. A fórmula do cálculo usada é Pd * Total de kg divido por 1000 </td>
+        </tr>
+        <tr>
+            <td>Resultado final PT</td>
+            <td>${(parseFloat(representante.resultado_pt) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Aqui temos o resultado final de Pt. A fórmula do cálculo usada é Pt * Total de kg divido por 1000 </td>
+        </tr>
+        <tr>
+            <td>Resultado final RH</td>
+            <td>${(parseFloat(representante.resultado_rh) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+            <td>Aqui temos o resultado final de Rh. A fórmula do cálculo usada é Rh * Total de kg divido por 1000 </td>
+        </tr>
+        <tr>
+            <td>Valor Total</td>
+            <td>R$ ${(parseFloat(representante.media_kg) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            <td>Calula a média de valor divido pelo total de KG</td>
+        </tr>
+    `;
+
+    // Exibir o modal
+    const modal = new bootstrap.Modal(document.getElementById('modalCalculos'));
+    modal.show();
+}
+
+
+
+// Função para buscar dados do servidor com base no lote selecionado
+function mediaDados(loteId) {
+    console.log("Buscando dados para o lote:", loteId);
+    fetch(`/api/movimentacao-financeira-total?lote=${loteId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Dados recebidos:", data);
+            const mediaTotais = document.getElementById('medias-pd-pt-rh');
+            mediaTotais.innerHTML = ''; // Limpar a tabela antes de preencher
+
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(representante => {
+                    adicionarLinhaMedia(representante); // Adiciona as linhas na tabela
+                });
+            } else {
+                console.error("Os dados recebidos não estão no formato esperado ou estão vazios.");
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao buscar dados:", error);
+        });
+}
+
+// Função para adicionar uma linha na tabela
+function adicionarLinhaMedia(representante) {
+    const tabelaRepresentantes = document.getElementById('medias-pd-pt-rh');
+
+    const resultadoMediaPD = parseFloat(representante.total_resultado_pd) || 0;
+    const resultadoMediaPt = parseFloat(representante.total_resultado_pt) || 0;
+    const resultadoMediaRh = parseFloat(representante.total_resultado_rh) || 0;
+
+    // Adiciona linha para PD
+    const rowPD = document.createElement('tr');
+    rowPD.innerHTML = `
+        <td>PD</td>
+        <td>${resultadoMediaPD.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+    `;
+    tabelaRepresentantes.appendChild(rowPD);
+
+    // Adiciona linha para PT
+    const rowPT = document.createElement('tr');
+    rowPT.innerHTML = `
+        <td>PT</td>
+        <td>${resultadoMediaPt.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+    `;
+    tabelaRepresentantes.appendChild(rowPT);
+
+    // Adiciona linha para RH
+    const rowRH = document.createElement('tr');
+    rowRH.innerHTML = `
+        <td>RH</td>
+        <td>${resultadoMediaRh.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+    `;
+    tabelaRepresentantes.appendChild(rowRH);
+}
+
+// Função para buscar dados do servidor com base no lote selecionado
+function valorMediaTotal(loteId) {
+    console.log("Buscando dados para o lote:", loteId);
+    fetch(`/api/calcular-media/${loteId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Erro na requisição: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Dados recebidos:", data);
+            const somaMedias = document.getElementById('valor-media-total');
+            somaMedias.innerHTML = ''; // Limpar a tabela antes de preencher
+
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(representante => {
+                    adicionarLinhaValorTotal(representante); // Adiciona as linhas na tabela
+                });
+            } else {
+                console.error("Os dados recebidos não estão no formato esperado ou estão vazios.");
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao buscar dados:", error);
+        });
+}
+
+// Função para adicionar uma linha na tabela
+function adicionarLinhaValorTotal(representante) {
+    const tabelaRepresentantes = document.getElementById('valor-media-total');
+
+    const resultadoSomaTotal = parseFloat(representante.soma_valor_total) || 0;
+    const resultadoSomaKg = parseFloat(representante.soma_total_kg) || 0;
+    const resultadoMediaKg = parseFloat(representante.media_valor_por_kg) || 0;
+
+    // Adiciona linha para PD
+    const rowPD = document.createElement('tr');
+    rowPD.innerHTML = `
+    <td>Valor Total</td>
+    <td>R$ ${resultadoSomaTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+`;
+    tabelaRepresentantes.appendChild(rowPD);
+
+    // Adiciona linha para PT
+    const rowPT = document.createElement('tr');
+    rowPT.innerHTML = `
+    <td>Total Kg</td>
+    <td>${resultadoSomaKg.toLocaleString('pt-BR', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</td>
+`;
+    tabelaRepresentantes.appendChild(rowPT);
+
+    // Adiciona linha para RH
+    const rowRH = document.createElement('tr');
+    rowRH.innerHTML = `
+    <td>Média Valor por Kg</td>
+    <td>R$ ${resultadoMediaKg.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+`;
+    tabelaRepresentantes.appendChild(rowRH);
+
+}
