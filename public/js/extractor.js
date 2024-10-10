@@ -72,10 +72,10 @@ function displayData(data) {
       <td><input type="text" class="form-control custom-spacing large-input tipo-input" style="width: 50px;" value="${row.tipo || ''}"></td>
       <td><input type="text" class="form-control custom-spacing large-input hedge-input" style="width: 50px;" value="${row.hedge || ''}"></td>
       <td>
-          ${row.data === undefined ? 
-              `<input type="date" id="data${index}" class="form-control custom-spacing large-input" style="width: 50px;" placeholder="dd/mm/yyyy">` :
-              `<input type="text" id="data${index}" class="form-control custom-spacing large-input" style="width: 80px;" value="${row.data}">`
-          }
+          ${row.data === undefined ?
+        `<input type="date" id="data${index}" class="form-control custom-spacing large-input" style="width: 50px;" placeholder="dd/mm/yyyy">` :
+        `<input type="text" id="data${index}" class="form-control custom-spacing large-input" style="width: 80px;" value="${row.data}">`
+      }
       </td>
       <td><input type="text" class="form-control custom-spacing large-input" style="width: 80px;" value="${row.hora || ''}"></td>
       <td>
@@ -91,7 +91,7 @@ function displayData(data) {
       </td>
       <td><input type="text" id="SN${index}" class="form-control custom-spacing large-input sn-input" style="width: 80px;" value="${row.sn || ''}"></td>
     `;
-    
+
     tbody.appendChild(tr);
   });
   table.appendChild(tbody);
@@ -114,47 +114,47 @@ function displayData(data) {
       const newOption = option.cloneNode(true);
       datalist.appendChild(newOption);
     });
-    input.value = data[index].fornecedor; 
+    input.value = data[index].fornecedor;
   });
 
-// Preencher os selects de lote
-fetch('/api/lote')
+  // Preencher os selects de lote
+  fetch('/api/lote')
     .then(response => {
-        if (!response.ok) {
-            throw new Error('Erro ao buscar lotes');
-        }
-        return response.json();
+      if (!response.ok) {
+        throw new Error('Erro ao buscar lotes');
+      }
+      return response.json();
     })
     .then(lotes => {
-        // Adiciona select para cada linha
-        data.forEach((_, index) => {
-            const select = document.createElement('select');
-            select.id = `lotesSelect${index}`;
-            select.className = 'form-control custom-spacing custom-width lote-input';
+      // Adiciona select para cada linha
+      data.forEach((_, index) => {
+        const select = document.createElement('select');
+        select.id = `lotesSelect${index}`;
+        select.className = 'form-control custom-spacing custom-width lote-input';
 
-            lotes.forEach(lote => {
-                const option = document.createElement('option');
-                option.value = lote.nome; // Certifique-se de acessar a propriedade 'nome'
-                option.textContent = lote.nome; // Use a propriedade 'nome' para o texto da opção
-                select.appendChild(option);
-            });
-
-            // Substituir o input text por um select
-            const loteInput = document.getElementById(`lote${index}`);
-            loteInput.parentNode.replaceChild(select, loteInput);
-
-            // Adicionar evento change para sincronizar a seleção
-            select.addEventListener('change', function() {
-                const newValue = this.value;
-                const loteInputs = document.querySelectorAll('.lote-input');
-                loteInputs.forEach(input => {
-                    input.value = newValue;
-                });
-            });
+        lotes.forEach(lote => {
+          const option = document.createElement('option');
+          option.value = lote.nome; // Certifique-se de acessar a propriedade 'nome'
+          option.textContent = lote.nome; // Use a propriedade 'nome' para o texto da opção
+          select.appendChild(option);
         });
+
+        // Substituir o input text por um select
+        const loteInput = document.getElementById(`lote${index}`);
+        loteInput.parentNode.replaceChild(select, loteInput);
+
+        // Adicionar evento change para sincronizar a seleção
+        select.addEventListener('change', function () {
+          const newValue = this.value;
+          const loteInputs = document.querySelectorAll('.lote-input');
+          loteInputs.forEach(input => {
+            input.value = newValue;
+          });
+        });
+      });
     })
     .catch(error => {
-        console.error('Erro ao buscar lotes:', error);
+      console.error('Erro ao buscar lotes:', error);
     });
 
 
@@ -179,7 +179,7 @@ fetch('/api/lote')
   const snInputs = resultDiv.querySelectorAll('.sn-input');
   const firstSnInput = snInputs[0];
 
-  firstSnInput.addEventListener('input', function(){
+  firstSnInput.addEventListener('input', function () {
     const newValue = this.value;
     snInputs.forEach(input => {
       input.value = newValue
@@ -189,64 +189,64 @@ fetch('/api/lote')
   //Evento de entrada para sincronizar os campos "tipo"
   const tipoInputs = resultDiv.querySelectorAll('.tipo-input');
   tipoInputs.forEach((input, index) => {
-      input.addEventListener('input', function() {
-          const newValue = this.value;
-          tipoInputs.forEach((syncInput, syncIndex) => {
-              if (syncIndex !== index) {
-                  syncInput.value = newValue;
-              }
-          });
+    input.addEventListener('input', function () {
+      const newValue = this.value;
+      tipoInputs.forEach((syncInput, syncIndex) => {
+        if (syncIndex !== index) {
+          syncInput.value = newValue;
+        }
       });
+    });
   });
 
   //Evento de entrada para sincronizar os campos "Hedge"
   const hedgeInputs = resultDiv.querySelectorAll('.hedge-input');
   hedgeInputs.forEach((input, index) => {
-      input.addEventListener('input', function() {
-          const newValue = this.value;
-          hedgeInputs.forEach((syncInput, syncIndex) => {
-              if (syncIndex !== index) {
-                  syncInput.value = newValue;
-              }
-          });
+    input.addEventListener('input', function () {
+      const newValue = this.value;
+      hedgeInputs.forEach((syncInput, syncIndex) => {
+        if (syncIndex !== index) {
+          syncInput.value = newValue;
+        }
       });
+    });
   });
 
- // Adicionar evento de entrada para sincronizar os campos "Lote"
- const loteInputs = resultDiv.querySelectorAll('.lote-input');
- const firstLoteInput = loteInputs[0]; // Primeiro campo "Lote"
- 
- firstLoteInput.addEventListener('input', function() {
-   const newValue = this.value;
-   loteInputs.forEach(input => {
-     input.value = newValue;
-   });
- });
-  
+  // Adicionar evento de entrada para sincronizar os campos "Lote"
+  const loteInputs = resultDiv.querySelectorAll('.lote-input');
+  const firstLoteInput = loteInputs[0]; // Primeiro campo "Lote"
 
-// Adicionar eventos de entrada para sincronizar outros campos
-const syncInputs = resultDiv.querySelectorAll('.sync-input');
-syncInputs.forEach(input => {
-  input.addEventListener('input', function() {
+  firstLoteInput.addEventListener('input', function () {
     const newValue = this.value;
-    if (this.classList.contains('fornecedor-input')) {
-      // Se for um campo de fornecedor, replicar em todos os campos de fornecedor
-      const fornecedorInputs = resultDiv.querySelectorAll('.fornecedor-input');
-      fornecedorInputs.forEach(fornecedorInput => {
-        fornecedorInput.value = newValue;
-      });
-    } else if (this.classList.contains('representante-select')) {
-      // Se for um campo de representante, replicar em todos os campos de representante
-      const representanteSelects = resultDiv.querySelectorAll('.representante-select');
-      representanteSelects.forEach(representanteSelect => {
-        representanteSelect.value = newValue;
-      });
-    }
+    loteInputs.forEach(input => {
+      input.value = newValue;
+    });
   });
-});
 
-document.getElementById('resetButton').style.display = 'block';
-document.getElementById('editButton').style.display = 'block';
+
+  // Adicionar eventos de entrada para sincronizar outros campos
+  const syncInputs = resultDiv.querySelectorAll('.sync-input');
+  syncInputs.forEach(input => {
+    input.addEventListener('input', function () {
+      const newValue = this.value;
+      if (this.classList.contains('fornecedor-input')) {
+        // Se for um campo de fornecedor, replicar em todos os campos de fornecedor
+        const fornecedorInputs = resultDiv.querySelectorAll('.fornecedor-input');
+        fornecedorInputs.forEach(fornecedorInput => {
+          fornecedorInput.value = newValue;
+        });
+      } else if (this.classList.contains('representante-select')) {
+        // Se for um campo de representante, replicar em todos os campos de representante
+        const representanteSelects = resultDiv.querySelectorAll('.representante-select');
+        representanteSelects.forEach(representanteSelect => {
+          representanteSelect.value = newValue;
+        });
+      }
+    });
+  });
+
+  document.getElementById('resetButton').style.display = 'block';
+  document.getElementById('editButton').style.display = 'block';
 
 
   // Exibir o botão de adicionar linha após a extração
@@ -312,7 +312,7 @@ document.getElementById('extractButton').addEventListener('click', async () => {
     const data = extractDataFromText(extractedText);
     document.getElementById('sendButton').style.display = 'block';
 
-  } catch (error) {}
+  } catch (error) { }
 });
 
 document.getElementById('sendButton').addEventListener('click', async () => {
@@ -329,7 +329,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   rows.forEach(row => {
     const cells = row.querySelectorAll('input, select');
     const tipo = cells[8].value;
-    
+
     // Destacar o campo tipo se estiver vazio
     if (!tipo) {
       cells[8].style.borderColor = 'yellow';
@@ -364,7 +364,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   // Exibir o modal de confirmação
   $('#confirmacaoModal').modal('show');
 
-  document.getElementById('confirmarEnvio').onclick = async function() {
+  document.getElementById('confirmarEnvio').onclick = async function () {
     // Obter o valor selecionado do select
     let representanteSelecionado = document.getElementById("representante0").value;
 
@@ -394,6 +394,45 @@ document.getElementById('sendButton').addEventListener('click', async () => {
       alert("Selecione um representante antes de confirmar.");
       return; // Interrompe o processo se nenhum representante estiver selecionado
     }
+    // Seleciona o PDF para envio
+    const pdfInput = document.getElementById('pdfInput'); // Adicione um campo de input para o PDF no seu HTML
+    if (!pdfInput || !pdfInput.files.length) {
+      alert('Por favor selecione um arquivo PDF');
+      return;
+    }
+
+    const pdfFile = pdfInput.files[0];
+    const formData = new FormData();
+    formData.append('pdf', pdfFile);
+    formData.append('representanteId', representanteSelecionado);
+
+    // Loop através das linhas para coletar os lotes corretos
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('input, select');
+      const lote = cells[0].value; // Pega o valor do lote do input
+      const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
+
+      formData.append('lote', lote); // Agora adiciona o lote
+      formData.append('npdf', npdf); // Adiciona npdf para cada lote
+    });
+
+    try {
+      const response = await fetch('/save-pdf', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        alert('PDF salvo com sucesso.');
+      } else {
+        alert('Falha ao salvar o PDF.');
+      }
+    } catch (error) {
+      alert('Erro: ' + error.message);
+    }
+
+    $('#confirmacaoModal').modal('hide');
+
 
     // Prepare and send the data
     const preparedData = prepareDataForSend(rows.map(row => {
@@ -464,17 +503,17 @@ function prepareDataForSend(data) {
 
 
 async function fetchCooperadosByRepresentante(representanteId) {
-try {
-  const response = await fetch(`/api/cooperados/${representanteId}`);
-  if (!response.ok) {
-    throw new Error('Erro ao buscar cooperados');
+  try {
+    const response = await fetch(`/api/cooperados/${representanteId}`);
+    if (!response.ok) {
+      throw new Error('Erro ao buscar cooperados');
+    }
+    const cooperados = await response.json();
+    return cooperados;
+  } catch (error) {
+    console.error('Erro ao buscar cooperados:', error);
+    return [];
   }
-  const cooperados = await response.json();
-  return cooperados;
-} catch (error) {
-  console.error('Erro ao buscar cooperados:', error);
-  return [];
-}
 }
 function carregarContagemRepresentantes() {
   let contagemJSON = localStorage.getItem('contagemRepresentantes');
@@ -533,7 +572,7 @@ function mostrarEnviar() {
 }
 
 // Carregar contagem inicial ao carregar a página
-window.onload = function() {
+window.onload = function () {
   contagemRepresentantes = carregarContagemRepresentantes();
 };
 
@@ -555,7 +594,7 @@ function addNewRow() {
   // Clona a linha e reseta os valores dos inputs
   const newRow = firstRow.cloneNode(true);
   const inputs = newRow.querySelectorAll('input, select');
-  
+
   inputs.forEach(input => {
     // Herda os valores das colunas SN, Hora, e Data
     if (input.classList.contains('sn-input')) {
@@ -564,7 +603,7 @@ function addNewRow() {
       input.value = firstRow.querySelector('[id*="hora"]').value;
     } else if (input.classList.contains('form-control-lg') && input.id.includes('data')) {
       input.value = firstRow.querySelector('[id*="data"]').value;
-    } else if (input.classList.contains('lote-input')){
+    } else if (input.classList.contains('lote-input')) {
       input.value = firstRow.querySelector('.lote-input').value;
     } else {
       input.value = ''; // Reseta os valores de outras colunas
@@ -572,7 +611,7 @@ function addNewRow() {
 
     input.id = `${input.id}_${table.children.length}`; // Atualiza o ID para garantir que seja único
   });
-  
+
   table.appendChild(newRow);
 }
 
@@ -582,7 +621,7 @@ document.getElementById('addRowButton').addEventListener('click', addNewRow);
 // Função para abrir o modal de edição
 async function abrirModalEdicao() {
   let modalContent = document.getElementById("editModalContent");
-  
+
   // Limpa o conteúdo do modal antes de adicionar novos itens
   modalContent.innerHTML = "";
 
@@ -590,7 +629,7 @@ async function abrirModalEdicao() {
     const response = await fetch('/api/representantes');
     const representantes = await response.json();
     const idsProcessados = new Set(); // Para rastrear IDs já processados
-    
+
     console.log("Representantes:", representantes); // Verificação no console
 
     for (let representanteID in contagemRepresentantes) {
@@ -601,7 +640,7 @@ async function abrirModalEdicao() {
         // Busca o nome do representante com base no ID
         const representante = representantes.find(rep => rep.id === parseInt(representanteID));
         if (!representante) continue;
-        
+
         const representanteNome = representante.nome;
         const campoID = `rep_${representanteID}`;
         modalContent.innerHTML += `
@@ -646,7 +685,7 @@ function mostrarConfirmacaoReset() {
 }
 
 // Função para confirmar o reset
-document.getElementById('confirmResetButton').addEventListener('click', function() {
+document.getElementById('confirmResetButton').addEventListener('click', function () {
   // Fechar o modal de confirmação
   $('#confirmResetModal').modal('hide');
 

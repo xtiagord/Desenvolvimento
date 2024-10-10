@@ -22,7 +22,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys'
+    database: 'sys_test'
 });
 
 // Conectar ao banco de dados
@@ -1319,6 +1319,50 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
     });
 });
 
+app.post('/save-pdf', upload.single('pdf'), (req, res) => {
+    const representanteId = req.body.representanteId;
+    const lote = req.body.lote;
+    const npdf = req.body.npdf;
+    const pdfFile = req.file;
+
+    if (!pdfFile) {
+        return res.status(400).send('Nenhum arquivo PDF enviado.');
+    }
+
+    // Verificar se o ID do representante é válido
+    db.query('SELECT COUNT(*) AS count FROM representantes WHERE id = ?', [representanteId], (err, rows) => {
+        if (err) {
+            console.error('Erro ao verificar representante:', err);
+            return res.status(500).send('Erro ao verificar o representante.');
+        }
+
+        if (rows[0].count === 0) {
+            return res.status(400).send('ID do representante inválido.');
+        }
+
+        // Obter o nome do representante
+        obterNomeRepresentante(representanteId, (err, nomeRepresentante) => {
+            if (err) {
+                console.error('Erro ao obter o nome do representante:', err);
+                return res.status(500).send('Erro ao obter o nome do representante.');
+            }
+
+            const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
+
+            // Inserir PDF no banco de dados
+            const query = 'INSERT INTO pdfs (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)';
+            const params = [newFilename, pdfFile.buffer, representanteId, npdf, lote];
+
+            db.query(query, params, (err, result) => {
+                if (err) {
+                    console.error('Erro ao salvar o PDF:', err);
+                    return res.status(500).send('Erro ao salvar o PDF.');
+                }
+                res.send('PDF salvo com sucesso.');
+            });
+        });
+    });
+});
 
 
 
