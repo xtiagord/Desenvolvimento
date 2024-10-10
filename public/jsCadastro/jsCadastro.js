@@ -720,6 +720,7 @@ function showRepresentanteInfo(nomeRepresentante) {
     $('#detalhesModalLabel').text(`Detalhes do Representante: ${nomeRepresentante}`);
     loadRepresentanteInfo(nomeRepresentante);
 }
+
 function loadRepresentanteInfo(nomeRepresentante) {
     const loteSelecionado = $('#loteSelect').val();
 
@@ -735,7 +736,6 @@ function loadRepresentanteInfo(nomeRepresentante) {
         method: 'GET',
         success: function (dados) {
             console.log('Dados recebidos:', dados);
-
             $('#modalDataBody').empty();
 
             if (dados.length === 0) {
@@ -760,22 +760,32 @@ function loadRepresentanteInfo(nomeRepresentante) {
                             <td>${dado.hora}</td>
                             <td>${formatarNomeFornecedor(dado.fornecedor)}</td>
                             <td>${dado.sn}</td>
-                            <td>${dado.lote}</td> <!-- Adicionado lote -->
+                            <td>${dado.lote}</td>
                             <td>
-                               <button class="btn btn-sm btn-warning" onclick="editarLinha(${dado.iddados})">Editar</button>
-                               <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.iddados})">Excluir</button>
+                                <button class="btn btn-sm btn-warning" onclick="editarLinha(${dado.iddados})">Editar</button>
+                                <button class="btn btn-sm btn-danger" onclick="excluirLinha(${dado.iddados})">Excluir</button>
                             </td>
                         </tr>
                     `;
                     $('#modalDataBody').append(row);
                 });
 
+                // Atualizar os detalhes do representante
+                const representanteStats = calcularEstatisticasRepresentante(dados);
+                $('#valorTotal').text(representanteStats.valorTotal);
+                $('#totalKg').text(representanteStats.totalKg);
+                $('#mediaPdAjustada').text(representanteStats.mediaPdAjustada);
+                $('#mediaPtAjustada').text(representanteStats.mediaPtAjustada);
+                $('#mediaRhAjustada').text(representanteStats.mediaRhAjustada);
+                $('#resultadoPd').text(representanteStats.resultadoPd);
+                $('#resultadoPt').text(representanteStats.resultadoPt);
+                $('#resultadoRh').text(representanteStats.resultadoRh);
+
                 // Adiciona um evento de clique à linha para mostrar o PDF
                 $('.clickable-row').on('click', function () {
                     const npdf = $(this).find('td:eq(0)').text(); // Ajuste o índice conforme necessário
                     mostrarPdf(npdf, nomeRepresentante, loteSelecionado); // Passa todos os parâmetros necessários
                 });
-
             }
 
             $('#detalhesModal').modal('show');
@@ -785,6 +795,37 @@ function loadRepresentanteInfo(nomeRepresentante) {
         }
     });
 }
+
+// Função para calcular as estatísticas do representante
+function calcularEstatisticasRepresentante(dados) {
+    let valorTotal = 0;
+    let totalKg = 0;
+    let totalPd = 0;
+    let totalPt = 0;
+    let totalRh = 0;
+
+    dados.forEach(dado => {
+        valorTotal += parseFloat(dado.Valor || 0);
+        totalKg += parseFloat(dado.kg || 0);
+        totalPd += parseFloat(dado.pd || 0);
+        totalPt += parseFloat(dado.pt || 0);
+        totalRh += parseFloat(dado.rh || 0);
+    });
+
+    return {
+        valorTotal: valorTotal.toFixed(2),
+        totalKg: totalKg.toFixed(2),
+        mediaPdAjustada: (totalPd / dados.length).toFixed(4),
+        mediaPtAjustada: (totalPt / dados.length).toFixed(4),
+        mediaRhAjustada: (totalRh / dados.length).toFixed(4),
+        resultadoPd: (valorTotal * 0.1).toFixed(2), // Exemplo de cálculo
+        resultadoPt: (valorTotal * 0.2).toFixed(2), // Exemplo de cálculo
+        resultadoRh: (valorTotal * 0.3).toFixed(2)  // Exemplo de cálculo
+    };
+}
+
+
+
 
 function formatarNomeFornecedor(nome) {
     const [primeiroNome, segundoNome] = nome.split(" ");

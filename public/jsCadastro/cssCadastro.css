@@ -160,8 +160,6 @@ body {
     max-height: calc(100% - 120px);
     /* Ajuste conforme necessário */
 }
-
-/* CSS personalizado para o modal de confirmação */
 /* CSS personalizado para o modal de confirmação */
 .custom-modal .modal-dialog {
     max-width: 400px;
@@ -194,56 +192,61 @@ body {
     /* Adiciona uma barra de rolagem vertical se o conteúdo exceder a altura do corpo */
 }
 
-/* Estilos gerais de fundo */
-.compra-catalisador {
-    background-color: #d0e0f0;
-    /* Azul claro */
+/* Estilos gerais de fundo para a tabela de movimentação */
+#tabelaMovimentacao .compra-catalisador {
+    background-color: #d0e0f0; /* Azul claro */
 }
 
-.total-valor-pecas {
-    background-color: #d0e0f0;
-    /* Azul claro */
+#tabelaMovimentacao .total-valor-pecas {
+    background-color: #d0e0f0; /* Azul claro */
 }
 
-.saldo-adiantamentos {
-    background-color: #fdd0d0;
-    /* Vermelho claro */
+#tabelaMovimentacao .saldo-adiantamentos {
+    background-color: #fdd0d0; /* Vermelho claro */
 }
 
-.saldo-positivo {
-    background-color: #d0f0c0;
-    /* Verde claro */
+#tabelaMovimentacao .saldo-positivo {
+    background-color: #d0f0c0; /* Verde claro */
 }
 
-.saldo-negativo {
-    background-color: #fdd0d0;
-    /* Vermelho claro */
+#tabelaMovimentacao .saldo-negativo {
+    background-color: #fdd0d0; /* Vermelho claro */
 }
 
-/* Efeito de hover mais intenso para cada coluna */
-.compra-catalisador:hover {
-    background-color: #a0c0f0;
-    /* Azul mais forte */
+/* Efeito de hover para as colunas específicas na tabela de movimentação */
+#tabelaMovimentacao tr:hover .compra-catalisador,
+#tabelaMovimentacao tr:hover .total-valor-pecas,
+#tabelaMovimentacao tr:hover .saldo-adiantamentos,
+#tabelaMovimentacao tr:hover .saldo-positivo,
+#tabelaMovimentacao tr:hover .saldo-negativo {
+    background-color: #a0c0f0; /* Azul mais forte para colunas com estilo original */
 }
 
-.total-valor-pecas:hover {
-    background-color: #a0c0f0;
-    /* Azul mais forte */
+/* Efeito de hover para Representante e Total KG na tabela de movimentação */
+#tabelaMovimentacao tr:hover td:nth-child(1), /* Representante */
+#tabelaMovimentacao tr:hover td:nth-child(2) { /* Total KG */
+    background-color: #b0e0f0; /* Azul claro */
 }
 
-.saldo-adiantamentos:hover {
-    background-color: #fbb0b0;
-    /* Vermelho mais forte */
+/* Efeito de hover mais intenso para cada coluna específica na tabela de movimentação */
+#tabelaMovimentacao tr:hover .compra-catalisador {
+    background-color: #a0c0f0; /* Azul mais forte */
 }
 
-.saldo-positivo:hover {
-    background-color: #a0d0a0;
-    /* Verde mais forte */
+#tabelaMovimentacao tr:hover .total-valor-pecas {
+    background-color: #a0c0f0; /* Azul mais forte */
 }
 
-.saldo-negativo:hover {
-    background-color: #fbb0b0;
-    /* Vermelho mais forte */
+#tabelaMovimentacao tr:hover .saldo-adiantamentos {
+    background-color: #fbb0b0; /* Vermelho mais forte */
+}
+
+#tabelaMovimentacao tr:hover .saldo-positivo {
+    background-color: #a0d0a0; /* Verde mais forte */
+}
+
+#tabelaMovimentacao tr:hover .saldo-negativo {
+    background-color: #fbb0b0; /* Vermelho mais forte */
 }
 
  /* Estilo do modal para arrasto */
@@ -291,7 +294,7 @@ body {
     color: black; /* Cor do texto (opcional, para melhor contraste) */
 }
 
-/*Estilos para o modal de infoprmações de cálculos do representnate*/
+/* Estilos para o modal de informações de cálculos do representante */
 #modalCalculos .modal-content {
     padding: 20px;
     border-radius: 8px;
@@ -311,37 +314,38 @@ body {
     background-color: #f8f9fa; /* Cor de fundo para o cabeçalho */
     font-weight: bold; /* Texto em negrito */
 }
-
-/* Estilo para as linhas alternadas */
-#modalCalculos .table tbody tr:nth-child(even) {
-    background-color: #f2f2f2; /* Cor de fundo para linhas pares */
-}
-
-/* Efeito para destacar a linha ao passar o mouse */
-#calculosRepresentante tr:hover {
-    background-color: rgba(173, 216, 230, 0.3); /* Cor mais clara */
-}
-
-/* Efeito para destacar a coluna ao passar o mouse */
-#calculosRepresentante td:hover,
-#calculosRepresentante th:hover {
-    background-color: rgba(173, 216, 230, 0.5); /* Cor para a célula específica */
-}
-
-/* Destaque para as células na coluna */
-#calculosRepresentante td:hover::before,
-#calculosRepresentante th:hover::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
+/* Estilo exclusivo para a tabela de cálculos do representante */
+#calculosRepresentante {
     width: 100%;
-    height: 100%;
-    background-color: rgba(173, 216, 230, 0.3); /* Cor para a coluna */
-    z-index: -1;
-    pointer-events: none;
-    transform: scaleX(10);
+    border-collapse: collapse;
 }
+
+/* Estilo das células da tabela */
+#calculosRepresentante th, #calculosRepresentante td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #dee2e6;
+}
+
+/* Estilo do cabeçalho da tabela */
+#calculosRepresentante th {
+    background-color: #f8f9fa;
+}
+
+/* Efeito hover para as linhas da tabela */
+#calculosRepresentante tr:hover {
+    background-color: #f1f1f1; /* Cor de fundo ao passar o mouse */
+    cursor: pointer; /* Muda o cursor para indicar que a linha é interativa */
+}
+
+/* Efeito hover em células individuais */
+#calculosRepresentante tr:hover td {
+    color: #000; /* Muda a cor do texto ao passar o mouse */
+}
+
+
+
+
 
 
 /* Efeito apenas para tabelas com a classe tabela-representantes */

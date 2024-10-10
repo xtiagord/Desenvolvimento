@@ -3379,3 +3379,21 @@ app.get('/api/calcular-media/:loteId', (req, res) => {
         res.json(results[0]); // Retornando o resultado da stored procedure
     });
 });
+
+app.get('/api/detalhes-representante', (req, res) => {
+    const loteId = req.query.loteId; // Captura o loteId da requisição
+
+    console.log("Recebendo requisição para detalhes do representante:", loteId);
+
+    const sql = 'CALL GetDetalhesRepresentante(?)';
+
+    db.query(sql, [loteId], (err, results) => {
+        if (err) {
+            console.error("Erro ao buscar detalhes do representante:", err);
+            return res.status(500).send("Erro ao buscar detalhes do representante.");
+        }
+
+        console.log("Resultados dos detalhes do representante:", results);
+        res.json(results[0]); // `results[0]` contém os resultados da stored procedure
+    });
+});
