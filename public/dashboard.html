@@ -55,11 +55,11 @@
                         <a class="nav-link" href="/public/Financeiro.html">Financeiro</a>
                     </li>
                     <li class="nav-item" id="financeLink"></li>
-                        <a class="nav-link" href="/public/envioDados.html">Enviar Dados</a>
+                    <a class="nav-link" href="/public/envioDados.html">Enviar Dados</a>
                     </li>
                     <li class="nav-item" id="validacao"></li>
                     <a class="nav-link" href="/public/validacao.html">Validação</a>
-                </li>
+                    </li>
                 </ul>
                 <div class="nav-item dropdown ml-auto">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -113,7 +113,6 @@
                 </div>
             </div>
         </div>
-        <h1>Dashboard de Representantes</h1>
         <div class="chart-row" id="sortable-chart-row">
             <div class="card chart-box" id="card1">
                 <div class="card-body">
@@ -200,18 +199,145 @@
                     <canvas id="loteComparisonChart"></canvas>
                 </div>
             </div>
-        </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script
-            src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-        <script src="/dashboard/jsdashboard.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+            <div class="card chart-box" id="card6">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <!-- Select para escolher o lote -->
+                        <div class="form-group mb-0 me-1">
+                            <select class="form-control form-control-sm" id="loteSelect" onchange="loadTableData()">
+                                <option value="">Selecione um lote</option>
+                                <!-- Os lotes serão inseridos aqui pelo JavaScript -->
+                            </select>
+                        </div>
+
+                        <h5 class="card-title mb-0 flex-grow-1 text-center">Médias Materiais</h5>
+
+                        <div class="chart-controls">
+                            <button class="btn btn-primary btn-sm"
+                                onclick="resizeChart('table-container-metais', 'increase')">
+                                <i class="bi bi-plus"></i> <!-- Ícone de mais -->
+                            </button>
+                            <button class="btn btn-primary btn-sm"
+                                onclick="resizeChart('table-container-metais', 'decrease')">
+                                <i class="bi bi-dash"></i> <!-- Ícone de menos -->
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="table-container-metais">
+                        <!-- Tabela 1 -->
+                        <div class="table-wrapper" id="table1">
+                            <table class="table tabela-representantes">
+                                <thead>
+                                    <tr>
+                                        <th>Representante</th>
+                                        <th>Total KG</th>
+                                        <th>Média PD</th>
+                                        <th>Média PT</th>
+                                        <th>Média RH</th>
+                                        <th>Valor Total</th>
+                                        <th>Média KG</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-representantes-geral">
+                                    <!-- Dados serão inseridos aqui pelo JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Tabela 2 -->
+                        <div class="table-wrapper d-none" id="table2">
+                            <table class="table table-striped" id="tabelaMovimentacao">
+                                <thead>
+                                    <tr>
+                                        <th>Representante</th>
+                                        <th>Total KG</th>
+                                        <th>Compra Catalisador</th>
+                                        <th>Saldo Adiantamentos</th>
+                                        <th>Total Valor Peças</th>
+                                        <th>Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-representantes">
+                                    <!-- Dados serão inseridos aqui pelo JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Tabela 3 -->
+                        <div class="table-wrapper d-none" id="table3">
+                            <div class="row mt-4">
+                                <!-- Primeira Tabela -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Média Total</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <table class="table tabela-media">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Tipo</th>
+                                                        <th>Valor</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="medias-pd-pt-rh">
+                                                    <!-- Dados Médias serão inseridos aqui -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Segunda Tabela -->
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h3 class="card-title">Valor e Média KG</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <table class="table tabela-media">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Descrição</th>
+                                                        <th>Valor</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="valor-media-total">
+                                                    <!-- Dados valor e media-->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="table-controls mt-3">
+                            <button class="btn btn-primary btn-sm" id="prevButton"
+                                onclick="changeTable('prev')">Voltar</button>
+                            <button class="btn btn-primary btn-sm" id="nextButton"
+                                onclick="changeTable('next')">Avançar</button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/2.9.4/Chart.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script
+                    src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+                <!-- Substitua jQuery Slim pela versão completa -->
+                <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+                <script src="/dashboard/jsdashboard.js"></script>
+                <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+                <link rel="stylesheet"
+                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 </body>
 
 </html>

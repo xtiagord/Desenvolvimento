@@ -141,3 +141,358 @@ canvas {
   transform: translate(-50%, -50%); /* Centraliza o ícone */
   z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
 }
+
+.table-wrapper {
+  max-width: 100%; /* Limita a largura máxima da tabela ao espaço do card */
+  overflow-x: auto; /* Adiciona rolagem horizontal se necessário */
+}
+
+.tabela-representantes {
+  width: 100%; /* Faz a tabela ocupar toda a largura disponível */
+}
+
+
+/* Estilos gerais de fundo para a tabela de movimentação */
+#tabelaMovimentacao .compra-catalisador {
+  background-color: #d0e0f0; /* Azul claro */
+}
+
+#tabelaMovimentacao .total-valor-pecas {
+  background-color: #d0e0f0; /* Azul claro */
+}
+
+#tabelaMovimentacao .saldo-adiantamentos {
+  background-color: #fdd0d0; /* Vermelho claro */
+}
+
+#tabelaMovimentacao .saldo-positivo {
+  background-color: #d0f0c0; /* Verde claro */
+}
+
+#tabelaMovimentacao .saldo-negativo {
+  background-color: #fdd0d0; /* Vermelho claro */
+}
+
+/* Efeito de hover para as colunas específicas na tabela de movimentação */
+#tabelaMovimentacao tr:hover .compra-catalisador,
+#tabelaMovimentacao tr:hover .total-valor-pecas,
+#tabelaMovimentacao tr:hover .saldo-adiantamentos,
+#tabelaMovimentacao tr:hover .saldo-positivo,
+#tabelaMovimentacao tr:hover .saldo-negativo {
+  background-color: #a0c0f0; /* Azul mais forte para colunas com estilo original */
+}
+
+/* Efeito de hover para Representante e Total KG na tabela de movimentação */
+#tabelaMovimentacao tr:hover td:nth-child(1), /* Representante */
+#tabelaMovimentacao tr:hover td:nth-child(2) { /* Total KG */
+  background-color: #b0e0f0; /* Azul claro */
+}
+
+/* Efeito de hover mais intenso para cada coluna específica na tabela de movimentação */
+#tabelaMovimentacao tr:hover .compra-catalisador {
+  background-color: #a0c0f0; /* Azul mais forte */
+}
+
+#tabelaMovimentacao tr:hover .total-valor-pecas {
+  background-color: #a0c0f0; /* Azul mais forte */
+}
+
+#tabelaMovimentacao tr:hover .saldo-adiantamentos {
+  background-color: #fbb0b0; /* Vermelho mais forte */
+}
+
+#tabelaMovimentacao tr:hover .saldo-positivo {
+  background-color: #a0d0a0; /* Verde mais forte */
+}
+
+#tabelaMovimentacao tr:hover .saldo-negativo {
+  background-color: #fbb0b0; /* Vermelho mais forte */
+}
+
+.saldo-positivo {
+  background-color: #dff0d8; /* Verde claro para saldo positivo */
+}
+
+.saldo-negativo {
+  background-color: #f2dede; /* Vermelho claro para saldo negativo */
+}
+/* Estilo para o cabeçalho da tabela */
+.tabela-representantes thead {
+  background-color: #001264; /* Preto escuro */
+  color: white; /* Texto branco */
+}
+
+/* Estilo para as linhas da tabela */
+.tabela-representantes tbody tr:nth-child(odd) {
+  background-color: rgba(0, 153, 255, 0.205);/* Cinza mais forte */
+  color: rgb(0, 0, 0); /* Texto branco */
+}
+
+.tabela-representantes tbody tr:nth-child(even) {
+  background-color:rgba(0, 153, 255, 0.336); /* Cinza mais fraco */
+  color: rgb(0, 0, 0); /* Texto branco */
+}
+
+.bg-amarelo {
+  background-color: rgba(0, 153, 255, 0.527); 
+  color: black; /* Cor do texto (opcional, para melhor contraste) */
+}
+
+/* Estilo para o cabeçalho da tabela */
+#modalCalculos .table thead th {
+  background-color: #f8f9fa; /* Cor de fundo para o cabeçalho */
+  font-weight: bold; /* Texto em negrito */
+}
+
+/* Estilo do cabeçalho da tabela */
+#calculosRepresentante th {
+  background-color: #f8f9fa;
+}
+
+/* Efeito hover para as linhas da tabela */
+#calculosRepresentante tr:hover {
+  background-color: #f1f1f1; /* Cor de fundo ao passar o mouse */
+  cursor: pointer; /* Muda o cursor para indicar que a linha é interativa */
+}
+
+/* Efeito hover em células individuais */
+#calculosRepresentante tr:hover td {
+  color: #000; /* Muda a cor do texto ao passar o mouse */
+}
+
+/* Efeito apenas para tabelas com a classe tabela-representantes */
+.tabela-representantes tbody tr:hover {
+  background-color: rgba(19, 2, 255, 0.507); /* Cor de fundo para a linha ao passar o mouse */
+}
+
+/* Estilo para as células da coluna correspondente */
+.tabela-representantes tbody tr:hover td {
+  background-color: rgba(63, 94, 196, 0.692); /* Cor para as células da coluna correspondente ao passar o mouse */
+}
+
+/* Efeito de hover para as colunas, que podem estar em uma linha */
+.tabela-representantes tbody tr td:hover {
+  background-color:#001264 ;/* Cor que você escolher para o efeito hover */
+  color: white;
+}
+.bg-amarelo:hover {
+  background-color:  rgba(104, 195, 255, 0.527)/* Cor que você escolher para o efeito hover */
+}
+
+/* Efeito apenas para tabelas com a classe tabela-media */
+.tabela-media tbody tr:hover {
+  background-color: rgba(19, 2, 255, 0.507); /* Cor de fundo para a linha ao passar o mouse */
+}
+
+/* Estilo para as células da coluna correspondente na tabela média */
+.tabela-media tbody tr:hover td {
+  background-color: rgba(63, 94, 196, 0.692); /* Cor para as células da coluna correspondente ao passar o mouse */
+}
+
+/* Efeito de hover para as colunas, que podem estar em uma linha na tabela média */
+.tabela-media tbody tr td:hover {
+  background-color: #001264; /* Cor que você escolher para o efeito hover */
+  color: white; /* Cor do texto ao passar o mouse */
+}
+
+/* Estilo para o cabeçalho da tabela média */
+.tabela-media thead {
+  background-color: #001264; /* Preto escuro */
+  color: white; /* Texto branco */
+}
+
+/* Estilo para as linhas da tabela média */
+.tabela-media tbody tr:nth-child(odd) {
+  background-color: rgba(0, 153, 255, 0.205); /* Cinza mais forte */
+  color: rgb(0, 0, 0); /* Texto branco */
+}
+
+.tabela-media tbody tr:nth-child(even) {
+  background-color: rgba(0, 153, 255, 0.336); /* Cinza mais fraco */
+  color: rgb(0, 0, 0); /* Texto branco */
+}
+
+/* Efeito apenas para tabelas com a classe valor-media-total */
+#valor-media-total tr:hover {
+  background-color: rgba(19, 2, 255, 0.507); /* Cor de fundo para a linha ao passar o mouse */
+}
+
+/* Estilo para as células da coluna correspondente na tabela valor-media-total */
+#valor-media-total tr:hover td {
+  background-color: rgba(63, 94, 196, 0.692); /* Cor para as células da coluna correspondente ao passar o mouse */
+}
+
+/* Efeito de hover para as colunas, que podem estar em uma linha na tabela valor-media-total */
+#valor-media-total tr td:hover {
+  background-color: #001264; /* Cor que você escolher para o efeito hover */
+  color: white; /* Cor do texto ao passar o mouse */
+}
+
+/* Estilo para o cabeçalho da tabela de valor-media-total */
+.table-striped thead {
+  background-color: #001264; /* Preto escuro */
+  color: white; /* Texto branco */
+}
+
+/* Estilo para as linhas da tabela de valor-media-total */
+#valor-media-total tr:nth-child(odd) {
+  background-color: rgba(0, 153, 255, 0.205); /* Cinza mais forte */
+  color: rgb(0, 0, 0); /* Texto branco */
+}
+
+#valor-media-total tr:nth-child(even) {
+  background-color: rgba(0, 153, 255, 0.336); /* Cinza mais fraco */
+  color: rgb(0, 0, 0); /* Texto branco */
+}
+
+
+
+/* CSS CARD 2*/
+#mini-card2 {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px; /* Ajuste conforme necessário */
+  background: linear-gradient(#3ba33e, #88ff00); /* Degradê verde */
+  color: #ffffff;
+  position: relative; /* Necessário para posicionar o ícone no fundo */
+  overflow: hidden; /* Para esconder partes do ícone que saem do card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column; /* Alinha o texto em coluna */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  z-index: 0; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+#mini-card2::before {
+  content: "\f155"; /* Código do ícone de nota de dólar no Font Awesome */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  font-weight: 900; /* Peso da fonte para ícones sólidos */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 100px; /* Ajuste o tamanho do ícone */
+  color: rgba(99, 99, 99, 0.164); /* Cor sólida para o ícone mais clara */
+  transform: translate(-50%, -50%); /* Centraliza o ícone */
+  z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+
+/* CSS CARD 3*/
+#mini-card3 {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px; /* Ajuste conforme necessário */
+  background: linear-gradient(#ff7300, #ffbb00); /* Degradê verde */
+  color: #ffffff;
+  position: relative; /* Necessário para posicionar o ícone no fundo */
+  overflow: hidden; /* Para esconder partes do ícone que saem do card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column; /* Alinha o texto em coluna */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  z-index: 0; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+#mini-card3::before {
+  content: "\f496"; /* Código do ícone de nota de dólar no Font Awesome */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  font-weight: 900; /* Peso da fonte para ícones sólidos */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 100px; /* Ajuste o tamanho do ícone */
+  color: rgba(0, 0, 0, 0.164); /* Cor sólida para o ícone mais clara */
+  transform: translate(-50%, -50%); /* Centraliza o ícone */
+  z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+
+/* CSS CARD 4*/
+#mini-card4 {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px; /* Ajuste conforme necessário */
+  background: linear-gradient(#ffc400, #e4c05e); /* Degradê verde */
+  color: #ffffff;
+  position: relative; /* Necessário para posicionar o ícone no fundo */
+  overflow: hidden; /* Para esconder partes do ícone que saem do card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column; /* Alinha o texto em coluna */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  z-index: 0; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+#mini-card4::before {
+  content: "\f529"; /* Código do ícone de nota de dólar no Font Awesome */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  font-weight: 900; /* Peso da fonte para ícones sólidos */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 100px; /* Ajuste o tamanho do ícone */
+  color: rgba(0, 0, 0, 0.164); /* Cor sólida para o ícone mais clara */
+  transform: translate(-50%, -50%); /* Centraliza o ícone */
+  z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+/* CSS CARD 5*/
+#mini-card5 {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px; /* Ajuste conforme necessário */
+  background: linear-gradient(#008d3b,#00ce56); /* Degradê verde */
+  color: #ffffff;
+  position: relative; /* Necessário para posicionar o ícone no fundo */
+  overflow: hidden; /* Para esconder partes do ícone que saem do card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column; /* Alinha o texto em coluna */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  z-index: 0; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+#mini-card5::before {
+  content: "\f201"; /* Código do ícone de nota de dólar no Font Awesome */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  font-weight: 900; /* Peso da fonte para ícones sólidos */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 100px; /* Ajuste o tamanho do ícone */
+  color: rgba(0, 0, 0, 0.164); /* Cor sólida para o ícone mais clara */
+  transform: translate(-50%, -50%); /* Centraliza o ícone */
+  z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+/* CSS CARD 6*/
+#mini-card6 {
+  width: 210px; /* Ajuste conforme necessário */
+  height: 100px; /* Ajuste conforme necessário */
+  background: linear-gradient(#555555,#797979); /* Degradê verde */
+  color: #ffffff;
+  position: relative; /* Necessário para posicionar o ícone no fundo */
+  overflow: hidden; /* Para esconder partes do ícone que saem do card */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column; /* Alinha o texto em coluna */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  z-index: 0; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+#mini-card6::before {
+  content: "\f73d"; /* Código do ícone de nota de dólar no Font Awesome */
+  font-family: "Font Awesome 5 Free"; /* Fonte Font Awesome */
+  font-weight: 900; /* Peso da fonte para ícones sólidos */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 100px; /* Ajuste o tamanho do ícone */
+  color: rgba(0, 0, 0, 0.164); /* Cor sólida para o ícone mais clara */
+  transform: translate(-50%, -50%); /* Centraliza o ícone */
+  z-index: -1; /* Coloca o ícone atrás do conteúdo do card */
+}
+
+
+

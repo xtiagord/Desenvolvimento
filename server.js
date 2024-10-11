@@ -11,6 +11,7 @@ const JSZip = require('jszip');
 const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
 const ExcelJS = require('exceljs');
+require('dotenv').config();
 
 
 // Inicializar o Express
@@ -22,7 +23,7 @@ const db = mysql.createConnection({
     host: '192.168.0.177',
     user: 'tiago',
     password: '1234',
-    database: 'sys_test'
+    database: 'sys'
 });
 
 // Conectar ao banco de dados
@@ -973,14 +974,11 @@ app.get('/api/representantes-com-kg-e-valor', (req, res) => {
         GROUP BY r.id, r.nome;
     `;
 
-    console.log('Executando consulta SQL:', query);
-
     db.query(query, (error, results) => {
         if (error) {
             console.error('Erro ao buscar representantes com kg e valor:', error);
             res.status(500).json({ error: 'Erro ao buscar representantes com kg e valor' });
         } else {
-            console.log('Resultados da consulta SQL:', results);
             res.json(results);
         }
     });
@@ -1027,7 +1025,6 @@ app.get('/api/getCardOrder', (req, res) => {
     // Consultar a ordem dos cartões
     db.query('SELECT card_id FROM card_order WHERE user_id = ? ORDER BY position', [user_id], (err, results) => {
         if (err) {
-            console.error('Erro ao obter a ordem dos cards:', err);
             return res.status(500).json({ error: 'Erro ao obter a ordem dos cards' });
         }
         const order = results.map(row => row.card_id);
@@ -1051,14 +1048,12 @@ app.get('/api/media', (req, res) => {
         GROUP BY representante;
     `;
 
-    console.log('Executando consulta SQL para médias:', query);
 
     db.query(query, (error, results) => {
         if (error) {
             console.error('Erro ao buscar médias:', error);
             res.status(500).json({ error: 'Erro ao buscar médias' });
         } else {
-            console.log('Resultados da consulta SQL para médias:', results);
             res.json(results);
         }
     });
@@ -3359,7 +3354,6 @@ GROUP BY
             return res.status(500).send("Erro ao buscar dados do banco de dados.");
         }
 
-        console.log("Resultados da consulta:", results);
         res.json(results);
     });
 });
@@ -3367,8 +3361,6 @@ GROUP BY
 //Calculo soma dos totais dos metais
 app.get('/api/movimentacao-financeira-total', (req, res) => {
     const loteId = req.query.lote;
-
-    console.log("Recebendo requisição para lote:", loteId);
 
     const sql = `
 SELECT 
@@ -3400,8 +3392,6 @@ FROM (
             console.error("Erro ao buscar dados:", err);
             return res.status(500).send("Erro ao buscar dados do banco de dados.");
         }
-
-        console.log("Resultados da consulta:", results);
         res.json(results);
     });
 });
@@ -3414,7 +3404,7 @@ app.get('/api/calcular-media/:loteId', (req, res) => {
             console.error('Erro ao chamar a stored procedure:', err);
             return res.status(500).json({ error: 'Erro ao calcular a média.' });
         }
-        
+
         // Verificando se não há resultados
         if (!results[0] || results[0].length === 0) {
             return res.status(404).json({ message: 'Nenhum dado encontrado para o lote fornecido.' });
@@ -3427,7 +3417,6 @@ app.get('/api/calcular-media/:loteId', (req, res) => {
 app.get('/api/detalhes-representante', (req, res) => {
     const loteId = req.query.loteId; // Captura o loteId da requisição
 
-    console.log("Recebendo requisição para detalhes do representante:", loteId);
 
     const sql = 'CALL GetDetalhesRepresentante(?)';
 
@@ -3437,7 +3426,53 @@ app.get('/api/detalhes-representante', (req, res) => {
             return res.status(500).send("Erro ao buscar detalhes do representante.");
         }
 
-        console.log("Resultados dos detalhes do representante:", results);
         res.json(results[0]); // `results[0]` contém os resultados da stored procedure
     });
 });
+
+app.get('/api/representante-maior-valor', (req, res) => {
+    const lote = req.query.lote;
+
+    if (!lote) {
+        return res.status(400).send("O lote é obrigatório.");
+    }
+
+    const sql = `
+SELECT representante, lote, 
+       SUM(CAST(REPLACE(REPLACE(Valor, '.', ''), ',', '.') AS DECIMAL(10, 2))) AS TotalValor
+FROM dados
+WHERE lote = ?
+GROUP BY representante, lote
+ORDER BY TotalValor DESC
+LIMIT 1;
+
+
+    `;
+
+    db.query(sql, [lote, lote], (err, result) => {
+        if (err) {
+            console.error("Erro ao buscar representante com maior valor:", err);
+            return res.status(500).send("Erro ao buscar dados do banco de dados.");
+        }
+
+        console.log("Representante com maior valor:", result);
+
+        res.json(result);
+    });
+});
+
+app.get('/api/weather', async (req, res) => {
+    const city = 'Foz do Iguaçu';
+    const apiKey = process.env.API_KEY; // A chave da API está segura aqui
+  
+    try {
+      const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&lang=pt`);
+      if (!response.ok) throw new Error(`Erro na resposta da API: ${response.status}`);
+      
+      const data = await response.json();
+      res.json(data); // Retorna os dados do clima para o frontend
+    } catch (error) {
+      console.error('Erro ao obter clima:', error);
+      res.status(500).json({ error: 'Erro ao obter informações do clima.' });
+    }
+  });
