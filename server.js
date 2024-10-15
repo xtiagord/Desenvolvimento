@@ -116,6 +116,7 @@ function extractPDFData(text) {
     const representanteRegex = /Apelido\s+([A-Za-z]+)\s+[A-Za-z]+/;
     const fornecedorRegex = /(?:\n|^)([A-Za-z]+\s+[A-Za-z]+(?:\s+[A-Za-z]+)*)\s*Comprador/;
     const snRegex = /SN-\d+/;
+    const tipoRegex = /(\d+(?:[.,]\d+)?)\s*KGPdPtRhValor KgValor/;
 
     const tableData = [];
     let match;
@@ -131,6 +132,14 @@ function extractPDFData(text) {
             valorKg: formatNumber(match[5]),
             valor: formatNumber(match[6])
         };
+
+        // Captura e adiciona o tipo
+        const tipoMatch = tipoRegex.exec(text);
+        if (tipoMatch) {
+            data.tipo = tipoMatch[1]; // Captura apenas o número, sem o texto adicional
+        } else {
+            console.log("Tipo não encontrado");
+        }
 
         // Captura e adiciona a data
         const dataMatch = dataRegex.exec(text);
@@ -1220,17 +1229,22 @@ app.post('/create-folder', async (req, res) => {
 });
 
 // Função auxiliar para obter o nome do representante
-const obterNomeRepresentante = (representanteId, callback) => {
+function obterNomeRepresentante(representanteId, callback) {
     db.query('SELECT nome FROM representantes WHERE id = ?', [representanteId], (err, rows) => {
         if (err) {
-            return callback(err);
+            console.error('Erro ao consultar o nome do representante:', err);
+            return callback(err, null);
         }
+
         if (rows.length === 0) {
-            return callback(new Error('Representante não encontrado'));
+            console.error('Representante não encontrado para o ID:', representanteId);
+            return callback(new Error('Representante não encontrado'), null);
         }
+
         callback(null, rows[0].nome);
     });
-};
+}
+
 
 
 // Endpoint para upload de arquivos
@@ -1316,8 +1330,6 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
 
 app.post('/save-pdf', upload.single('pdf'), (req, res) => {
     const representanteId = req.body.representanteId;
-    const lote = req.body.lote;
-    const npdf = req.body.npdf;
     const pdfFile = req.file;
 
     if (!pdfFile) {
@@ -1342,10 +1354,12 @@ app.post('/save-pdf', upload.single('pdf'), (req, res) => {
                 return res.status(500).send('Erro ao obter o nome do representante.');
             }
 
-            const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
+            const newFilename = `${req.body.npdf[0]} - ${nomeRepresentante}.pdf`; // ou .join se você quiser todos os valores
+            const lote = req.body.lote[0]; // ou .join se você quiser todos os valores
+            const npdf = req.body.npdf[0]; // ou .join se você quiser todos os valores
 
             // Inserir PDF no banco de dados
-            const query = 'INSERT INTO pdfs (name, data, representante_id, npdf, lote) VALUES (?, ?, ?, ?, ?)';
+            const query = 'INSERT INTO pdfs (name, data, representante_id, Npdf, lote) VALUES (?, ?, ?, ?, ?)';
             const params = [newFilename, pdfFile.buffer, representanteId, npdf, lote];
 
             db.query(query, params, (err, result) => {
@@ -1358,6 +1372,7 @@ app.post('/save-pdf', upload.single('pdf'), (req, res) => {
         });
     });
 });
+
 
 
 
@@ -1918,9 +1933,16 @@ app.post('/api/registros_financeiros', (req, res) => {
         return res.status(400).json({ error: 'O ID do representante é obrigatório' });
     }
 
+    // Definir associado como null se não estiver presente ou for uma string vazia
+    const associadoValue = associado || null;
+
     // Inserir o registro financeiro no banco de dados
-    const query = `INSERT INTO registros_financeiros (representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? )`;
-    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associado], (error, results) => {
+    const query = `
+        INSERT INTO registros_financeiros 
+        (representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associado) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    db.query(query, [representante_id, data, hora, comprador, valor_debito, valor_credito, pagamento, observacoes, associadoValue], (error, results) => {
         if (error) {
             console.error('Erro ao inserir registro financeiro:', error);
             return res.status(500).json({ error: 'Erro ao salvar o registro financeiro' });
@@ -1928,6 +1950,7 @@ app.post('/api/registros_financeiros', (req, res) => {
         res.status(201).json({ message: 'Registro financeiro salvo com sucesso!' });
     });
 });
+
 
 // Rota para obter todos os registros financeiros
 app.get('/api/registros_financeiros', (req, res) => {
@@ -2891,12 +2914,12 @@ app.get('/api/lotePadrao', (req, res) => {
 
 // Rota para salvar comprador
 app.post('/api/comprador-representante', (req, res) => {
-    const { representante_id, nome, cpf_cnpj, rg, apelido } = req.body;
+    const { representante_id, nome, cpf_cnpj, rg, apelido, ponto_coleta } = req.body;
     console.log('Dados recebidos:', req.body);
 
-    const query = `INSERT INTO representantes_compradores (representante_id, nome_comprador, cpf_cnpj, rg, apelido) VALUES (?, ?, ?, ?, ?)`;
+    const query = `INSERT INTO representantes_compradores (representante_id, nome_comprador, cpf_cnpj, rg, apelido, ponto_coleta) VALUES (?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [representante_id, nome, cpf_cnpj, rg, apelido], (err, result) => {
+    db.query(query, [representante_id, nome, cpf_cnpj, rg, apelido, ponto_coleta], (err, result) => {
         if (err) {
             return res.status(500).json({ error: 'Erro ao salvar o comprador' });
         }
@@ -2928,7 +2951,7 @@ app.get('/api/comprador/:comprador_id', (req, res) => {
     const { comprador_id } = req.params;
 
     const query = `
-        SELECT rc.apelido, rc.cpf_cnpj, rc.rg
+        SELECT rc.apelido, rc.cpf_cnpj, rc.rg, rc.ponto_coleta
         FROM representantes_compradores rc
         WHERE rc.id = ?`;
 
@@ -2998,49 +3021,62 @@ app.get('/api/tipos', (req, res) => {
     });
 });
 
-app.post('/api/upload-provisorio', (req, res) => {
-    console.log(req.body); // Veja os dados recebidos
-
-    const { comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo, linhas } = req.body;
+app.post('/api/upload-provisorio', upload.array('imagens'), (req, res) => {
+    const { comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, ponto_coleta, maquina_id, tipo, linhas } = req.body;
 
     // Inserindo os dados principais na tabela_provisoria
-    const sql = 'INSERT INTO tabela_provisoria (comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-
-    db.query(sql, [comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, maquina_id, tipo], (err, result) => {
+    const sql = 'INSERT INTO tabela_provisoria (comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, ponto_coleta, maquina_id, tipo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    db.query(sql, [comprador_id, representante_id, data, hora, apelido, cpf_cnpj, rg, ponto_coleta, maquina_id, tipo], (err, result) => {
         if (err) {
             console.error('Erro ao salvar no banco de dados:', err);
             return res.status(500).json({ message: 'Erro ao salvar no banco de dados: ' + err.message });
         }
 
-        const provisorio_id = result.insertId; // ID da tabela provisória
+        const provisorio_id = result.insertId;
 
-        // Inserindo as linhas, se fornecidas
         if (linhas) {
             let linhasData;
             try {
-                linhasData = JSON.parse(linhas); // Converte as linhas que vêm no body para JSON
+                linhasData = JSON.parse(linhas);
             } catch (parseError) {
                 console.error('Erro ao analisar linhas:', parseError);
                 return res.status(400).json({ message: 'Erro ao analisar linhas: ' + parseError.message });
             }
 
-            // Verifique se linhasData é um array
             if (!Array.isArray(linhasData) || linhasData.length === 0) {
                 return res.status(400).json({ message: 'As linhas devem ser um array válido.' });
             }
 
-            // Inserindo as linhas na tabela de linhas_provisorias
-            const linhasArray = linhasData.map(linha => [provisorio_id, linha.numeroLinha, linha.kg, linha.pd, linha.pt, linha.rh, linha.valor_kg, linha.valor]);
-            const sqlLinhas = 'INSERT INTO linhas_provisorias (provisorio_id, numeroLinha, kg, pd, pt, rh, valor_kg, valor) VALUES ?';
+            // Inserindo linhas e associando imagens
+            const sqlLinha = 'INSERT INTO linhas_provisorias (provisorio_id, numeroLinha, kg, pd, pt, rh, valor_kg, valor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+            linhasData.forEach((linha, index) => {
+                db.query(sqlLinha, [provisorio_id, linha.numeroLinha, linha.kg, linha.pd, linha.pt, linha.rh, linha.valor_kg, linha.valor], (err, linhaResult) => {
+                    if (err) {
+                        console.error('Erro ao salvar linha no banco de dados:', err);
+                        return res.status(500).json({ message: 'Erro ao salvar linha no banco de dados: ' + err.message });
+                    }
 
-            db.query(sqlLinhas, [linhasArray], (err, result) => {
-                if (err) {
-                    console.error('Erro ao salvar linhas no banco de dados:', err);
-                    return res.status(500).json({ message: 'Erro ao salvar linhas no banco de dados: ' + err.message });
-                }
+                    const linha_id = linhaResult.insertId;
 
-                res.json({ message: 'Dados e linhas enviados com sucesso!' });
+                    // Verifica se existe uma imagem correspondente à linha
+                    if (req.files && req.files[index]) {
+                        const file = req.files[index];
+                        const sqlImagens = 'INSERT INTO imagens_provisorias (linha_id, imagem) VALUES (?, ?)';
+
+                        db.query(sqlImagens, [linha_id, file.buffer], (err, imgResult) => {
+                            if (err) {
+                                console.error('Erro ao salvar a imagem no banco de dados:', err);
+                                return res.status(500).json({ message: 'Erro ao salvar a imagem no banco de dados: ' + err.message });
+                            }
+                            console.log(`Imagem associada à linha ${linha_id} salva com sucesso.`);
+                        });
+                    } else {
+                        console.warn(`Nenhuma imagem encontrada para a linha ${linha_id}.`);
+                    }
+                });
             });
+
+            res.json({ message: 'Dados, linhas e imagens enviados com sucesso!' });
         } else {
             res.json({ message: 'Dados enviados com sucesso, mas nenhuma linha foi fornecida.' });
         }
@@ -3215,19 +3251,6 @@ const obterIdDoRepresentante = (representanteNome) => {
                 return reject(new Error('Representante não encontrado'));
             }
             resolve(results[0].id);
-        });
-    });
-};
-// Função para buscar o último Npdf associado ao representante
-const getLastNpdf = (representante) => {
-    return new Promise((resolve, reject) => {
-        const query = `SELECT MAX(Npdf) AS lastNpdf FROM dados WHERE representante = ?`;
-        db.query(query, [representante], (err, results) => {
-            if (err) {
-                return reject(err);
-            }
-            const lastNpdf = results[0].lastNpdf || 0;
-            resolve(lastNpdf);
         });
     });
 };
@@ -3464,15 +3487,66 @@ LIMIT 1;
 app.get('/api/weather', async (req, res) => {
     const city = 'Foz do Iguaçu';
     const apiKey = process.env.API_KEY; // A chave da API está segura aqui
-  
+
     try {
-      const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&lang=pt`);
-      if (!response.ok) throw new Error(`Erro na resposta da API: ${response.status}`);
-      
-      const data = await response.json();
-      res.json(data); // Retorna os dados do clima para o frontend
+        const response = await fetch(`http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&lang=pt`);
+        if (!response.ok) throw new Error(`Erro na resposta da API: ${response.status}`);
+
+        const data = await response.json();
+        res.json(data); // Retorna os dados do clima para o frontend
     } catch (error) {
-      console.error('Erro ao obter clima:', error);
-      res.status(500).json({ error: 'Erro ao obter informações do clima.' });
+        console.error('Erro ao obter clima:', error);
+        res.status(500).json({ error: 'Erro ao obter informações do clima.' });
     }
-  });
+});
+
+
+app.get('/get-last-npdf', async (req, res) => { 
+    const { representante, lote } = req.query;
+
+    // Log os valores recebidos
+    console.log(`Recebendo: representante = ${representante}, lote = ${lote}`);
+
+    // Verifica se os parâmetros estão definidos
+    if (!representante || !lote) {
+        return res.status(400).json({ error: 'Os parâmetros "representante" e "lote" são obrigatórios.' });
+    }
+
+    const query = `
+        SELECT MAX(CAST(npdf AS UNSIGNED)) AS ultimoNpdf 
+        FROM dados 
+        WHERE LOWER(TRIM(representante)) = LOWER(?) 
+        AND LOWER(TRIM(lote)) = LOWER(?);
+    `;
+
+    try {
+        const [rows] = await db.execute(query, [representante, lote]);
+
+        // Verifica se rows está vazio
+        if (!rows || rows.length === 0) {
+            console.log('Nenhum resultado encontrado.');
+            return res.json({ ultimoNpdf: null });
+        }
+
+        console.log(`Resultado da consulta: ${JSON.stringify(rows)}`);
+        res.json(rows[0]); // Retornar o resultado como JSON
+    } catch (error) {
+        console.error('Erro de consulta:', error.message);
+        res.status(500).json({ error: 'Erro ao acessar o banco de dados' }); // Retornar erro como JSON
+    }
+});
+
+// Endpoint para buscar fornecedores e seus representantes
+app.get('/api/fornecedores', (req, res) => {
+    const query = `
+        SELECT DISTINCT fornecedor, representante FROM dados
+    `;
+    db.query(query, (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Erro ao buscar fornecedores' });
+        }
+        res.json(results);
+    });
+});
+
+
