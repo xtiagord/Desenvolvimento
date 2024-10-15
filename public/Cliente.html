@@ -90,6 +90,7 @@
                         <div class="col">
                             <button type="submit" class="btn btn-primary mr-2">Cadastrar</button>
                             <button type="button" class="btn btn-secondary" onclick="carregarCooperados()">Mostrar Todos os Cooperados</button>
+                            <button id="exportButton" class="btn btn-success">Exportar para Excel</button>
                         </div>
                     </div>
                 </form>
@@ -97,22 +98,22 @@
         </div>
     
         <br>
-        <div class="card bg-light" id="cooperadosContainer" style="display: none;">
+        <div class="card bg-light" id="fornecedoresContainer" style="display: none;">
             <div class="card-header">
-                <h2>Lista de Cooperados</h2>
+                <h2>Lista de Fornecedores</h2>
             </div>
             <div class="card-body">
                 <form>
                     <div class="form-row mb-3">
                         <div class="col-4">
-                            <input type="text" class="form-control" placeholder="Nome" oninput="filterCooperados()">
+                            <input type="text" class="form-control" placeholder="Nome do Fornecedor" oninput="filterFornecedores()">
                         </div>
                         <div class="col-4">
-                            <input type="text" class="form-control" placeholder="CPF" oninput="filterCooperados()">
+                            <input type="text" class="form-control" placeholder="CPF" oninput="filterFornecedores()">
                         </div>
                         <div class="col-4">
-                            <select class="form-control" placeholder="Representante" onchange="filterCooperados()">
-                                <!-- Options will be populated by JavaScript -->
+                            <select class="form-control" placeholder="Representante" onchange="filterFornecedores()">
+                                <!-- As opções serão populadas por JavaScript -->
                             </select>
                         </div>
                     </div>
@@ -120,18 +121,21 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th>CPF</th>
-                            <th>Representante</th>
+                            <th>Codinome</th>
+                            <th>Cpf</th>
+                            <th>Apelido</th>
+                            <th>Nome Completo</th>
+                            <th>Representante</Th>
                             <th>Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="cooperadosTableBody">
+                    <tbody id="fornecedoresTableBody">
                         <!-- Linhas da tabela serão populadas dinamicamente -->
                     </tbody>
                 </table>
             </div>
         </div>
+        
     </div>
         <!-- Modal para editar cooperado -->
 <div class="modal fade" id="editCooperadoModal" tabindex="-1" aria-labelledby="editCooperadoModalLabel" aria-hidden="true">
@@ -171,253 +175,9 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/cliente/cliente.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
-    <!-- JavaScript para manipulação do formulário -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const editRepresentanteSelect = document.getElementById('editRepresentante');
-    
-            // Carregar representantes do banco de dados
-    fetch('/api/representantes')
-        .then(response => response.json())
-        .then(data => {
-            const representanteSelect = document.getElementById('representante');
-            data.forEach(representante => {
-                const option = document.createElement('option');
-                option.value = representante.id;
-                option.textContent = representante.nome;
-                representanteSelect.appendChild(option);
-
-                const editOption = document.createElement('option');
-                editOption.value = representante.id;
-                editOption.textContent = representante.nome;
-                editRepresentanteSelect.appendChild(editOption);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar representantes:', error));
-
-    // Enviar dados do formulário para o backend
-    document.getElementById('clientForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const nome = document.getElementById('nome').value;
-        const cpf = document.getElementById('cpf').value;
-        const representanteId = document.getElementById('representante').value;
-
-        fetch(`/api/cooperados/check-cpf/${cpf}`)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erro ao verificar CPF');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.exists) {
-                    alert('CPF já cadastrado. Por favor, verifique os dados.');
-                } else {
-                    fetch('/api/cooperados', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ nome, cpf, representanteId })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Cliente cadastrado com sucesso!');
-                            document.getElementById('clientForm').reset();
-                            carregarCooperados();
-                        } else {
-                            alert('Erro ao cadastrar cliente!');
-                        }
-                    })
-                    .catch(error => console.error('Erro ao cadastrar cliente:', error));
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao verificar CPF:', error);
-                alert('Erro ao verificar CPF. Tente novamente mais tarde.');
-            });
-    });
-});
-
-function carregarCooperados() {
-    const cooperadosTableBody = document.getElementById('cooperadosTableBody');
-    cooperadosTableBody.innerHTML = '';
-
-    // Primeira requisição para obter os cooperados
-    fetch('/api/cooperados')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao carregar cooperados: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(cooperados => {
-            if (!Array.isArray(cooperados)) {
-                throw new Error('Os dados recebidos não são um array');
-            }
-
-            // Array para armazenar os IDs dos representantes para uma busca eficiente
-            const representantesIds = cooperados.map(cooperado => cooperado.representante_id);
-
-            // Segunda requisição para obter os dados dos representantes
-            return fetch('/api/representantes')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro ao carregar representantes: ' + response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(representantes => {
-                    // Mapeia os representantes por ID para facilitar o acesso
-                    const representantesMap = {};
-                    representantes.forEach(rep => {
-                        representantesMap[rep.id] = rep.nome;
-                    });
-
-                    // Constrói as linhas da tabela com os dados dos cooperados
-                    cooperados.forEach(cooperado => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${cooperado.nome}</td>
-                            <td>${cooperado.cpf}</td>
-                            <td>${representantesMap[cooperado.representante_id]}</td>
-                            <td>
-                                <button class="btn btn-primary btn-sm" onclick="editarCooperado(${cooperado.id})">Editar</button>
-                                <button class="btn btn-danger btn-sm" onclick="excluirCooperado(${cooperado.id})">Excluir</button>
-                            </td>
-                        `;
-                        cooperadosTableBody.appendChild(row);
-                    });
-                });
-        })
-        .catch(error => console.error('Erro:', error));
-    document.getElementById('cooperadosContainer').style.display = 'block';
-}
-
-   // Função para editar cooperado
-   window.editarCooperado = function(representanteId) {
-    fetch(`/api/cooperados/representante/${representanteId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Erro ao carregar cooperado: ${response.status} - ${response.statusText}`);
-            }
-            return response.json();  // Parse JSON response
-        })
-        .then(cooperados => {
-            if (cooperados.length === 0) {
-                console.error('Nenhum cooperado encontrado para o representante fornecido');
-                return;
-            }
-            const cooperado = cooperados[0];  // Vamos assumir que pegamos o primeiro cooperado encontrado
-            console.log('Resposta da API:', cooperado);
-            document.getElementById('editCooperadoId').value = cooperado.id;
-            document.getElementById('editNome').value = cooperado.nome;
-            document.getElementById('editCpf').value = cooperado.cpf;
-            document.getElementById('editRepresentante').value = cooperado.representante_id;
-
-            $('#editCooperadoModal').modal('show');
-        })
-        .catch(error => console.error('Erro ao carregar cooperado:', error));
-};
-
-    // Função para salvar alterações no cooperado
-    document.getElementById('editCooperadoForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const id = document.getElementById('editCooperadoId').value;
-        const nome = document.getElementById('editNome').value;
-        const cpf = document.getElementById('editCpf').value;
-        const representanteId = document.getElementById('editRepresentante').value;
-
-        fetch(`/api/cooperados/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ nome, cpf, representanteId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Cliente atualizado com sucesso!');
-                $('#editCooperadoModal').modal('hide');
-                carregarCooperados();
-            } else {
-                alert('Erro ao atualizar cliente!');
-            }
-        })
-        .catch(error => console.error('Erro:', error));
-    });
-
-function excluirCooperado(cooperadoId) {
-    if (confirm('Tem certeza que deseja excluir este cooperado?')) {
-        fetch(`/api/cooperados/${cooperadoId}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            carregarCooperados();
-        })
-        .catch(error => console.error('Erro ao excluir cooperado:', error));
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    fetch('/api/representantes')
-        .then(response => response.json())
-        .then(data => {
-            const selectRepresentante = document.querySelector('#cooperadosContainer select');
-            data.forEach(representante => {
-                const option = document.createElement('option');
-                option.value = representante.id;
-                option.textContent = representante.nome;
-                selectRepresentante.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar representantes:', error));
-});
-
-document.querySelectorAll('#cooperadosContainer input, #cooperadosContainer select').forEach(input => {
-    input.addEventListener('input', filterCooperados);
-});
-
-function filterCooperados() {
-    const nome = document.querySelector('#cooperadosContainer input[placeholder="Nome"]').value.toLowerCase();
-    const cpf = document.querySelector('#cooperadosContainer input[placeholder="CPF"]').value.toLowerCase();
-    const representanteId = document.querySelector('#cooperadosContainer select').value;
-
-    fetch(`/api/cooperados?nome=${nome}&cpf=${cpf}&representante_id=${representanteId}`)
-        .then(response => response.json())
-        .then(data => {
-            const tbody = document.querySelector('#cooperadosTableBody');
-            tbody.innerHTML = '';
-
-            data.forEach(cooperado => {
-                const tr = document.createElement('tr');
-                
-                const tdNome = document.createElement('td');
-                tdNome.textContent = cooperado.nome;
-                tr.appendChild(tdNome);
-
-                const tdCPF = document.createElement('td');
-                tdCPF.textContent = cooperado.cpf;
-                tr.appendChild(tdCPF);
-
-                const tdRepresentante = document.createElement('td');
-                tdRepresentante.textContent = cooperado.representante;
-                tr.appendChild(tdRepresentante);
-
-                const tdAcoes = document.createElement('td');
-                // Adicione ações, como editar ou excluir
-                tr.appendChild(tdAcoes);
-
-                tbody.appendChild(tr);
-            });
-        })
-        .catch(error => console.error('Erro ao carregar cooperados:', error));
-}
-
-    </script>
 </body>
 </html>

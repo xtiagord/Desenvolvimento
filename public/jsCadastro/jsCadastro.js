@@ -701,7 +701,7 @@ function loadLotes() {
                 loteSelect.append(option);
             });
             // Defina aqui o lote padrão que você quer selecionar
-            const lotePadrao = 'lote 30'; // Substitua pelo nome do lote que você deseja
+            const lotePadrao = 'lote 31'; // Substitua pelo nome do lote que você deseja
             if (lotes.some(lote => lote.nome === lotePadrao)) {
                 loteSelect.val(lotePadrao).trigger('change'); // Seleciona o lote padrão e dispara o evento change
             } else if (lotes.length > 0) {

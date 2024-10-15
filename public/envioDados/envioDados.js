@@ -29,6 +29,7 @@ document.getElementById('formCadastroComprador').addEventListener('submit', func
     const cpf_cnpj = document.getElementById('cpf_cnpj_mod').value;
     const rg = document.getElementById('rg_mod').value;
     const apelido = document.getElementById('comprador_apelido').value;
+    const ponto_coleta = document.getElementById('ponto_coleta').value;
 
     // Logando valores capturados
     console.log('Representante ID:', representante_id);
@@ -51,7 +52,8 @@ document.getElementById('formCadastroComprador').addEventListener('submit', func
         nome,
         cpf_cnpj,
         rg,
-        apelido
+        apelido,
+        ponto_coleta
     };
 
     fetch('/api/comprador-representante', {
@@ -151,34 +153,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 .catch(error => console.error('Erro ao carregar compradores:', error));
         }
-    } 
-   // Função para carregar máquinas associadas ao representante
-function carregarMaquinas(representanteId) {
-    const maquinaSelect = document.getElementById('maquina');
-    maquinaSelect.innerHTML = '<option value="">Selecione uma máquina</option>'; // Limpar opções anteriores
-
-    if (representanteId) {
-        fetch(`/api/maquinas_representante/${representanteId}`)
-            .then(response => response.json())
-            .then(data => {
-                // Adicione log para verificar os dados recebidos
-                console.log(data);
-
-                // Verifique se `data` é um array
-                if (Array.isArray(data)) {
-                    data.forEach(maquina => {
-                        const option = document.createElement('option');
-                        option.value = maquina.id_maquina; // Usando o ID da máquina
-                        option.textContent = maquina.nome_maquina; // Usando o nome da máquina
-                        maquinaSelect.appendChild(option);
-                    });
-                } else {
-                    console.error('Formato inesperado dos dados:', data);
-                }
-            })
-            .catch(error => console.error('Erro ao carregar máquinas:', error));
     }
-}
+    // Função para carregar máquinas associadas ao representante
+    function carregarMaquinas(representanteId) {
+        const maquinaSelect = document.getElementById('maquina');
+        maquinaSelect.innerHTML = '<option value="">Selecione uma máquina</option>'; // Limpar opções anteriores
+
+        if (representanteId) {
+            fetch(`/api/maquinas_representante/${representanteId}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Adicione log para verificar os dados recebidos
+                    console.log(data);
+
+                    // Verifique se `data` é um array
+                    if (Array.isArray(data)) {
+                        data.forEach(maquina => {
+                            const option = document.createElement('option');
+                            option.value = maquina.id_maquina; // Usando o ID da máquina
+                            option.textContent = maquina.nome_maquina; // Usando o nome da máquina
+                            maquinaSelect.appendChild(option);
+                        });
+                    } else {
+                        console.error('Formato inesperado dos dados:', data);
+                    }
+                })
+                .catch(error => console.error('Erro ao carregar máquinas:', error));
+        }
+    }
 
     // Função para carregar informações do comprador
     function carregarInformacoesComprador(compradorId) {
@@ -191,15 +193,17 @@ function carregarMaquinas(representanteId) {
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Dados do comprador:', data);
                     // Preencher os campos com os dados retornados
                     document.getElementById('apelido').value = data.apelido;
                     document.getElementById('cpf_cnpj').value = data.cpf_cnpj;
                     document.getElementById('rg').value = data.rg;
+                    document.getElementById('ponto_coleta').value = data.ponto_coleta;
                 })
                 .catch(error => console.error('Erro ao carregar informações do comprador:', error));
         }
     }
-    
+
     // Adicionar evento para carregar informações do comprador ao selecionar um comprador
     document.getElementById('comprador').addEventListener('change', (event) => {
         const compradorId = event.target.value;
@@ -246,16 +250,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     valorMoeda
                 })
             })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Tipo cadastrado:', data);
-                // Fechar o modal
-                $('#cadastrarTipoModal').modal('hide');
-                // Limpar o formulário
-                document.getElementById('tipoForm').reset();
-                // Aqui você pode atualizar a lista de tipos, se necessário
-            })
-            .catch(error => console.error('Erro ao cadastrar tipo:', error));
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Tipo cadastrado:', data);
+                    // Fechar o modal
+                    $('#cadastrarTipoModal').modal('hide');
+                    // Limpar o formulário
+                    document.getElementById('tipoForm').reset();
+                    // Aqui você pode atualizar a lista de tipos, se necessário
+                })
+                .catch(error => console.error('Erro ao cadastrar tipo:', error));
         } else {
             alert('Por favor, preencha todos os campos.');
         }
@@ -337,8 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
         inputContainer.appendChild(novaLinha);
     }
 
-    document.getElementById('submitButton').addEventListener('click', function(event) {
+    document.getElementById('submitButton').addEventListener('click', function (event) {
         event.preventDefault(); // Impede o envio padrão do formulário
+
 
         // Capturando os valores dos inputs principais
         const representante_id = document.getElementById('representante').value;
@@ -348,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const hora = document.getElementById('hora').value;
         const apelido = document.getElementById('apelido').value;
         const cpf_cnpj = document.getElementById('cpf_cnpj').value;
+        const ponto_coleta = document.getElementById('ponto_coleta').value;
         const rg = document.getElementById('rg').value;
         const maquina_id = document.getElementById('maquina').value;
         const nomeMaquina = document.querySelector('#maquina option:checked').text; // Obtém o nome da máquina selecionada
@@ -387,44 +393,47 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Criando o objeto para enviar
-        const dataToSend = {
-            representante_id: representante_id,
-            comprador_id: comprador_id,
-            nome_comprador: nomeComprador, 
-            data: data,
-            hora: hora,
-            apelido: apelido,
-            cpf_cnpj: cpf_cnpj,
-            rg: rg,
-            maquina_id: maquina_id,
-            nome_maquina: nomeMaquina, // Adicione isso
-            tipo: tipo,
-            linhas: JSON.stringify(linhas) // Enviando todas as linhas
-        };
+        // Capturando as imagens selecionadas
+        const files = document.getElementById('uploadImage').files;
+        const formData = new FormData();
+
+        // Adicionando as imagens ao FormData
+        for (let i = 0; i < files.length; i++) {
+            formData.append('imagens', files[i]);
+        }
+
+        // Adicionando os outros campos ao FormData
+        formData.append('representante_id', representante_id);
+        formData.append('comprador_id', comprador_id);
+        formData.append('nome_comprador', nomeComprador);
+        formData.append('data', data);
+        formData.append('hora', hora);
+        formData.append('apelido', apelido);
+        formData.append('cpf_cnpj', cpf_cnpj);
+        formData.append('rg', rg);
+        formData.append('ponto_coleta', ponto_coleta);
+        formData.append('maquina_id', maquina_id);
+        formData.append('nome_maquina', nomeMaquina);
+        formData.append('tipo', tipo);
+        formData.append('linhas', JSON.stringify(linhas));
 
         // Enviando os dados via fetch
         fetch('/api/upload-provisorio', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dataToSend)
+            body: formData
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Success:', data);
-            // Adicione aqui lógica para mostrar uma mensagem de sucesso ao usuário
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            // Adicione aqui lógica para mostrar uma mensagem de erro ao usuário
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     });
 })
 

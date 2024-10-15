@@ -1,35 +1,32 @@
-/* CSS para um modal personalizado em tela cheia */
-#infoModal .modal-dialog {
-    width: 100vw; /* Usar viewport width */
-    height: 100vh; /* Usar viewport height */
-    margin: 0; /* Remover margens */
-    max-width: none; /* Remover o limite de largura */
+/* Define o fundo da página como cinza */
+body {
+    background-color: #e2e2e2;
+    /* Cor cinza clara para o fundo da página */
+}
+.modal-fullscreen {
+    max-width: 100vw;
+    max-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
 }
 
-#infoModal .modal-content {
+.modal-fullscreen .modal-content {
     height: 100%;
-    border-radius: 0; /* Remover bordas arredondadas */
-}
-
-#infoModal .modal-header,
-#infoModal .modal-footer {
-    position: relative; /* Mantenha como relative */
     width: 100%;
+    border-radius: 0;
 }
 
-#infoModal .modal-body {
-    padding: 0; /* Remover preenchimento */
-    height: calc(100% - 60px); /* Ajustar altura total sem cabeçalho e rodapé */
-    overflow-y: auto; /* Adiciona rolagem vertical se o conteúdo for grande */
+.image-preview {
+    transition: transform 0.3s ease; /* Transição suave para o zoom */
+    cursor: pointer; /* Aparece como se fosse clicável */
 }
 
-/* Remover espaço extra em torno do modal */
-.modal-open .modal {
-    top: 0; /* Garantir que o modal fique no topo */
-    left: 0; /* Garantir que o modal fique à esquerda */
-    right: 0; /* Garantir que o modal fique à direita */
-    bottom: 0; /* Garantir que o modal fique na parte inferior */
+.image-preview:hover {
+    transform: scale(1.2); /* Aumenta a imagem em 20% quando o mouse está sobre ela */
 }
-.header {
-    padding-left: 20px; /* Ajuste esse valor conforme necessário */
+
+.modal-backdrop {
+    display: none; /* Remove a sobreposição */
 }

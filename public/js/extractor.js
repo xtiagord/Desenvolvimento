@@ -370,35 +370,29 @@ document.getElementById('sendButton').addEventListener('click', async () => {
 
     // Atualizar a contagem apenas se um representante estiver selecionado
     if (representanteSelecionado) {
-      // Atualizar o representante atual
-      representanteAtual = representanteSelecionado;
+        representanteAtual = representanteSelecionado;
 
-      // Inicializar a contagem para o novo representante ou continuar a partir do último número salvo
-      if (contagemRepresentantes.hasOwnProperty(representanteAtual)) {
-        // Incrementar o contador para o representante atual
-        contagemRepresentantes[representanteAtual]++;
-      } else {
-        // Inicializar contagem para o novo representante
-        contagemRepresentantes[representanteAtual] = 1;
-      }
+        // Atualizar contagem para o representante atual
+        contagemRepresentantes[representanteAtual] = (contagemRepresentantes[representanteAtual] || 0) + 1;
 
-      // Salvar a contagem atualizada no localStorage
-      salvarContagemRepresentantes();
+        // Salvar a contagem atualizada no localStorage
+        salvarContagemRepresentantes();
 
-      // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
-      let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-      for (let i = 0; i < npdfInputs.length; i++) {
-        npdfInputs[i].value = contagemRepresentantes[representanteAtual];
-      }
+        // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
+        let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+        for (let i = 0; i < npdfInputs.length; i++) {
+            npdfInputs[i].value = contagemRepresentantes[representanteAtual];
+        }
     } else {
-      alert("Selecione um representante antes de confirmar.");
-      return; // Interrompe o processo se nenhum representante estiver selecionado
+        alert("Selecione um representante antes de confirmar.");
+        return; // Interrompe o processo se nenhum representante estiver selecionado
     }
+
     // Seleciona o PDF para envio
-    const pdfInput = document.getElementById('pdfInput'); // Adicione um campo de input para o PDF no seu HTML
+    const pdfInput = document.getElementById('pdfInput');
     if (!pdfInput || !pdfInput.files.length) {
-      alert('Por favor selecione um arquivo PDF');
-      return;
+        alert('Por favor selecione um arquivo PDF');
+        return;
     }
 
     const pdfFile = pdfInput.files[0];
@@ -406,75 +400,77 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     formData.append('pdf', pdfFile);
     formData.append('representanteId', representanteSelecionado);
 
-    // Loop através das linhas para coletar os lotes corretos
+    // Coletar os dados de lote e Npdf
     rows.forEach(row => {
-      const cells = row.querySelectorAll('input, select');
-      const lote = cells[0].value; // Pega o valor do lote do input
-      const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
+        const cells = row.querySelectorAll('input, select');
+        const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
+        const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
 
-      formData.append('lote', lote); // Agora adiciona o lote
-      formData.append('npdf', npdf); // Adiciona npdf para cada lote
+        // Verificamos se o lote não está vazio antes de adicionar
+        if (lote) {
+            formData.append('lote', lote);
+            formData.append('npdf', npdf);
+        } else {
+            console.warn('Lote está vazio em uma das linhas.');
+        }
     });
 
     try {
-      const response = await fetch('/save-pdf', {
-        method: 'POST',
-        body: formData
-      });
+        const response = await fetch('/save-pdf', {
+            method: 'POST',
+            body: formData
+        });
 
-      if (response.ok) {
-        alert('PDF salvo com sucesso.');
-      } else {
-        alert('Falha ao salvar o PDF.');
-      }
+        if (response.ok) {
+            alert('PDF salvo com sucesso.');
+        } else {
+            alert('Falha ao salvar o PDF.');
+        }
     } catch (error) {
-      alert('Erro: ' + error.message);
+        alert('Erro: ' + error.message);
     }
 
-    $('#confirmacaoModal').modal('hide');
-
-
-    // Prepare and send the data
+    // Prepare and send the additional data
     const preparedData = prepareDataForSend(rows.map(row => {
-      const cells = row.querySelectorAll('input, select');
-      return {
-        lote: cells[0].value,
-        Npdf: cells[1].value,
-        kg: cells[2].value,
-        pd: cells[3].value,
-        pt: cells[4].value,
-        rh: cells[5].value,
-        valorKg: cells[6].value,
-        valor: cells[7].value,
-        tipo: cells[8].value,
-        hedge: cells[9].value,
-        data: cells[10].value,
-        hora: cells[11].value,
-        representante: cells[12].options[cells[12].selectedIndex].text,
-        fornecedor: cells[13].value,
-        sn: cells[14].value
-      };
+        const cells = row.querySelectorAll('input, select');
+        return {
+            lote: cells[0].value,
+            Npdf: contagemRepresentantes[representanteAtual], // Usando a contagem atualizada
+            kg: cells[2].value,
+            pd: cells[3].value,
+            pt: cells[4].value,
+            rh: cells[5].value,
+            valorKg: cells[6].value,
+            valor: cells[7].value,
+            tipo: cells[8].value,
+            hedge: cells[9].value,
+            data: cells[10].value,
+            hora: cells[11].value,
+            representante: cells[12].options[cells[12].selectedIndex].text,
+            fornecedor: cells[13].value,
+            sn: cells[14].value
+        };
     }));
 
     try {
-      const response = await fetch('/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(preparedData)
-      });
+        const response = await fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(preparedData)
+        });
 
-      if (response.ok) {
-        alert('Data saved successfully');
-      } else {
-        alert('Failed to save data');
-      }
+        if (response.ok) {
+            alert('Data saved successfully');
+        } else {
+            alert('Failed to save data');
+        }
     } catch (error) {
-      alert('Error: ' + error.message);
+        alert('Error: ' + error.message);
     }
 
     // Fechar o modal após enviar os dados
     $('#confirmacaoModal').modal('hide');
-  };
+};
 
 });
 
