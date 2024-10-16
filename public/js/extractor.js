@@ -90,6 +90,7 @@ function displayData(data) {
           </datalist>
       </td>
       <td><input type="text" id="SN${index}" class="form-control custom-spacing large-input sn-input" style="width: 80px;" value="${row.sn || ''}"></td>
+      <td><input type="hidden" id="SN${index}" class="form-control custom-spacing large-input sn-input" style="width: 80px;" value="${row.cpf || ''}"></td>
     `;
 
     tbody.appendChild(tr);
@@ -448,7 +449,8 @@ document.getElementById('sendButton').addEventListener('click', async () => {
             hora: cells[11].value,
             representante: cells[12].options[cells[12].selectedIndex].text,
             fornecedor: cells[13].value,
-            sn: cells[14].value
+            sn: cells[14].value,
+            cpf: cells[15].value,
         };
     }));
 
@@ -726,3 +728,5 @@ const styleSheet = document.createElement("style");
 styleSheet.type = "text/css";
 styleSheet.innerText = inputStyle;
 document.head.appendChild(styleSheet);
+
+

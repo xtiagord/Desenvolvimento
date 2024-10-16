@@ -62,7 +62,7 @@
           </div>
         </nav>
       </header>
-    <div class="container mt-5">
+    <div class="container mt-1">
         <!-- Card para cadastrar cliente -->
         <div class="card text-white bg-dark mb-4">
             <div class="card-header">
@@ -70,19 +70,16 @@
             </div>
             <div class="card-body">
                 <form id="clientForm">
-                    <div class="form-row">
-                        <div class="form-group col-md-4">
-                            <label for="nome">Nome</label>
-                            <input type="text" class="form-control" id="nome" required>
+                    <div class="form-row mb-3">
+                        <div class="col-4">
+                            <input type="text" class="form-control" id="fornecedorNome" placeholder="Nome do Fornecedor" oninput="filterFornecedores()">
                         </div>
-                        <div class="form-group col-md-4">
-                            <label for="cpf">CPF</label>
-                            <input type="text" class="form-control" id="cpf" required>
+                        <div class="col-4">
+                            <input type="text" class="form-control" id="fornecedorCpf" placeholder="CPF" oninput="filterFornecedores()">
                         </div>
-                        <div class="form-group col-md-4">
-                            <label for="representante">Representante</label>
-                            <select class="form-control" id="representante" required>
-                                <!-- Options will be populated by JavaScript -->
+                        <div class="col-4">
+                            <select class="form-control" id="representante" onchange="filterFornecedores()">
+                                <!-- As opções serão populadas por JavaScript -->
                             </select>
                         </div>
                     </div>
@@ -98,7 +95,7 @@
         </div>
     
         <br>
-        <div class="card bg-light" id="fornecedoresContainer" style="display: none;">
+        <div class="card bg-light" id="fornecedoresContainer" style="display: none; height: 700px;"> <!-- Ajuste o valor conforme necessário -->
             <div class="card-header">
                 <h2>Lista de Fornecedores</h2>
             </div>
@@ -106,26 +103,27 @@
                 <form>
                     <div class="form-row mb-3">
                         <div class="col-4">
-                            <input type="text" class="form-control" placeholder="Nome do Fornecedor" oninput="filterFornecedores()">
+                            <input type="text" id="searchNome" class="form-control" placeholder="Nome do Fornecedor" oninput="filtrarFornecedores()">
                         </div>
                         <div class="col-4">
-                            <input type="text" class="form-control" placeholder="CPF" oninput="filterFornecedores()">
+                            <input type="text" id="searchCPF" class="form-control" placeholder="CPF" oninput="formatarCPF(this); filtrarFornecedores()" maxlength="14">
                         </div>
+                        
                         <div class="col-4">
-                            <select class="form-control" placeholder="Representante" onchange="filterFornecedores()">
+                            <select id="representanteSelect" class="form-control" onchange="filtrarFornecedores()">
                                 <!-- As opções serão populadas por JavaScript -->
                             </select>
-                        </div>
+                        </div>                        
                     </div>
                 </form>
-                <table class="table table-hover">
+                <table id="fornecedoresTable" class="table table-hover">
                     <thead>
                         <tr>
                             <th>Codinome</th>
                             <th>Cpf</th>
                             <th>Apelido</th>
                             <th>Nome Completo</th>
-                            <th>Representante</Th>
+                            <th>Representante</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -135,6 +133,7 @@
                 </table>
             </div>
         </div>
+        
         
     </div>
         <!-- Modal para editar cooperado -->

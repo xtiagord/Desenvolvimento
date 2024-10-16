@@ -108,6 +108,7 @@ function formatNumber(value) {
 }
 
 // Função para extrair dados do PDF
+// Função para extrair dados do PDF
 function extractPDFData(text) {
     // Regex para capturar os valores na tabela
     const tableRegex = /(\d[.,]\d+)\s*(\d{1,3}[.,]\d{4})\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)\s*(\d[.,]\d{4})\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)\s*(\d{1,3}(?:[.,]\d{3})*(?:[.,]\d+)?|\d+[.,]\d+)/gm;
@@ -117,6 +118,7 @@ function extractPDFData(text) {
     const fornecedorRegex = /(?:\n|^)([A-Za-z]+\s+[A-Za-z]+(?:\s+[A-Za-z]+)*)\s*Comprador/;
     const snRegex = /SN-\d+/;
     const tipoRegex = /(\d+(?:[.,]\d+)?)\s*KGPdPtRhValor KgValor/;
+    const cpfRegex = /(\d{3}\.\d{3}\.\d{3}-\d{2}|\d{11})/; 
 
     const tableData = [];
     let match;
@@ -130,13 +132,22 @@ function extractPDFData(text) {
             pt: formatNumber(match[3]),
             rh: formatNumber(match[4]),
             valorKg: formatNumber(match[5]),
-            valor: formatNumber(match[6])
+            valor: formatNumber(match[6]),
         };
+
+        console.log("Dados sendo adicionados:", data);
+
+        const cpfMatch = cpfRegex.exec(text);
+        if (cpfMatch) {
+            data.cpf = cpfMatch[0]; 
+        } else {
+            console.log("Tipo não encontrado");
+        }
 
         // Captura e adiciona o tipo
         const tipoMatch = tipoRegex.exec(text);
         if (tipoMatch) {
-            data.tipo = tipoMatch[1]; // Captura apenas o número, sem o texto adicional
+            data.tipo = tipoMatch[1]; 
         } else {
             console.log("Tipo não encontrado");
         }
@@ -189,10 +200,11 @@ function extractPDFData(text) {
         tableData.push(data);
     }
 
-    console.log(tableData);
+    console.log("Todos os dados extraídos:", tableData);
 
     return tableData;
 }
+
 // Endpoint para extração de PDF
 app.post('/extract', extractUpload, async (req, res) => {
     if (!req.file) {
@@ -201,17 +213,16 @@ app.post('/extract', extractUpload, async (req, res) => {
 
     try {
         const data = await pdfParse(req.file.buffer);
-
         console.log("Texto extraído do PDF:", data.text);
-
         const extractedData = extractPDFData(data.text);
         res.json(extractedData);
     } catch (error) {
-        console.error("Erro ao processar o PDF:", error); // Log do erro
+        console.error("Erro ao processar o PDF:", error);
         res.status(500).send('Error processing PDF');
     }
 });
 
+// Endpoint para salvar dados extraídos no banco de dados
 app.post('/save', (req, res) => {
     const data = req.body;
     console.log('Dados recebidos:', data);
@@ -220,16 +231,61 @@ app.post('/save', (req, res) => {
         return res.status(400).json({ message: 'Dados inválidos ou ausentes' });
     }
 
-    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote, tipo, hedge) VALUES ?';
-    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote, row.tipo, row.hedge]);
+    // Debug: exibir CPFs recebidos
+    data.forEach((row, index) => {
+        console.log(`CPF do item ${index}:`, row.cpf);
+    });
+
+    // Inserir os dados na tabela 'dados'
+    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote, tipo) VALUES ?';
+    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote, row.tipo]);
 
     db.query(insertQuery, [values], (err, result) => {
         if (err) {
-            console.error('Erro ao inserir dados:', err);
-            return res.status(500).json({ message: 'Erro ao inserir dados', error: err });
+            console.error('Erro ao inserir dados na tabela dados:', err);
+            return res.status(500).json({ message: 'Erro ao inserir dados na tabela dados', error: err });
         }
-        console.log('Resultado da inserção:', result);
-        res.status(200).json({ message: 'Dados inseridos com sucesso' });
+
+        console.log('Resultado da inserção na tabela dados:', result);
+
+        const cooperadosValues = data.map(row => [
+            row.fornecedor,
+            row.cpf, // O CPF é adicionado apenas aqui
+            row.representante
+        ]).filter(row => row[1] !== null); // Filtra os que têm CPF
+        
+        if (cooperadosValues.length === 0) {
+            console.log("Nenhum CPF encontrado para inserção na tabela cooperados.");
+            return res.status(400).json({ message: 'Nenhum CPF válido encontrado para inserção na tabela cooperados.' });
+        }
+
+        const insertCooperadosQuery = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES ? ON DUPLICATE KEY UPDATE cpf = cpf';
+
+        // Use um loop para inserir apenas se não existir
+        const uniqueCooperadosValues = new Set(); // Conjunto para armazenar nomes e CPFs únicos
+        const toInsert = [];
+
+        for (const row of cooperadosValues) {
+            const key = `${row[0]}_${row[1]}`; // Combina nome e CPF como chave
+            if (!uniqueCooperadosValues.has(key)) {
+                uniqueCooperadosValues.add(key);
+                toInsert.push(row);
+            }
+        }
+
+        if (toInsert.length === 0) {
+            console.log("Nenhum novo cooperado encontrado para inserção.");
+            return res.status(200).json({ message: 'Nenhum novo cooperado para inserir.' });
+        }
+
+        db.query(insertCooperadosQuery, [toInsert], (err, cooperadosResult) => {
+            if (err) {
+                console.error('Erro ao inserir dados na tabela cooperados:', err);
+                return res.status(500).json({ message: 'Erro ao inserir dados na tabela cooperados', error: err });
+            }
+            console.log('Resultado da inserção na tabela cooperados:', cooperadosResult);
+            res.status(200).json({ message: 'Dados inseridos com sucesso' });
+        });
     });
 });
 
@@ -271,6 +327,7 @@ app.post('/api/representantes', (req, res) => {
         });
     });
 });
+
 app.get('/api/representantes/:id', (req, res) => {
     const idRepresentante = req.params.id;
     console.log('Recebendo solicitação para representante com ID:', idRepresentante); // Log para verificar a solicitação
@@ -291,7 +348,6 @@ app.get('/api/representantes/:id', (req, res) => {
     });
 });
 
-
 // Rota para obter fornecedores
 app.get('/fornecedores', (req, res) => {
     db.query('SELECT id, nome FROM cooperados', (err, results) => {
@@ -302,7 +358,6 @@ app.get('/fornecedores', (req, res) => {
         res.json(results);
     });
 });
-
 
 // Rota para criar subpastas e mover arquivos
 app.post('/create-subfolder', (req, res) => {
@@ -462,7 +517,6 @@ app.get('/public/Financeiro.html', verificarNivelAcesso('finance'), (req, res) =
     res.sendFile(path.join(__dirname, 'public', 'Financeiro.html'));
 });
 
-
 // Servir o arquivo Financeiro.html
 app.get('/public/pecasArchive.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'pecasArchive.html'));
@@ -515,7 +569,6 @@ app.get('/api/dados', (req, res) => {
         res.json(processedResults);
     });
 });
-
 
 app.delete('/api/dados/:id', (req, res) => {
     const id = req.params.id;
@@ -572,7 +625,6 @@ app.put('/dados/:id', (req, res) => {
         res.send('Dado atualizado com sucesso');
     });
 });
-
 
 app.get('/api/representantes', (req, res) => {
     const sql = 'SELECT * FROM representantes';
@@ -1947,7 +1999,7 @@ app.post('/api/registros_financeiros', (req, res) => {
             console.error('Erro ao inserir registro financeiro:', error);
             return res.status(500).json({ error: 'Erro ao salvar o registro financeiro' });
         }
-        res.status(201).json({ message: 'Registro financeiro salvo com sucesso!' });
+        res.status(201).json({ message: 'Registro financeiro salvo com sucesso' });
     });
 });
 
@@ -3539,8 +3591,10 @@ app.get('/get-last-npdf', async (req, res) => {
 // Endpoint para buscar fornecedores e seus representantes
 app.get('/api/fornecedores', (req, res) => {
     const query = `
-        SELECT DISTINCT fornecedor, representante FROM dados
+        SELECT nome AS fornecedor, cpf, representante_id 
+        FROM cooperados
     `;
+    
     db.query(query, (error, results) => {
         if (error) {
             return res.status(500).json({ error: 'Erro ao buscar fornecedores' });
@@ -3548,5 +3602,24 @@ app.get('/api/fornecedores', (req, res) => {
         res.json(results);
     });
 });
+
+app.get('/api/fornecedores_consulta', (req, res) => {
+    const representanteId = req.query.representante_id; // Obtém o ID do representante a partir da query string
+    const query = `
+        SELECT nome AS fornecedor, cpf, representante_id 
+        FROM cooperados 
+        WHERE representante_id = ?;
+    `;
+
+    db.query(query, [representanteId], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Erro ao buscar fornecedores' });
+        }
+        res.json(results);
+    });
+});
+
+
+
 
 
