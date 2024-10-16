@@ -3,30 +3,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Carregar representantes do banco de dados
     fetch('/api/representantes')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar representantes: ' + response.statusText);
+            }
+            return response.json();
+        })
         .then(data => {
             const representanteSelect = document.getElementById('representante');
             data.forEach(representante => {
                 const option = document.createElement('option');
-                option.value = representante.id;
-                option.textContent = representante.nome;
+                option.value = representante.id; // O valor é o ID
+                option.textContent = representante.nome; // O texto é o nome
                 representanteSelect.appendChild(option);
 
                 const editOption = document.createElement('option');
-                editOption.value = representante.id;
-                editOption.textContent = representante.nome;
+                editOption.value = representante.id; // O valor é o ID
+                editOption.textContent = representante.nome; // O texto é o nome
                 editRepresentanteSelect.appendChild(editOption);
             });
         })
-
         .catch(error => console.error('Erro ao carregar representantes:', error));
-    // Enviar dados do formulário para o backend
+
     document.getElementById('clientForm').addEventListener('submit', function (event) {
         event.preventDefault();
-        const nome = document.getElementById('nome').value;
-        const cpf = document.getElementById('cpf').value;
+        const nome = document.getElementById('fornecedorNome').value;
+        const cpf = document.getElementById('fornecedorCpf').value.replace(/\D/g, ''); // Remove caracteres não numéricos
+
+        // Obtenha o ID do representante
         const representanteId = document.getElementById('representante').value;
 
+        // Obtenha o nome do representante correspondente ao ID
+        const representanteNome = document.querySelector(`#representante option[value="${representanteId}"]`).textContent;
+
+        // Agora use representanteNome em vez de representanteId ao enviar os dados
         fetch(`/api/cooperados/check-cpf/${cpf}`)
             .then(response => {
                 if (!response.ok) {
@@ -43,19 +53,19 @@ document.addEventListener('DOMContentLoaded', function () {
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ nome, cpf, representanteId })
+                        body: JSON.stringify({ nome, cpf, representanteNome }) // Envie o nome do representante
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('Cliente cadastrado com sucesso!');
-                                document.getElementById('clientForm').reset();
-                                carregarCooperados();
-                            } else {
-                                alert('Erro ao cadastrar cliente!');
-                            }
-                        })
-                        .catch(error => console.error('Erro ao cadastrar cliente:', error));
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Cliente cadastrado com sucesso!');
+                            document.getElementById('clientForm').reset();
+                            carregarCooperados();
+                        } else {
+                            alert('Erro ao cadastrar cliente!');
+                        }
+                    })
+                    .catch(error => console.error('Erro ao cadastrar cliente:', error));
                 }
             })
             .catch(error => {
@@ -64,6 +74,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     });
 });
+
+
+
 
 // Função para carregar fornecedores e representantes
 function carregarFornecedores() {
@@ -94,16 +107,26 @@ function carregarFornecedores() {
                     nomesExibidos.add(nomeReduzido); // Adiciona o nome ao conjunto
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                       <td>${gerarNomeReduzido(item.fornecedor)}</td>
-                    <td>${item.cpf}</td>
-                    <td>${gerarNomeReduzido(item.fornecedor)}</td>
-                    <td>${item.fornecedor}</td>
-                    <td>${item.representante_id}</td>                              
+                        <td>${gerarNomeReduzido(item.fornecedor)}</td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="editarFornecedor(${item.id})">Editar</button>
+                            <input type="text" value="${item.cpf}" class="form-control" id="cpf-${item.id}" disabled>
+                        </td>
+                          <td>${gerarNomeReduzido(item.fornecedor)}</td>
+                        <td>
+                            <input type="text" value="${item.fornecedor}" class="form-control" id="fornecedor-${item.id}" disabled>
+                        </td>
+                        <td>${item.representante_id}</td>                              
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="toggleEdit(${item.id}, this)">Editar</button>
                             <button class="btn btn-danger btn-sm" onclick="excluirFornecedor(${item.id})">Excluir</button>
                         </td>
                     `;
+                     // Adiciona o evento de input para formatar o CPF em tempo real
+                     const cpfInput = row.querySelector(`#cpf-${item.id}`);
+                     cpfInput.addEventListener('input', function() {
+                         formatarCPF(cpfInput);
+                     });
+
                     fornecedoresTableBody.appendChild(row);
                 }
             });
@@ -111,6 +134,52 @@ function carregarFornecedores() {
         })
         .catch(error => console.error('Erro:', error));
 }
+// Função para alternar entre editar e salvar
+function toggleEdit(id, button) {
+    const cpfInput = document.getElementById(`cpf-${id}`);
+    const fornecedorInput = document.getElementById(`fornecedor-${id}`);
+
+    if (cpfInput.disabled) {
+        // Habilita os inputs e muda o texto do botão
+        cpfInput.disabled = false;
+        fornecedorInput.disabled = false;
+        button.textContent = 'Salvar';
+    } else {
+        // Formata o CPF antes de salvar
+        formatarCPF(cpfInput); // Chama a função de formatação
+
+        // Desabilita os inputs e salva os dados
+        const novoCpf = cpfInput.value;
+        const novoFornecedor = fornecedorInput.value;
+
+        // Atualiza os dados no servidor
+        atualizarFornecedor(id, novoCpf, novoFornecedor)
+            .then(() => {
+                cpfInput.disabled = true;
+                fornecedorInput.disabled = true;
+                button.textContent = 'Editar';
+                carregarFornecedores(); // Recarrega a lista de fornecedores para refletir as alterações
+            })
+            .catch(error => console.error('Erro ao atualizar fornecedor:', error));
+    }
+}
+
+
+// Função para enviar a requisição de atualização
+function atualizarFornecedor(id, cpf, fornecedor) {
+    return fetch(`/api/fornecedores/${id}`, {
+        method: 'PUT', // Método de atualização
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ cpf, fornecedor }),
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao atualizar fornecedor: ' + response.statusText);
+        }
+    });
+}
+
 // Função para gerar o nome reduzido
 function gerarNomeReduzido(nomeCompleto) {
     const partes = nomeCompleto.split(' ');
@@ -145,7 +214,6 @@ function carregarRepresentantes() {
         })
         .catch(error => console.error('Erro ao carregar representantes:', error));
 }
-
 // Chame esta função quando a página carregar
 document.addEventListener('DOMContentLoaded', carregarRepresentantes);
 function formatarCPF(input) {
@@ -162,9 +230,15 @@ function formatarCPF(input) {
         cpfFormatado = valor.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
 
+    // Limita o tamanho do CPF formatado a 14 caracteres
+    if (cpfFormatado.length > 14) {
+        cpfFormatado = cpfFormatado.slice(0, 14);
+    }
+
     // Atualiza o valor do input com o CPF formatado
     input.value = cpfFormatado;
 }
+
 // Chama a função para carregar fornecedores ao iniciar a página
 document.addEventListener('DOMContentLoaded', carregarFornecedores);
 
@@ -194,6 +268,25 @@ function filtrarFornecedores() {
         }
     });
 }
+
+function excluirFornecedor(id) {
+    // Confirmação antes de excluir
+    if (confirm('Tem certeza que deseja excluir este fornecedor?')) {
+        // Faz a requisição para excluir o fornecedor
+        fetch(`/api/fornecedores/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao excluir fornecedor: ' + response.statusText);
+            }
+            // Recarrega a lista de fornecedores após a exclusão
+            carregarFornecedores();
+        })
+        .catch(error => console.error('Erro:', error));
+    }
+}
+
 
 
 document.getElementById('exportButton').addEventListener('click', exportarParaExcel);

@@ -660,13 +660,15 @@ app.get('/dados/:nomeRepresentante', (req, res) => {
 
 
 app.post('/api/cooperados', (req, res) => {
-    const { nome, cpf, representanteId } = req.body;
+    const { nome, cpf, representanteNome } = req.body; // Mudei de representanteId para representanteNome
 
-    if (!nome || !cpf || !representanteId) {
-        console.error('Dados incompletos:', { nome, cpf, representanteId });
+    // Verifica se os dados necessários estão presentes
+    if (!nome || !cpf || !representanteNome) {
+        console.error('Dados incompletos:', { nome, cpf, representanteNome });
         return res.status(400).json({ error: 'Nome, CPF e Representante são obrigatórios.' });
     }
 
+    // Verifica se o CPF já está cadastrado
     const checkCpfSql = "SELECT COUNT(*) AS count FROM cooperados WHERE cpf = ?";
     db.query(checkCpfSql, [cpf], (err, results) => {
         if (err) {
@@ -677,17 +679,21 @@ app.post('/api/cooperados', (req, res) => {
         if (results[0].count > 0) {
             return res.status(400).json({ error: 'CPF já cadastrado. Por favor, verifique os dados.' });
         } else {
-            const checkRepSql = 'SELECT id FROM representantes WHERE id = ?';
-            db.query(checkRepSql, [representanteId], (err, results) => {
+            // Busca o ID do representante pelo nome
+            const checkRepSql = 'SELECT id FROM representantes WHERE nome = ?';
+            db.query(checkRepSql, [representanteNome], (err, results) => {
                 if (err) {
                     console.error('Erro ao verificar representante:', err);
                     return res.status(500).json({ error: err.message });
                 }
                 if (results.length === 0) {
-                    console.error('Representante não encontrado:', representanteId);
+                    console.error('Representante não encontrado:', representanteNome);
                     return res.status(400).json({ error: 'Representante não encontrado.' });
                 }
 
+                const representanteId = results[0].id; // Obtém o ID do representante
+
+                // Insere o cooperado na tabela
                 const insertSql = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES (?, ?, ?)';
                 db.query(insertSql, [nome, cpf, representanteId], (err, results) => {
                     if (err) {
@@ -700,6 +706,7 @@ app.post('/api/cooperados', (req, res) => {
         }
     });
 });
+
 app.get('/api/cooperados', (req, res) => {
     const { nome, cpf, representante_id } = req.query;
     let query = 'SELECT c.nome, c.cpf, r.nome AS representante FROM cooperados c JOIN representantes r ON c.representante_id = r.id WHERE 1=1';
@@ -3591,7 +3598,7 @@ app.get('/get-last-npdf', async (req, res) => {
 // Endpoint para buscar fornecedores e seus representantes
 app.get('/api/fornecedores', (req, res) => {
     const query = `
-        SELECT nome AS fornecedor, cpf, representante_id 
+        SELECT id, nome AS fornecedor, cpf, representante_id 
         FROM cooperados
     `;
     
@@ -3602,6 +3609,7 @@ app.get('/api/fornecedores', (req, res) => {
         res.json(results);
     });
 });
+
 
 app.get('/api/fornecedores_consulta', (req, res) => {
     const representanteId = req.query.representante_id; // Obtém o ID do representante a partir da query string
@@ -3618,6 +3626,65 @@ app.get('/api/fornecedores_consulta', (req, res) => {
         res.json(results);
     });
 });
+
+app.put('/api/fornecedores/:id', (req, res) => {
+    const { id } = req.params;
+    const { cpf, fornecedor } = req.body;
+
+    const query = `
+        UPDATE cooperados 
+        SET cpf = ?, nome = ?
+        WHERE id = ?
+    `;
+
+    db.query(query, [cpf, fornecedor, id], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Erro ao atualizar fornecedor' });
+        }
+        res.status(200).json({ message: 'Fornecedor atualizado com sucesso' });
+    });
+});
+
+// Endpoint para excluir um fornecedor
+app.delete('/api/fornecedores/:id', (req, res) => {
+    const fornecedorId = req.params.id; // Obtém o ID do fornecedor a ser excluído
+
+    // Query para excluir o fornecedor
+    const query = `DELETE FROM cooperados WHERE id = ?`;
+
+    db.query(query, [fornecedorId], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Erro ao excluir fornecedor' });
+        }
+
+        // Verifica se o fornecedor foi realmente excluído
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ error: 'Fornecedor não encontrado' });
+        }
+
+        // Retorna uma resposta de sucesso
+        res.status(204).send(); // No content response for successful deletion
+    });
+});
+
+// Endpoint para verificar se o CPF já está cadastrado
+app.get('/api/cooperados/check-cpf/:cpf', (req, res) => {
+    const cpf = req.params.cpf; // Obtém o CPF do parâmetro da URL
+
+    // Query para buscar o CPF na tabela 'cooperados'
+    const query = `SELECT COUNT(*) AS count FROM cooperados WHERE cpf = ?`;
+
+    db.query(query, [cpf], (error, results) => {
+        if (error) {
+            return res.status(500).json({ error: 'Erro ao verificar CPF' });
+        }
+
+        // Se o CPF existir, retorna { exists: true }
+        const exists = results[0].count > 0;
+        res.json({ exists });
+    });
+});
+
 
 
 

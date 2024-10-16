@@ -62,7 +62,7 @@
           </div>
         </nav>
       </header>
-    <div class="container mt-1">
+      <div class="container mt-1">
         <!-- Card para cadastrar cliente -->
         <div class="card text-white bg-dark mb-4">
             <div class="card-header">
@@ -72,16 +72,17 @@
                 <form id="clientForm">
                     <div class="form-row mb-3">
                         <div class="col-4">
-                            <input type="text" class="form-control" id="fornecedorNome" placeholder="Nome do Fornecedor" oninput="filterFornecedores()">
+                            <input type="text" class="form-control"  id="fornecedorNome"  placeholder="Nome do Fornecedor">
                         </div>
                         <div class="col-4">
-                            <input type="text" class="form-control" id="fornecedorCpf" placeholder="CPF" oninput="filterFornecedores()">
+                            <input type="text" class="form-control" id="fornecedorCpf" placeholder="CPF"  oninput="formatarCPF(this)">
                         </div>
                         <div class="col-4">
-                            <select class="form-control" id="representante" onchange="filterFornecedores()">
+                            <select class="form-control" id="representante">
                                 <!-- As opções serão populadas por JavaScript -->
                             </select>
                         </div>
+                        
                     </div>
                     <div class="form-row">
                         <div class="col">
@@ -93,7 +94,7 @@
                 </form>
             </div>
         </div>
-    
+    </div>
         <br>
         <div class="card bg-light" id="fornecedoresContainer" style="display: none; height: 700px;"> <!-- Ajuste o valor conforme necessário -->
             <div class="card-header">
@@ -171,12 +172,13 @@
 </div>
 
     <!-- jQuery, Popper.js, Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="/cliente/cliente.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="/cliente/cliente.js"></script>
+
 
 </body>
 </html>
