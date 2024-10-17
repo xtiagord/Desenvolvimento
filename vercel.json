@@ -2,12 +2,13 @@
     "version": 2,
     "routes": [
       {
-        "src": "/login/(.*)",
-        "dest": "/login/scriptlogin.js"
+        "src": "/login",
+        "methods": ["POST"], 
+        "dest": "/public/login/scriptlogin.js"
       },
       {
         "src": "/(.*)",
-        "dest": "/index.html"
+        "dest": "/public/index.html"
       }
     ]
   }
