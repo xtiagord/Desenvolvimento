@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 
 // Criação do pool de conexões
 const db = mysql.createConnection({
-    host: 'opbdisyf8i.loclx.io',
+    host: 'g4plmtmzoe.loclx.io',
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
