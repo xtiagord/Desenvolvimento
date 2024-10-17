@@ -18,7 +18,7 @@ const app = express();
 
 // Configurar o middleware CORS
 app.use(cors({
-    origin: 'https://desenvolvimento-1iwpqorv7-xtiagords-projects.vercel.app', // Permita sua origem
+    origin: 'https://desenvolvimento-g45t.vercel.app/', // Permita sua origem
     methods: ['GET', 'POST'], // Métodos permitidos
     credentials: true // Permitir credenciais se necessário
 }));
