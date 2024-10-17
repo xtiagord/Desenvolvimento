@@ -17,23 +17,20 @@ const cors = require('cors');
 const app = express();
 
 // Configurar o middleware CORS
-app.use(cors({
-    origin: 'https://desenvolvimento-g45t.vercel.app/', // Permita sua origem
-    methods: ['GET', 'POST'], // Métodos permitidos
-    credentials: true // Permitir credenciais se necessário
-}));
+app.use(cors());
 
 // Configurar o middleware para analisar o corpo das solicitações
 app.use(express.json()); // Adicione isso se você estiver recebendo JSON
 
 const PORT = process.env.PORT || 3000;
 
+// Criação do pool de conexões
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: process.env.DB_PORT, // Use a variável de ambiente
+    port: 16441, 
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -1001,7 +998,7 @@ app.post('/register', async (req, res) => {
     });
 });
 
-app.post('/login', (req, res) => {
+app.post('/index', (req, res) => {
     const { username, password } = req.body;
     const query = 'SELECT * FROM users WHERE username = ?';
 
