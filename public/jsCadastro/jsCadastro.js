@@ -397,7 +397,7 @@ document.getElementById('exportaOnderExcell').addEventListener('click', function
                 });
                 return acc;
             }, []);
-            ws['!cols'] = maxLength.map(len => ({ wch: len + 2 })); // Adicionando +2 para uma margem de segurança
+            ws['!cols'] = maxLength.map(len => ({ wch: len + 4 })); // Adicionando +2 para uma margem de segurança
 
             XLSX.utils.book_append_sheet(wb, ws, 'Representantes');
             XLSX.writeFile(wb, `representantes_${loteSelecionado}_formatados.xlsx`);
