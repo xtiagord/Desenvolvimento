@@ -26,7 +26,7 @@ const PORT = process.env.PORT || 3000;
 
 // Criação do pool de conexões
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
+    host: 'g4plmtmzoe.loclx.io',
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
@@ -46,7 +46,7 @@ db.connect(err => {
 });
 
 // Definir uma rota simples
-app.get('api/index.html', (req, res) => {
+app.get('/index.html', (req, res) => {
     res.send(__dirname + '/public/index.html');
 });
 
