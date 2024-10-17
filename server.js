@@ -43,7 +43,7 @@ db.connect(err => {
 });
 
 // Definir uma rota simples
-app.get('/index.html', (req, res) => {
+app.get('api/index.html', (req, res) => {
     res.send(__dirname + '/public/index.html');
 });
 
