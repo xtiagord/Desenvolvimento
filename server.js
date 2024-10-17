@@ -13,12 +13,15 @@ const { PDFDocument } = require('pdf-lib');
 const ExcelJS = require('exceljs');
 require('dotenv').config();
 const cors = require('cors');
-app.use(cors());
-
-
-
 // Inicializar o Express
 const app = express();
+
+// Configurar o middleware CORS
+app.use(cors());
+
+// Configurar o middleware para analisar o corpo das solicitações
+app.use(express.json()); // Adicione isso se você estiver recebendo JSON
+
 const PORT = process.env.PORT || 3000;
 
 // Criação do pool de conexões
