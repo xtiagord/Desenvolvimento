@@ -19,7 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Criação do pool de conexões
-const pool = mysql.createPool({
+const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
