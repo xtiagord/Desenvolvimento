@@ -24,13 +24,12 @@ app.use(express.json()); // Adicione isso se você estiver recebendo JSON
 
 const PORT = process.env.PORT || 3000;
 
-// Criação do pool de conexões
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: 16441, 
+    port: process.env.DB_PORT, // Use a variável de ambiente
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
