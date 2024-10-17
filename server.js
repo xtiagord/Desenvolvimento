@@ -20,10 +20,10 @@ const PORT = process.env.PORT || 3001;
 
 // Criação da conexão
 const db = mysql.createConnection({
-    host: '192.168.0.177',
-    user: 'tiago',
-    password: '1234',
-    database: 'sys'
+    host: process.env.DB_HOST,        // Variável de ambiente para o host
+    user: process.env.DB_USER,        // Variável de ambiente para o usuário
+    password: process.env.DB_PASSWORD,// Variável de ambiente para a senha
+    database: process.env.DB_NAME     // Variável de ambiente para o nome do banco de dados
 });
 
 // Conectar ao banco de dados
