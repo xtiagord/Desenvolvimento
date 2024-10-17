@@ -997,7 +997,7 @@ app.post('/register', async (req, res) => {
     });
 });
 
-app.post('/index', (req, res) => {
+app.post('/login', (req, res) => {
     const { username, password } = req.body;
     const query = 'SELECT * FROM users WHERE username = ?';
 
