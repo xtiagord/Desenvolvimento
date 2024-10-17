@@ -17,7 +17,11 @@ const cors = require('cors');
 const app = express();
 
 // Configurar o middleware CORS
-app.use(cors());
+app.use(cors({
+    origin: 'https://desenvolvimento-1iwpqorv7-xtiagords-projects.vercel.app', // Permita sua origem
+    methods: ['GET', 'POST'], // Métodos permitidos
+    credentials: true // Permitir credenciais se necessário
+}));
 
 // Configurar o middleware para analisar o corpo das solicitações
 app.use(express.json()); // Adicione isso se você estiver recebendo JSON
