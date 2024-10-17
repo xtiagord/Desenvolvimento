@@ -5,7 +5,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
     const password = document.getElementById('password').value;
 
     // Enviar dados de login para o servidor
-    fetch('/login', {
+    fetch('https://desenvolvimento-mocha.vercel.app/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
