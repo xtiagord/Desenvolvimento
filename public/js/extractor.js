@@ -389,49 +389,7 @@ document.getElementById('sendButton').addEventListener('click', async () => {
         return; // Interrompe o processo se nenhum representante estiver selecionado
     }
 
-    // Seleciona o PDF para envio
-    const pdfInput = document.getElementById('pdfInput');
-    if (!pdfInput || !pdfInput.files.length) {
-        alert('Por favor selecione um arquivo PDF');
-        return;
-    }
-
-    const pdfFile = pdfInput.files[0];
-    const formData = new FormData();
-    formData.append('pdf', pdfFile);
-    formData.append('representanteId', representanteSelecionado);
-
     // Coletar os dados de lote e Npdf
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('input, select');
-        const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
-        const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
-
-        // Verificamos se o lote não está vazio antes de adicionar
-        if (lote) {
-            formData.append('lote', lote);
-            formData.append('npdf', npdf);
-        } else {
-            console.warn('Lote está vazio em uma das linhas.');
-        }
-    });
-
-    try {
-        const response = await fetch('/save-pdf', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            alert('PDF salvo com sucesso.');
-        } else {
-            alert('Falha ao salvar o PDF.');
-        }
-    } catch (error) {
-        alert('Erro: ' + error.message);
-    }
-
-    // Prepare and send the additional data
     const preparedData = prepareDataForSend(rows.map(row => {
         const cells = row.querySelectorAll('input, select');
         return {
@@ -455,26 +413,76 @@ document.getElementById('sendButton').addEventListener('click', async () => {
     }));
 
     try {
-        const response = await fetch('/save', {
+      const response = await fetch('/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(preparedData)
+      });
+  
+      // Verificar o status da resposta
+      if (response.ok) {
+          alert('Data saved successfully');
+      } else {
+          // Tentar extrair o corpo da resposta para obter mais detalhes
+          const errorResponse = await response.json();
+          console.error('Error Response:', errorResponse);
+          alert('Erro ao Salvar: ' + (errorResponse.message || 'Unknown error'));
+          return; // Interrompe aqui se os dados não forem salvos
+      }
+    } catch (error) {
+        console.error('Erro ao salvar os dados:', error);
+        alert('Error: ' + error.message);
+        return; // Interrompe aqui se houver erro
+    }
+
+    // Agora que os dados foram salvos com sucesso, podemos salvar o PDF
+
+    // Seleciona o PDF para envio
+    const pdfInput = document.getElementById('pdfInput');
+    if (!pdfInput || !pdfInput.files.length) {
+        alert('Por favor selecione um arquivo PDF');
+        return;
+    }
+
+    const pdfFile = pdfInput.files[0];
+    const formData = new FormData();
+    formData.append('pdf', pdfFile);
+    formData.append('representanteId', representanteSelecionado);
+
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('input, select');
+        const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
+        const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
+
+        // Verificamos se o lote não está vazio antes de adicionar
+        if (lote) {
+            formData.append('lote', lote);
+            formData.append('npdf', npdf);
+        } else {
+            console.warn('Lote está vazio em uma das linhas.');
+        }
+    });
+
+    try {
+        const pdfResponse = await fetch('/save-pdf', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(preparedData)
+            body: formData
         });
 
-        if (response.ok) {
-            alert('Data saved successfully');
+        if (pdfResponse.ok) {
+            alert('PDF salvo com sucesso.');
         } else {
-            alert('Failed to save data');
+            alert('Falha ao salvar o PDF.');
         }
     } catch (error) {
-        alert('Error: ' + error.message);
+        alert('Erro: ' + error.message);
     }
 
     // Fechar o modal após enviar os dados
     $('#confirmacaoModal').modal('hide');
-};
-
+  };
 });
+
 
 function formatDecimal(value) {
   if (value === null || value === undefined || value === '') return '';

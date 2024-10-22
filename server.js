@@ -234,63 +234,94 @@ app.post('/save', (req, res) => {
         return res.status(400).json({ message: 'Dados inválidos ou ausentes' });
     }
 
-    // Debug: exibir CPFs recebidos
-    data.forEach((row, index) => {
-        console.log(`CPF do item ${index}:`, row.cpf);
-    });
+    // Verificar se os dados já existem na tabela 'dados'
+    const selectQuery = 'SELECT * FROM dados WHERE kg = ? AND pd = ? AND pt = ? AND rh = ? AND valorKg = ? AND valor = ?';
 
-    // Inserir os dados na tabela 'dados'
-    const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote, tipo) VALUES ?';
-    const values = data.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote, row.tipo]);
-
-    db.query(insertQuery, [values], (err, result) => {
-        if (err) {
-            console.error('Erro ao inserir dados na tabela dados:', err);
-            return res.status(500).json({ message: 'Erro ao inserir dados na tabela dados', error: err });
-        }
-
-        console.log('Resultado da inserção na tabela dados:', result);
-
-        const cooperadosValues = data.map(row => [
-            row.fornecedor,
-            row.cpf, // O CPF é adicionado apenas aqui
-            row.representante
-        ]).filter(row => row[1] !== null); // Filtra os que têm CPF
-        
-        if (cooperadosValues.length === 0) {
-            console.log("Nenhum CPF encontrado para inserção na tabela cooperados.");
-            return res.status(400).json({ message: 'Nenhum CPF válido encontrado para inserção na tabela cooperados.' });
-        }
-
-        const insertCooperadosQuery = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES ? ON DUPLICATE KEY UPDATE cpf = cpf';
-
-        // Use um loop para inserir apenas se não existir
-        const uniqueCooperadosValues = new Set(); // Conjunto para armazenar nomes e CPFs únicos
-        const toInsert = [];
-
-        for (const row of cooperadosValues) {
-            const key = `${row[0]}_${row[1]}`; // Combina nome e CPF como chave
-            if (!uniqueCooperadosValues.has(key)) {
-                uniqueCooperadosValues.add(key);
-                toInsert.push(row);
-            }
-        }
-
-        if (toInsert.length === 0) {
-            console.log("Nenhum novo cooperado encontrado para inserção.");
-            return res.status(200).json({ message: 'Nenhum novo cooperado para inserir.' });
-        }
-
-        db.query(insertCooperadosQuery, [toInsert], (err, cooperadosResult) => {
-            if (err) {
-                console.error('Erro ao inserir dados na tabela cooperados:', err);
-                return res.status(500).json({ message: 'Erro ao inserir dados na tabela cooperados', error: err });
-            }
-            console.log('Resultado da inserção na tabela cooperados:', cooperadosResult);
-            res.status(200).json({ message: 'Dados inseridos com sucesso' });
+    // Verificar cada entrada individualmente
+    const checkPromises = data.map(row => {
+        return new Promise((resolve, reject) => {
+            db.query(selectQuery, [row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor], (err, results) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ row, exists: results.length > 0 });
+                }
+            });
         });
     });
+
+    // Esperar até que todas as verificações sejam concluídas
+    Promise.all(checkPromises)
+        .then(checkResults => {
+            const newEntries = checkResults.filter(result => !result.exists).map(result => result.row);
+
+            if (newEntries.length === 0) {
+                // Nenhum dado novo a ser inserido
+                return res.status(400).json({ message: 'Todos os dados já existem no banco de dados. PDF não será salvo.' });
+            }
+
+            // Inserir os novos dados na tabela 'dados'
+            const insertQuery = 'INSERT INTO dados (Npdf, kg, pd, pt, rh, valorKg, valor, data, hora, representante, fornecedor, sn, lote, tipo) VALUES ?';
+            const values = newEntries.map(row => [row.Npdf, row.kg, row.pd, row.pt, row.rh, row.valorKg, row.valor, row.data, row.hora, row.representante, row.fornecedor, row.sn, row.lote, row.tipo]);
+
+            db.query(insertQuery, [values], (err, result) => {
+                if (err) {
+                    console.error('Erro ao inserir dados na tabela dados:', err);
+                    return res.status(500).json({ message: 'Erro ao inserir dados na tabela dados', error: err });
+                }
+
+                console.log('Dados inseridos na tabela dados:', result);
+
+                // Salvar cooperados, se houver CPF válido
+                const cooperadosValues = newEntries.map(row => [
+                    row.fornecedor,
+                    row.cpf, // CPF do cooperado
+                    row.representante
+                ]).filter(row => row[1] !== null); // Filtra os que têm CPF
+
+                if (cooperadosValues.length === 0) {
+                    console.log("Nenhum CPF encontrado para inserção na tabela cooperados.");
+                    return res.status(400).json({ message: 'Nenhum CPF válido encontrado para inserção na tabela cooperados.' });
+                }
+
+                const insertCooperadosQuery = 'INSERT INTO cooperados (nome, cpf, representante_id) VALUES ? ON DUPLICATE KEY UPDATE cpf = cpf';
+
+                // Usar um Set para evitar duplicação de cooperados
+                const uniqueCooperadosValues = new Set();
+                const toInsert = [];
+
+                for (const row of cooperadosValues) {
+                    const key = `${row[0]}_${row[1]}`; // Combina nome e CPF como chave
+                    if (!uniqueCooperadosValues.has(key)) {
+                        uniqueCooperadosValues.add(key);
+                        toInsert.push(row);
+                    }
+                }
+
+                if (toInsert.length === 0) {
+                    console.log("Nenhum novo cooperado encontrado para inserção.");
+                    return res.status(200).json({ message: 'Nenhum novo cooperado para inserir. Agora o PDF pode ser salvo.' });
+                }
+
+                db.query(insertCooperadosQuery, [toInsert], (err, cooperadosResult) => {
+                    if (err) {
+                        console.error('Erro ao inserir dados na tabela cooperados:', err);
+                        return res.status(500).json({ message: 'Erro ao inserir dados na tabela cooperados', error: err });
+                    }
+                    console.log('Resultado da inserção na tabela cooperados:', cooperadosResult);
+
+                    // Após salvar cooperados, responder com sucesso e permitir o salvamento do PDF
+                    res.status(200).json({ message: 'Dados inseridos com sucesso e cooperados salvos. Agora o PDF pode ser salvo.' });
+                });
+            });
+        })
+        .catch(err => {
+            console.error('Erro ao verificar dados:', err);
+            res.status(500).json({ message: 'Erro ao verificar dados existentes', error: err });
+        });
 });
+
+
 
 //rota representante e cooperados -extrator.html
 app.get('/representantes', (req, res) => {
@@ -1393,6 +1424,8 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
 app.post('/save-pdf', upload.single('pdf'), (req, res) => {
     const representanteId = req.body.representanteId;
     const pdfFile = req.file;
+    const npdf = req.body.npdf[0];
+    const lote = req.body.lote[0];
 
     if (!pdfFile) {
         return res.status(400).send('Nenhum arquivo PDF enviado.');
@@ -1409,34 +1442,41 @@ app.post('/save-pdf', upload.single('pdf'), (req, res) => {
             return res.status(400).send('ID do representante inválido.');
         }
 
-        // Obter o nome do representante
-        obterNomeRepresentante(representanteId, (err, nomeRepresentante) => {
+        // Verificar se o PDF já foi salvo com o mesmo Npdf e representante_id
+        const checkDuplicateQuery = 'SELECT COUNT(*) AS count FROM pdfs WHERE Npdf = ? AND representante_id = ?';
+        db.query(checkDuplicateQuery, [npdf, representanteId], (err, rows) => {
             if (err) {
-                console.error('Erro ao obter o nome do representante:', err);
-                return res.status(500).send('Erro ao obter o nome do representante.');
+                console.error('Erro ao verificar duplicidade do PDF:', err);
+                return res.status(500).send('Erro ao verificar duplicidade do PDF.');
             }
 
-            const newFilename = `${req.body.npdf[0]} - ${nomeRepresentante}.pdf`; // ou .join se você quiser todos os valores
-            const lote = req.body.lote[0]; // ou .join se você quiser todos os valores
-            const npdf = req.body.npdf[0]; // ou .join se você quiser todos os valores
+            if (rows[0].count > 0) {
+                return res.status(400).send('PDF com esse Npdf e representante já foi salvo.');
+            }
 
-            // Inserir PDF no banco de dados
-            const query = 'INSERT INTO pdfs (name, data, representante_id, Npdf, lote) VALUES (?, ?, ?, ?, ?)';
-            const params = [newFilename, pdfFile.buffer, representanteId, npdf, lote];
-
-            db.query(query, params, (err, result) => {
+            // Se não houver duplicidade, salvar o PDF
+            obterNomeRepresentante(representanteId, (err, nomeRepresentante) => {
                 if (err) {
-                    console.error('Erro ao salvar o PDF:', err);
-                    return res.status(500).send('Erro ao salvar o PDF.');
+                    console.error('Erro ao obter o nome do representante:', err);
+                    return res.status(500).send('Erro ao obter o nome do representante.');
                 }
-                res.send('PDF salvo com sucesso.');
+
+                const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
+                const insertQuery = 'INSERT INTO pdfs (name, data, representante_id, Npdf, lote) VALUES (?, ?, ?, ?, ?)';
+                const params = [newFilename, pdfFile.buffer, representanteId, npdf, lote];
+
+                db.query(insertQuery, params, (err, result) => {
+                    if (err) {
+                        console.error('Erro ao salvar o PDF:', err);
+                        return res.status(500).send('Erro ao salvar o PDF.');
+                    }
+
+                    res.send('PDF salvo com sucesso.');
+                });
             });
         });
     });
 });
-
-
-
 
 // Rota para exibir o PDF
 app.get('/pdfs/:id', (req, res) => {
