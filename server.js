@@ -1424,8 +1424,6 @@ app.post('/upload', upload.fields([{ name: 'pdfFiles', maxCount: 200 }, { name: 
 app.post('/save-pdf', upload.single('pdf'), (req, res) => {
     const representanteId = req.body.representanteId;
     const pdfFile = req.file;
-    const npdf = req.body.npdf[0];
-    const lote = req.body.lote[0];
 
     if (!pdfFile) {
         return res.status(400).send('Nenhum arquivo PDF enviado.');
@@ -1442,37 +1440,27 @@ app.post('/save-pdf', upload.single('pdf'), (req, res) => {
             return res.status(400).send('ID do representante inválido.');
         }
 
-        // Verificar se o PDF já foi salvo com o mesmo Npdf e representante_id
-        const checkDuplicateQuery = 'SELECT COUNT(*) AS count FROM pdfs WHERE Npdf = ? AND representante_id = ?';
-        db.query(checkDuplicateQuery, [npdf, representanteId], (err, rows) => {
+        // Obter o nome do representante
+        obterNomeRepresentante(representanteId, (err, nomeRepresentante) => {
             if (err) {
-                console.error('Erro ao verificar duplicidade do PDF:', err);
-                return res.status(500).send('Erro ao verificar duplicidade do PDF.');
+                console.error('Erro ao obter o nome do representante:', err);
+                return res.status(500).send('Erro ao obter o nome do representante.');
             }
 
-            if (rows[0].count > 0) {
-                return res.status(400).send('PDF com esse Npdf e representante já foi salvo.');
-            }
+            const newFilename = `${req.body.npdf[0]} - ${nomeRepresentante}.pdf`; // ou .join se você quiser todos os valores
+            const lote = req.body.lote[0]; // ou .join se você quiser todos os valores
+            const npdf = req.body.npdf[0]; // ou .join se você quiser todos os valores
 
-            // Se não houver duplicidade, salvar o PDF
-            obterNomeRepresentante(representanteId, (err, nomeRepresentante) => {
+            // Inserir PDF no banco de dados
+            const query = 'INSERT INTO pdfs (name, data, representante_id, Npdf, lote) VALUES (?, ?, ?, ?, ?)';
+            const params = [newFilename, pdfFile.buffer, representanteId, npdf, lote];
+
+            db.query(query, params, (err, result) => {
                 if (err) {
-                    console.error('Erro ao obter o nome do representante:', err);
-                    return res.status(500).send('Erro ao obter o nome do representante.');
+                    console.error('Erro ao salvar o PDF:', err);
+                    return res.status(500).send('Erro ao salvar o PDF.');
                 }
-
-                const newFilename = `${npdf} - ${nomeRepresentante}.pdf`;
-                const insertQuery = 'INSERT INTO pdfs (name, data, representante_id, Npdf, lote) VALUES (?, ?, ?, ?, ?)';
-                const params = [newFilename, pdfFile.buffer, representanteId, npdf, lote];
-
-                db.query(insertQuery, params, (err, result) => {
-                    if (err) {
-                        console.error('Erro ao salvar o PDF:', err);
-                        return res.status(500).send('Erro ao salvar o PDF.');
-                    }
-
-                    res.send('PDF salvo com sucesso.');
-                });
+                res.send('PDF salvo com sucesso.');
             });
         });
     });
@@ -3728,8 +3716,67 @@ app.get('/api/cooperados/check-cpf/:cpf', (req, res) => {
     });
 });
 
+// Endpoint para salvar contagem de representantes
+app.post('/api/salvarContagem', (req, res) => {
+    const { contagemRepresentantes } = req.body; // Recebe a contagem dos representantes
+  
+    // Para cada representante, insira ou atualize no banco de dados
+    const promises = Object.entries(contagemRepresentantes).map(([representanteID, contagem]) => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          'INSERT INTO representante_contagem (representante_id, contagem) VALUES (?, ?) ON DUPLICATE KEY UPDATE contagem = ?',
+          [representanteID, contagem, contagem],
+          (error, results) => {
+            if (error) return reject(error);
+            resolve(results);
+          }
+        );
+      });
+    });
+  
+    Promise.all(promises)
+      .then(() => res.status(200).send('Contagens salvas com sucesso.'))
+      .catch(error => res.status(500).send('Erro ao salvar contagens: ' + error.message));
+  });
 
+// Endpoint para carregar a contagem de representantes
+app.get('/api/carregarContagem', (req, res) => {
+    db.query('SELECT representante_id, contagem FROM representante_contagem', (error, results) => {
+      if (error) {
+        return res.status(500).send('Erro ao carregar contagens: ' + error.message);
+      }
+  
+      // Transformar resultados em um objeto para facilitar o acesso
+      const contagemRepresentantes = {};
+      results.forEach(row => {
+        contagemRepresentantes[row.representante_id] = row.contagem;
+      });
+  
+      res.json(contagemRepresentantes); // Retorna as contagens em formato JSON
+    });
+  });
+  
+  app.post('/atualizar-contagem', (req, res) => {
+    const { representanteId, contagem } = req.body;
 
+    // Verifica se os dados estão presentes
+    if (!representanteId || contagem === undefined) {
+        return res.status(400).json({ message: 'Dados inválidos.' });
+    }
+
+    // Query para atualizar a contagem
+    const updateQuery = 'UPDATE representante_contagem SET contagem = ? WHERE representante_id = ?';
+
+    db.query(updateQuery, [contagem, representanteId], (err, result) => {
+        if (err) {
+            console.error('Erro ao atualizar a contagem:', err);
+            return res.status(500).json({ message: 'Erro ao atualizar a contagem', error: err });
+        }
+
+        console.log('Contagem atualizada com sucesso:', result);
+        res.status(200).json({ message: 'Contagem atualizada com sucesso.' });
+    });
+});
 
 
 

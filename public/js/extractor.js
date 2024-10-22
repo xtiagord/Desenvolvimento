@@ -366,123 +366,132 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   $('#confirmacaoModal').modal('show');
 
   document.getElementById('confirmarEnvio').onclick = async function () {
-      let representanteSelecionado = document.getElementById("representante0").value;
+    let representanteSelecionado = document.getElementById("representante0").value;
 
-      // Atualizar a contagem apenas se um representante estiver selecionado
-      if (representanteSelecionado) {
-          representanteAtual = representanteSelecionado;
+    // Atualizar a contagem apenas se um representante estiver selecionado
+    if (representanteSelecionado) {
+        representanteAtual = representanteSelecionado;
 
-          // Atualizar contagem para o representante atual
-          contagemRepresentantes[representanteAtual] = (contagemRepresentantes[representanteAtual] || 0) + 1;
+        // Atualizar contagem para o representante atual
+        contagemRepresentantes[representanteAtual] = (contagemRepresentantes[representanteAtual] || 0) + 1;
 
-          // Salvar a contagem atualizada no localStorage
-          salvarContagemRepresentantes();
+        // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
+        let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+        for (let i = 0; i < npdfInputs.length; i++) {
+            npdfInputs[i].value = contagemRepresentantes[representanteAtual];
+        }
+    } else {
+        alert("Selecione um representante antes de confirmar.");
+        return; // Interrompe o processo se nenhum representante estiver selecionado
+    }
+    // Seleciona o PDF para envio
+    const pdfInput = document.getElementById('pdfInput');
+    if (!pdfInput || !pdfInput.files.length) {
+        alert('Por favor selecione um arquivo PDF');
+        return;
+    }
 
-          // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
-          let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-          for (let i = 0; i < npdfInputs.length; i++) {
-              npdfInputs[i].value = contagemRepresentantes[representanteAtual];
-          }
-      } else {
-          alert("Selecione um representante antes de confirmar.");
-          return; // Interrompe o processo se nenhum representante estiver selecionado
-      }
+    const pdfFile = pdfInput.files[0];
+    const formData = new FormData();
+    formData.append('pdf', pdfFile);
+    formData.append('representanteId', representanteSelecionado);
 
-      // Verificar se os dados já existem antes de salvar o PDF
-      const hasDuplicateData = await checkForDuplicateData(rows);
-      if (hasDuplicateData) {
-          alert('Os dados já existem, não é possível salvar o PDF.');
-          return;
-      }
+    // Coletar os dados de lote e Npdf
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('input, select');
+        const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
+        const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
 
-      // Seleciona o PDF para envio
-      const pdfInput = document.getElementById('pdfInput');
-      if (!pdfInput || !pdfInput.files.length) {
-          alert('Por favor selecione um arquivo PDF');
-          return;
-      }
+        // Verificamos se o lote não está vazio antes de adicionar
+        if (lote) {
+            formData.append('lote', lote);
+            formData.append('npdf', npdf);
+        } else {
+            console.warn('Lote está vazio em uma das linhas.');
+        }
+    });
 
-      const pdfFile = pdfInput.files[0];
-      const formData = new FormData();
-      formData.append('pdf', pdfFile);
-      formData.append('representanteId', representanteSelecionado);
+    // Prepare and send the additional data
+    const preparedData = prepareDataForSend(rows.map(row => {
+        const cells = row.querySelectorAll('input, select');
+        return {
+            lote: cells[0].value,
+            Npdf: contagemRepresentantes[representanteAtual], // Usando a contagem atualizada
+            kg: cells[2].value,
+            pd: cells[3].value,
+            pt: cells[4].value,
+            rh: cells[5].value,
+            valorKg: cells[6].value,
+            valor: cells[7].value,
+            tipo: cells[8].value,
+            hedge: cells[9].value,
+            data: cells[10].value,
+            hora: cells[11].value,
+            representante: cells[12].options[cells[12].selectedIndex].text,
+            fornecedor: cells[13].value,
+            sn: cells[14].value,
+            cpf: cells[15].value,
+        };
+    }));
 
-      // Coletar os dados de lote e Npdf
-      rows.forEach(row => {
-          const cells = row.querySelectorAll('input, select');
-          const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
-          const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
+    try {
+        const response = await fetch('/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(preparedData)
+        });
 
-          // Verificamos se o lote não está vazio antes de adicionar
-          if (lote) {
-              formData.append('lote', lote);
-              formData.append('npdf', npdf);
-          } else {
-              console.warn('Lote está vazio em uma das linhas.');
-          }
-      });
+        // Verificar o status da resposta
+        if (response.ok) {
+            alert('Data saved successfully');
+        } else {
+            const errorResponse = await response.json();
+            console.error('Error Response:', errorResponse);
+            alert('Erro ao Salvar: ' + (errorResponse.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Erro ao salvar os dados:', error);
+        alert('Error: ' + error.message);
+    }
 
-      try {
-          const response = await fetch('/save-pdf', {
-              method: 'POST',
-              body: formData
-          });
+    try {
+        const response = await fetch('/save-pdf', {
+            method: 'POST',
+            body: formData
+        });
 
-          if (response.ok) {
-              alert('PDF salvo com sucesso.');
-          } else {
-              alert('Falha ao salvar o PDF.');
-          }
-      } catch (error) {
-          alert('Erro: ' + error.message);
-      }
+        if (response.ok) {
+            alert('PDF salvo com sucesso.');
+        } else {
+            alert('Falha ao salvar o PDF.');
+        }
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    }
 
-      // Prepare and send the additional data
-      const preparedData = prepareDataForSend(rows.map(row => {
-          const cells = row.querySelectorAll('input, select');
-          return {
-              lote: cells[0].value,
-              Npdf: contagemRepresentantes[representanteAtual], // Usando a contagem atualizada
-              kg: cells[2].value,
-              pd: cells[3].value,
-              pt: cells[4].value,
-              rh: cells[5].value,
-              valorKg: cells[6].value,
-              valor: cells[7].value,
-              tipo: cells[8].value,
-              hedge: cells[9].value,
-              data: cells[10].value,
-              hora: cells[11].value,
-              representante: cells[12].options[cells[12].selectedIndex].text,
-              fornecedor: cells[13].value,
-              sn: cells[14].value,
-              cpf: cells[15].value,
-          };
-      }));
+    // Atualizar a contagem no banco de dados
+    try {
+        const contagemAtualizada = contagemRepresentantes[representanteAtual];
+        const updateResponse = await fetch('/atualizar-contagem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ representanteId: representanteSelecionado, contagem: contagemAtualizada })
+        });
 
-      try {
-          const response = await fetch('/save', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(preparedData)
-          });
+        if (updateResponse.ok) {
+            alert('Contagem atualizada com sucesso.');
+        } else {
+            alert('Falha ao atualizar a contagem.');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar a contagem:', error);
+        alert('Erro: ' + error.message);
+    }
 
-          // Verificar o status da resposta
-          if (response.ok) {
-              alert('Data saved successfully');
-          } else {
-              const errorResponse = await response.json();
-              console.error('Error Response:', errorResponse);
-              alert('Erro ao Salvar: ' + (errorResponse.message || 'Unknown error'));
-          }
-      } catch (error) {
-          console.error('Erro ao salvar os dados:', error);
-          alert('Error: ' + error.message);
-      }
+    // Fechar o modal após enviar os dados
+    $('#confirmacaoModal').modal('hide');
+};
 
-      // Fechar o modal após enviar os dados
-      $('#confirmacaoModal').modal('hide');
-  };
 });
 
 // Função para verificar se os dados são duplicados
@@ -544,23 +553,28 @@ async function fetchCooperadosByRepresentante(representanteId) {
     return [];
   }
 }
-function carregarContagemRepresentantes() {
-  let contagemJSON = localStorage.getItem('contagemRepresentantes');
-  if (contagemJSON) {
-    return JSON.parse(contagemJSON);
-  } else {
-    return {};
+async function carregarContagemRepresentantes() {
+  try {
+    const response = await fetch('/api/carregarContagem');
+    if (!response.ok) {
+      throw new Error('Erro ao carregar contagens: ' + response.statusText);
+    }
+
+    const contagemJSON = await response.json();
+    return contagemJSON; // Retorna o objeto com as contagens dos representantes
+  } catch (error) {
+    console.error('Erro ao carregar contagem de representantes:', error);
+    return {}; // Retorna um objeto vazio em caso de erro
   }
 }
 
 // Variáveis para armazenar o representante selecionado atualmente e a contagem de representantes
 let representanteAtual = "";
-let contagemRepresentantes = carregarContagemRepresentantes();
+let contagemRepresentantes =  carregarContagemRepresentantes(); 
 
-// Função para salvar a contagem atual no localStorage
-function salvarContagemRepresentantes() {
-  localStorage.setItem('contagemRepresentantes', JSON.stringify(contagemRepresentantes));
-}
+
+
+
 
 // Função chamada ao clicar no botão de enviar
 function enviarDados() {
@@ -581,9 +595,6 @@ function enviarDados() {
       contagemRepresentantes[representanteAtual] = 1;
     }
 
-    // Salvar a contagem atualizada no localStorage
-    salvarContagemRepresentantes();
-
     // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
     let npdfInputs = document.querySelectorAll("[id^=Npdf]");
     for (let i = 0; i < npdfInputs.length; i++) {
@@ -601,9 +612,12 @@ function mostrarEnviar() {
 }
 
 // Carregar contagem inicial ao carregar a página
-window.onload = function () {
-  contagemRepresentantes = carregarContagemRepresentantes();
+window.onload = async function () {
+  contagemRepresentantes = await carregarContagemRepresentantes();
+  // Aqui você pode adicionar qualquer lógica adicional para atualizar a interface
+  console.log('Contagem de representantes carregada:', contagemRepresentantes);
 };
+
 
 // Função para adicionar uma nova linha à tabela
 function addNewRow() {
@@ -691,22 +705,45 @@ async function abrirModalEdicao() {
 }
 
 // Função para salvar as edições do modal
-function salvarEdicoes() {
+async function salvarEdicoes() {
   let modalContent = document.getElementById("editModalContent");
+  let contagemParaSalvar = {};
 
   // Atualiza a contagem de representantes com base nos valores dos inputs no modal
   for (let representanteID in contagemRepresentantes) {
     if (contagemRepresentantes.hasOwnProperty(representanteID)) {
       let input = modalContent.querySelector(`#rep_${representanteID}`);
       if (input) {
-        contagemRepresentantes[representanteID] = parseInt(input.value) || 0;
+        const novaContagem = parseInt(input.value) || 0;
+        contagemRepresentantes[representanteID] = novaContagem;
+        contagemParaSalvar[representanteID] = novaContagem; // Salvar a nova contagem para enviar
       }
     }
   }
 
-  salvarContagemRepresentantes();
+  try {
+    // Enviar as contagens para o servidor
+    const response = await fetch('/api/salvarContagem', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ contagemRepresentantes: contagemParaSalvar })
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao salvar contagens: ' + response.statusText);
+    }
+
+    alert('Contagens salvas com sucesso.');
+  } catch (error) {
+    console.error('Erro ao salvar as edições:', error);
+    alert('Erro ao salvar as edições: ' + error.message);
+  }
+
   $('#editModal').modal('hide'); // Usando jQuery para fechar o modal
 }
+
 
 // Função para mostrar o modal de confirmação de reset
 function mostrarConfirmacaoReset() {
@@ -730,8 +767,6 @@ function resetarContagem() {
   // Resetar a contagem de todos os representantes para 0
   contagemRepresentantes = {};
 
-  // Salvar a contagem atualizada no localStorage
-  salvarContagemRepresentantes();
 
   // Atualizar todos os campos de input (SN e Npdf) para 0
   let snInputs = document.querySelectorAll("[id^=SN]");
@@ -743,10 +778,6 @@ function resetarContagem() {
     npdfInputs[i].value = 0;
   }
 }
-
-// Adiciona o evento de clique aos botões
-document.getElementById('resetButton').addEventListener('click', mostrarConfirmacaoReset);
-document.getElementById('editButton').addEventListener('click', abrirModalEdicao);
 
 const inputStyle = `
   .large-input {
