@@ -1,0 +1,15 @@
+{
+    "version": 2,
+    "routes": [
+      {
+        "src": "/login",
+        "methods": ["POST"], 
+        "dest": "/public/login/scriptlogin.js"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/public/index.html"
+      }
+    ]
+  }
+  
