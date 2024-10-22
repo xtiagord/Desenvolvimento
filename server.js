@@ -12,17 +12,11 @@ const { promisify } = require('util');
 const { PDFDocument } = require('pdf-lib');
 const ExcelJS = require('exceljs');
 require('dotenv').config();
-const cors = require('cors');
+
+
 // Inicializar o Express
 const app = express();
-
-// Configurar o middleware CORS
-app.use(cors());
-
-// Configurar o middleware para analisar o corpo das solicitações
-app.use(express.json()); // Adicione isso se você estiver recebendo JSON
-
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Criação do pool de conexões
 const db = mysql.createConnection({
@@ -30,7 +24,6 @@ const db = mysql.createConnection({
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    port: 16441, 
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

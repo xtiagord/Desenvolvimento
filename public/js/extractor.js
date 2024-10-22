@@ -319,8 +319,8 @@ document.getElementById('extractButton').addEventListener('click', async () => {
 document.getElementById('sendButton').addEventListener('click', async () => {
   const table = document.querySelector('#result table');
   if (!table) {
-    alert('No data to send');
-    return;
+      alert('No data to send');
+      return;
   }
 
   const rows = Array.from(table.querySelectorAll('tbody tr'));
@@ -328,36 +328,36 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   let tipoValido = true;
 
   rows.forEach(row => {
-    const cells = row.querySelectorAll('input, select');
-    const tipo = cells[8].value;
+      const cells = row.querySelectorAll('input, select');
+      const tipo = cells[8].value;
 
-    // Destacar o campo tipo se estiver vazio
-    if (!tipo) {
-      cells[8].style.borderColor = 'yellow';
-      tipoValido = false;
-    } else {
-      cells[8].style.borderColor = ''; // Remove destaque se preenchido
-    }
+      // Destacar o campo tipo se estiver vazio
+      if (!tipo) {
+          cells[8].style.borderColor = 'yellow';
+          tipoValido = false;
+      } else {
+          cells[8].style.borderColor = ''; // Remove destaque se preenchido
+      }
 
-    const representante = cells[12].options[cells[12].selectedIndex].text;
-    const lote = cells[0].value;
-    const fornecedor = cells[13].value;
+      const representante = cells[12].options[cells[12].selectedIndex].text;
+      const lote = cells[0].value;
+      const fornecedor = cells[13].value;
 
-    if (!uniqueData.has(representante)) {
-      uniqueData.set(representante, { lote, tipo, representante, fornecedor });
-    }
+      if (!uniqueData.has(representante)) {
+          uniqueData.set(representante, { lote, tipo, representante, fornecedor });
+      }
   });
 
   if (!tipoValido) {
-    alert('Por favor preencha o campo "TIPO"');
-    return;
+      alert('Por favor preencha o campo "TIPO"');
+      return;
   }
 
   const detalhes = Array.from(uniqueData.values()).map(item => `
-    <li><strong>Lote:</strong> ${item.lote}</li>
-    <li><strong>Tipo:</strong> ${item.tipo}</li>
-    <li><strong>Representante:</strong> ${item.representante}</li>
-    <li><strong>Fornecedor:</strong> ${item.fornecedor}</li>
+      <li><strong>Lote:</strong> ${item.lote}</li>
+      <li><strong>Tipo:</strong> ${item.tipo}</li>
+      <li><strong>Representante:</strong> ${item.representante}</li>
+      <li><strong>Fornecedor:</strong> ${item.fornecedor}</li>
   `).join('');
 
   document.getElementById('detalhesConfirmacao').innerHTML = detalhes;
@@ -366,124 +366,147 @@ document.getElementById('sendButton').addEventListener('click', async () => {
   $('#confirmacaoModal').modal('show');
 
   document.getElementById('confirmarEnvio').onclick = async function () {
-    // Obter o valor selecionado do select
-    let representanteSelecionado = document.getElementById("representante0").value;
+      let representanteSelecionado = document.getElementById("representante0").value;
 
-    // Atualizar a contagem apenas se um representante estiver selecionado
-    if (representanteSelecionado) {
-        representanteAtual = representanteSelecionado;
+      // Atualizar a contagem apenas se um representante estiver selecionado
+      if (representanteSelecionado) {
+          representanteAtual = representanteSelecionado;
 
-        // Atualizar contagem para o representante atual
-        contagemRepresentantes[representanteAtual] = (contagemRepresentantes[representanteAtual] || 0) + 1;
+          // Atualizar contagem para o representante atual
+          contagemRepresentantes[representanteAtual] = (contagemRepresentantes[representanteAtual] || 0) + 1;
 
-        // Salvar a contagem atualizada no localStorage
-        salvarContagemRepresentantes();
+          // Salvar a contagem atualizada no localStorage
+          salvarContagemRepresentantes();
 
-        // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
-        let npdfInputs = document.querySelectorAll("[id^=Npdf]");
-        for (let i = 0; i < npdfInputs.length; i++) {
-            npdfInputs[i].value = contagemRepresentantes[representanteAtual];
-        }
-    } else {
-        alert("Selecione um representante antes de confirmar.");
-        return; // Interrompe o processo se nenhum representante estiver selecionado
-    }
-
-    // Coletar os dados de lote e Npdf
-    const preparedData = prepareDataForSend(rows.map(row => {
-        const cells = row.querySelectorAll('input, select');
-        return {
-            lote: cells[0].value,
-            Npdf: contagemRepresentantes[representanteAtual], // Usando a contagem atualizada
-            kg: cells[2].value,
-            pd: cells[3].value,
-            pt: cells[4].value,
-            rh: cells[5].value,
-            valorKg: cells[6].value,
-            valor: cells[7].value,
-            tipo: cells[8].value,
-            hedge: cells[9].value,
-            data: cells[10].value,
-            hora: cells[11].value,
-            representante: cells[12].options[cells[12].selectedIndex].text,
-            fornecedor: cells[13].value,
-            sn: cells[14].value,
-            cpf: cells[15].value,
-        };
-    }));
-
-    try {
-      const response = await fetch('/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(preparedData)
-      });
-  
-      // Verificar o status da resposta
-      if (response.ok) {
-          alert('Data saved successfully');
+          // Atualizar todos os campos de input (SN e Npdf) com a contagem do representante atual
+          let npdfInputs = document.querySelectorAll("[id^=Npdf]");
+          for (let i = 0; i < npdfInputs.length; i++) {
+              npdfInputs[i].value = contagemRepresentantes[representanteAtual];
+          }
       } else {
-          // Tentar extrair o corpo da resposta para obter mais detalhes
-          const errorResponse = await response.json();
-          console.error('Error Response:', errorResponse);
-          alert('Erro ao Salvar: ' + (errorResponse.message || 'Unknown error'));
-          return; // Interrompe aqui se os dados não forem salvos
+          alert("Selecione um representante antes de confirmar.");
+          return; // Interrompe o processo se nenhum representante estiver selecionado
       }
-    } catch (error) {
-        console.error('Erro ao salvar os dados:', error);
-        alert('Error: ' + error.message);
-        return; // Interrompe aqui se houver erro
-    }
 
-    // Agora que os dados foram salvos com sucesso, podemos salvar o PDF
+      // Verificar se os dados já existem antes de salvar o PDF
+      const hasDuplicateData = await checkForDuplicateData(rows);
+      if (hasDuplicateData) {
+          alert('Os dados já existem, não é possível salvar o PDF.');
+          return;
+      }
 
-    // Seleciona o PDF para envio
-    const pdfInput = document.getElementById('pdfInput');
-    if (!pdfInput || !pdfInput.files.length) {
-        alert('Por favor selecione um arquivo PDF');
-        return;
-    }
+      // Seleciona o PDF para envio
+      const pdfInput = document.getElementById('pdfInput');
+      if (!pdfInput || !pdfInput.files.length) {
+          alert('Por favor selecione um arquivo PDF');
+          return;
+      }
 
-    const pdfFile = pdfInput.files[0];
-    const formData = new FormData();
-    formData.append('pdf', pdfFile);
-    formData.append('representanteId', representanteSelecionado);
+      const pdfFile = pdfInput.files[0];
+      const formData = new FormData();
+      formData.append('pdf', pdfFile);
+      formData.append('representanteId', representanteSelecionado);
 
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('input, select');
-        const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
-        const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
+      // Coletar os dados de lote e Npdf
+      rows.forEach(row => {
+          const cells = row.querySelectorAll('input, select');
+          const lote = cells[0].value; // Supondo que o lote esteja na primeira célula
+          const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
 
-        // Verificamos se o lote não está vazio antes de adicionar
-        if (lote) {
-            formData.append('lote', lote);
-            formData.append('npdf', npdf);
-        } else {
-            console.warn('Lote está vazio em uma das linhas.');
-        }
-    });
+          // Verificamos se o lote não está vazio antes de adicionar
+          if (lote) {
+              formData.append('lote', lote);
+              formData.append('npdf', npdf);
+          } else {
+              console.warn('Lote está vazio em uma das linhas.');
+          }
+      });
 
-    try {
-        const pdfResponse = await fetch('/save-pdf', {
-            method: 'POST',
-            body: formData
-        });
+      try {
+          const response = await fetch('/save-pdf', {
+              method: 'POST',
+              body: formData
+          });
 
-        if (pdfResponse.ok) {
-            alert('PDF salvo com sucesso.');
-        } else {
-            alert('Falha ao salvar o PDF.');
-        }
-    } catch (error) {
-        alert('Erro: ' + error.message);
-    }
+          if (response.ok) {
+              alert('PDF salvo com sucesso.');
+          } else {
+              alert('Falha ao salvar o PDF.');
+          }
+      } catch (error) {
+          alert('Erro: ' + error.message);
+      }
 
-    // Fechar o modal após enviar os dados
-    $('#confirmacaoModal').modal('hide');
+      // Prepare and send the additional data
+      const preparedData = prepareDataForSend(rows.map(row => {
+          const cells = row.querySelectorAll('input, select');
+          return {
+              lote: cells[0].value,
+              Npdf: contagemRepresentantes[representanteAtual], // Usando a contagem atualizada
+              kg: cells[2].value,
+              pd: cells[3].value,
+              pt: cells[4].value,
+              rh: cells[5].value,
+              valorKg: cells[6].value,
+              valor: cells[7].value,
+              tipo: cells[8].value,
+              hedge: cells[9].value,
+              data: cells[10].value,
+              hora: cells[11].value,
+              representante: cells[12].options[cells[12].selectedIndex].text,
+              fornecedor: cells[13].value,
+              sn: cells[14].value,
+              cpf: cells[15].value,
+          };
+      }));
+
+      try {
+          const response = await fetch('/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(preparedData)
+          });
+
+          // Verificar o status da resposta
+          if (response.ok) {
+              alert('Data saved successfully');
+          } else {
+              const errorResponse = await response.json();
+              console.error('Error Response:', errorResponse);
+              alert('Erro ao Salvar: ' + (errorResponse.message || 'Unknown error'));
+          }
+      } catch (error) {
+          console.error('Erro ao salvar os dados:', error);
+          alert('Error: ' + error.message);
+      }
+
+      // Fechar o modal após enviar os dados
+      $('#confirmacaoModal').modal('hide');
   };
 });
 
+// Função para verificar se os dados são duplicados
+async function checkForDuplicateData(rows) {
+  const existingData = new Set(); // Mantenha um conjunto para dados existentes
 
+  for (const row of rows) {
+      const cells = row.querySelectorAll('input, select');
+      const lote = cells[0].value;
+      const npdf = contagemRepresentantes[representanteAtual]; // Usar a contagem atualizada
+
+      if (!lote) continue; // Pular linhas sem lote
+
+      // Criar uma chave única para o lote e Npdf
+      const uniqueKey = `${lote}_${npdf}`;
+      if (existingData.has(uniqueKey)) {
+          return true; // Se já existe, retorna true
+      }
+
+      existingData.add(uniqueKey); // Adiciona ao conjunto
+  }
+
+  return false; // Retorna false se não encontrar duplicatas
+}
 function formatDecimal(value) {
   if (value === null || value === undefined || value === '') return '';
   return value.toString().replace(',', '.');
